@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout × Theme Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material-darker.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+    <style>
+        /* CSS Variables for Light/Dark Theme */
+        :root[data-theme="light"] {
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F9FAFB;
+            --bg-tertiary: #F3F4F6;
+            --border-primary: #E5E7EB;
+            --border-secondary: #D1D5DB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --text-tertiary: #9CA3AF;
+            --accent: #2563EB;
+            --accent-hover: #1D4ED8;
+            --accent-light: #DBEAFE;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        :root[data-theme="dark"] {
+            --bg-primary: #1F2937;
+            --bg-secondary: #111827;
+            --bg-tertiary: #0F172A;
+            --border-primary: #374151;
+            --border-secondary: #4B5563;
+            --text-primary: #F9FAFB;
+            --text-secondary: #D1D5DB;
+            --text-tertiary: #9CA3AF;
+            --accent: #3B82F6;
+            --accent-hover: #2563EB;
+            --accent-light: #1E3A8A;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            transition: background-color 200ms, color 200ms;
+        }
+
+        /* App Layout */
+        .app-container {
+            display: grid;
+            grid-template-columns: 260px 1fr 340px;
+            grid-template-rows: 52px 1fr;
+            height: 100vh;
+        }
+
+        /* Header */
+        .app-header {
+            grid-column: 1 / -1;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            transition: background-color 200ms, border-color 200ms;
+        }
+
+        .app-logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-logo::before {
+            content: '◆';
+            color: var(--accent);
+            font-size: 16px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .theme-btn {
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 150ms;
+        }
+
+        .theme-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn {
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 150ms;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Sidebars */
+        .sidebar {
+            background: var(--bg-primary);
+            border-right: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color 200ms, border-color 200ms;
+        }
+
+        .sidebar.right {
+            border-right: none;
+            border-left: 1px solid var(--border-primary);
+        }
+
+        .sidebar-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .sidebar-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            margin-bottom: 12px;
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            padding: 7px 10px;
+            border: 1px solid var(--border-primary);
+            border-radius: 5px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 150ms;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .page-size-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .page-size-btn {
+            flex: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 0;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 150ms;
+        }
+
+        .page-size-btn:hover {
+            border-color: var(--border-secondary);
+        }
+
+        .page-size-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Master Thumbnail */
+        .master-thumbnail {
+            border: 2px solid var(--border-primary);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 200ms;
+            background: var(--bg-tertiary);
+            position: relative;
+        }
+
+        .master-thumbnail:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-md);
+        }
+
+        .master-thumbnail.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .master-label {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        /* Layout List */
+        .layouts-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .layout-item {
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            border: 1px solid transparent;
+            transition: all 150ms;
+        }
+
+        .layout-item:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border-primary);
+        }
+
+        .layout-item.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Canvas */
+        .canvas-area {
+            background: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .canvas-toolbar {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-primary);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 12px;
+            border-right: 1px solid var(--border-primary);
+        }
+
+        .toolbar-group:first-child {
+            padding-left: 0;
+        }
+
+        .toolbar-group:last-child {
+            border-right: none;
+        }
+
+        .toolbar-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-tertiary);
+            margin-right: 6px;
+        }
+
+        .toolbar-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 150ms;
+        }
+
+        .toolbar-btn:hover:not(:disabled) {
+            background: var(--bg-tertiary);
+            border-color: var(--border-secondary);
+        }
+
+        .toolbar-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .toolbar-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .canvas-viewport {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            overflow: auto;
+        }
+
+        .preview-container {
+            background: white;
+            box-shadow: var(--shadow-lg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .preview-frame {
+            display: block;
+            border: none;
+        }
+
+        /* Properties Panel */
+        .properties-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .property-section {
+            margin-bottom: 20px;
+        }
+
+        .property-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 150ms;
+        }
+
+        .checkbox-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            flex: 1;
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-item .item-desc {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-left: auto;
+        }
+
+        .property-group-header {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 12px;
+            margin-bottom: 6px;
+        }
+
+        .property-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .property-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .property-field label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .property-field input {
+            padding: 6px 8px;
+            font-size: 12px;
+        }
+
+        /* Tabs */
+        .tab-bar {
+            display: flex;
+            gap: 2px;
+            background: var(--bg-tertiary);
+            padding: 2px;
+            border-radius: 5px;
+        }
+
+        .tab-btn {
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 150ms;
+        }
+
+        .tab-btn:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .status-badge.master {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-badge.layout {
+            background: var(--accent-light);
+            color: white;
+        }
+
+        /* Code Editor */
+        .CodeMirror {
+            height: 100%;
+            font-size: 13px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-secondary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+
+        /* Utility */
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="app-logo">Layout × Theme Generator</div>
+            <div class="header-right">
+                <div class="theme-toggle">
+                    <button class="theme-btn active" data-theme="light" onclick="setTheme('light')">Light</button>
+                    <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')">Dark</button>
+                </div>
+                <button id="btn-export-config" class="btn btn-primary">Export Config</button>
+            </div>
+        </header>
+
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Configuration</div>
+                <div class="control-group">
+                    <label>Theme</label>
+                    <select id="theme-select"></select>
+                </div>
+                <div class="control-group">
+                    <label>Style</label>
+                    <select id="style-select">
+                        <option value="modern">Modern</option>
+                        <option value="minimal">Minimal</option>
+                        <option value="clean">Clean</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Page Size</label>
+                    <div class="page-size-group">
+                        <button class="page-size-btn" data-ratio="4:3">4:3</button>
+                        <button class="page-size-btn active" data-ratio="16:9">16:9</button>
+                        <button class="page-size-btn" data-ratio="21:9">21:9</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">Slide Master</div>
+                <div id="master-thumbnail" class="master-thumbnail active">
+                    <div class="master-label">MASTER</div>
+                    <div style="width: 100%; height: 130px; background: #E5E7EB;">
+                        <iframe id="master-thumb-frame" style="width: 1280px; height: 720px; transform: scale(0.18); transform-origin: top left; border: none; pointer-events: none;"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layouts-list">
+                <div class="sidebar-title">Layouts</div>
+                <div id="layout-list"></div>
+            </div>
+        </aside>
+
+        <!-- Canvas -->
+        <main class="canvas-area">
+            <div class="canvas-toolbar">
+                <div class="toolbar-group">
+                    <span class="toolbar-label">History</span>
+                    <button id="undo-btn" class="toolbar-btn" title="Undo" disabled>↶</button>
+                    <button id="redo-btn" class="toolbar-btn" title="Redo" disabled>↷</button>
+                </div>
+                <div class="toolbar-group">
+                    <span class="toolbar-label">View</span>
+                    <div class="tab-bar">
+                        <button class="tab-btn active" data-tab="preview">Preview</button>
+                        <button class="tab-btn" data-tab="code">Code</button>
+                    </div>
+                </div>
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" id="show-grid" title="Grid">⊞</button>
+                    <button class="toolbar-btn" id="snap-to-grid" title="Snap">⊡</button>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" id="highlight-elements">
+                        <span style="font-size: 12px; color: var(--text-secondary);">Highlight</span>
+                    </label>
+                </div>
+                <div class="toolbar-group">
+                    <span id="current-info" class="status-badge master">Slide Master</span>
+                </div>
+            </div>
+
+            <div class="canvas-viewport">
+                <div id="preview-area">
+                    <div class="preview-container">
+                        <iframe id="preview-frame" class="preview-frame" style="width: 1280px; height: 720px;"></iframe>
+                    </div>
+                </div>
+                <div id="code-area" class="hidden" style="width: 100%; height: 100%; max-width: 1200px;">
+                    <textarea id="code-editor"></textarea>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside class="sidebar right">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Properties</div>
+            </div>
+            <div id="inspector-content" class="properties-content">
+                <div class="property-section">
+                    <div class="property-section-title">Master Elements</div>
+
+                    <!-- Shapes -->
+                    <div class="property-group-header">▸ Shapes (decorative)</div>
+                    <div id="master-shapes-config">
+                        <div class="property-group-header" style="margin-left: 8px;">Top</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-header-badge" data-master="header-badge" data-type="shape">
+                            <label for="shape-header-badge">Header Badge</label>
+                            <span class="item-desc">pill right</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-top-line" data-master="top-line" data-type="shape">
+                            <label for="shape-top-line">Top Line</label>
+                            <span class="item-desc">thin bar</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-top-bar" data-master="top-bar" data-type="shape">
+                            <label for="shape-top-bar">Top Bar</label>
+                            <span class="item-desc">thick bar</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-top-gradient" data-master="top-gradient" data-type="shape">
+                            <label for="shape-top-gradient">Top Gradient</label>
+                            <span class="item-desc">fade down</span>
+                        </div>
+
+                        <div class="property-group-header" style="margin-left: 8px;">Left</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-side-bar" data-master="side-bar" data-type="shape">
+                            <label for="shape-side-bar">Side Bar</label>
+                            <span class="item-desc">thin vertical</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-left-stripe" data-master="left-stripe" data-type="shape">
+                            <label for="shape-left-stripe">Left Stripe</label>
+                            <span class="item-desc">wide bar</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-left-gradient" data-master="left-gradient" data-type="shape">
+                            <label for="shape-left-gradient">Left Gradient</label>
+                            <span class="item-desc">fade right</span>
+                        </div>
+
+                        <div class="property-group-header" style="margin-left: 8px;">Right</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-right-bar" data-master="right-bar" data-type="shape">
+                            <label for="shape-right-bar">Right Bar</label>
+                            <span class="item-desc">thin vertical</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-accent-circle" data-master="accent-circle" data-type="shape">
+                            <label for="shape-accent-circle">Accent Circle</label>
+                            <span class="item-desc">decorative</span>
+                        </div>
+
+                        <div class="property-group-header" style="margin-left: 8px;">Bottom</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-bottom-strip" data-master="bottom-strip" data-type="shape">
+                            <label for="shape-bottom-strip">Bottom Strip</label>
+                            <span class="item-desc">gradient bar</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-footer-line" data-master="footer-line" data-type="shape">
+                            <label for="shape-footer-line">Footer Line</label>
+                            <span class="item-desc">thin line</span>
+                        </div>
+
+                        <div class="property-group-header" style="margin-left: 8px;">Corners</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-corner-accent" data-master="corner-accent" data-type="shape">
+                            <label for="shape-corner-accent">Corner TL</label>
+                            <span class="item-desc">triangle</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-corner-dots" data-master="corner-dots" data-type="shape">
+                            <label for="shape-corner-dots">Corner Dots</label>
+                            <span class="item-desc">pattern</span>
+                        </div>
+
+                        <div class="property-group-header" style="margin-left: 8px;">Content</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-title-underline" data-master="title-underline" data-type="shape">
+                            <label for="shape-title-underline">Title Underline</label>
+                            <span class="item-desc">accent line</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-logo-area" data-master="logo-area" data-type="shape">
+                            <label for="shape-logo-area">Logo Area</label>
+                            <span class="item-desc">placeholder</span>
+                        </div>
+                    </div>
+
+                    <!-- Placeholders -->
+                    <div class="property-group-header">▸ Placeholders (textbox)</div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="placeholder-title" data-master="title" checked>
+                        <label for="placeholder-title">Title</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="placeholder-body" data-master="body">
+                        <label for="placeholder-body">Body Text</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="placeholder-footer" data-master="footer">
+                        <label for="placeholder-footer">Footer</label>
+                    </div>
+
+                    <!-- Dynamic Fields -->
+                    <div class="property-group-header">▸ Dynamic Fields (&lt;a:fld&gt;)</div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="dynamic-date" data-master="date" data-type="dynamic">
+                        <label for="dynamic-date">Date</label>
+                        <span class="item-desc">datetime</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="dynamic-page-number" data-master="page-number" data-type="dynamic" checked>
+                        <label for="dynamic-page-number">Page Number</label>
+                        <span class="item-desc">slidenum</span>
+                    </div>
+                </div>
+
+                <!-- Layout Overrides -->
+                <div id="layout-override-panel" class="property-section hidden">
+                    <div class="property-section-title">Layout Overrides</div>
+                    <div id="layout-override-list"></div>
+                </div>
+
+                <!-- Element Inspector -->
+                <div id="element-inspector-section" class="property-section hidden">
+                    <div class="property-section-title">Selected Element</div>
+                    <div id="element-inspector-content"></div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script src="themes.js"></script>
+    <script src="layouts-data.js"></script>
+    <script src="app.js"></script>
+    <script src="app-adapter.js"></script>
+    <script>
+        // Theme Switcher
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+
+            // Update button states
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === theme);
+            });
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        setTheme(savedTheme);
+    </script>
+</body>
+</html>

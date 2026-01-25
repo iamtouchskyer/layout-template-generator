@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Test outputs
+test_output/
+outputs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Temporary files
+*.swp
+*.swo
+*~
+.tmp/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace

@@ -1806,8 +1806,19 @@ function deselectElement(iframeDoc) {
         e.style.outline = '';
     });
     state.selectedElement = null;
-    document.getElementById('inspector-content').innerHTML =
-        '<p class="text-sm text-gray-500">Click an element to inspect</p>';
+
+    // Support both old and new HTML structure
+    const inspectorContent = document.getElementById('inspector-content') || document.getElementById('element-inspector-content');
+    const inspectorSection = document.getElementById('element-inspector-section');
+
+    if (inspectorContent) {
+        inspectorContent.innerHTML = '<p class="text-sm text-gray-500">Click an element to inspect</p>';
+    }
+
+    // Hide element inspector in new HTML
+    if (inspectorSection) {
+        inspectorSection.classList.add('hidden');
+    }
 
     // Hide shape presets panel
     hideShapePresets();
@@ -1908,11 +1919,24 @@ function updateInspectorPosition(el) {
 }
 
 function updateInspector(el, iframe) {
-    const container = document.getElementById('inspector-content');
+    // Support both old and new HTML structure
+    const container = document.getElementById('inspector-content') || document.getElementById('element-inspector-content');
+    const inspectorSection = document.getElementById('element-inspector-section');
 
     if (!el) {
-        container.innerHTML = '<p class="text-sm text-gray-500">Click an element to inspect</p>';
+        // Hide element inspector in new HTML
+        if (inspectorSection) {
+            inspectorSection.classList.add('hidden');
+        }
+        if (container) {
+            container.innerHTML = '<p class="text-sm text-gray-500">Click an element to inspect</p>';
+        }
         return;
+    }
+
+    // Show element inspector in new HTML
+    if (inspectorSection) {
+        inspectorSection.classList.remove('hidden');
     }
 
     const rect = el.getBoundingClientRect();
@@ -1964,119 +1988,100 @@ function updateInspector(el, iframe) {
     const isTextElement = !isShape; // Placeholders and dynamic fields have text
 
     container.innerHTML = `
-        <div class="space-y-3">
-            <div>
-                <h3 class="text-white font-medium">${id}</h3>
-                <p class="text-xs text-gray-400">${type} ${category}</p>
-            </div>
+        <div style="margin-bottom: 16px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">${id}</div>
+            <div style="font-size: 12px; color: var(--text-secondary, #9CA3AF);">${type} ${category}</div>
+        </div>
 
-            <!-- Position Controls -->
-            <div class="space-y-2">
-                <p class="text-xs text-gray-500">Position (px)</p>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-xs text-gray-500">X</label>
-                        <input type="number" id="inspector-pos-x" value="${posX}"
-                            class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white"
-                            data-element-id="${id}" data-prop="x">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-500">Y</label>
-                        <input type="number" id="inspector-pos-y" value="${posY}"
-                            class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white"
-                            data-element-id="${id}" data-prop="y">
-                    </div>
+        <div style="margin-bottom: 16px;">
+            <div style="font-size: 12px; font-weight: 500; margin-bottom: 8px; color: var(--text-secondary, #9CA3AF);">Position (px)</div>
+            <div class="property-row">
+                <div class="property-field">
+                    <label>X</label>
+                    <input type="number" id="inspector-pos-x" value="${posX}" data-element-id="${id}" data-prop="x">
+                </div>
+                <div class="property-field">
+                    <label>Y</label>
+                    <input type="number" id="inspector-pos-y" value="${posY}" data-element-id="${id}" data-prop="y">
                 </div>
             </div>
+        </div>
 
-            <!-- Size Controls -->
-            <div class="space-y-2">
-                <p class="text-xs text-gray-500">Size (px)</p>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-xs text-gray-500">W</label>
-                        <input type="number" id="inspector-width" value="${width}"
-                            class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white"
-                            data-element-id="${id}" data-prop="width">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-500">H</label>
-                        <input type="number" id="inspector-height" value="${height}"
-                            class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white"
-                            data-element-id="${id}" data-prop="height">
-                    </div>
+        <div style="margin-bottom: 16px;">
+            <div style="font-size: 12px; font-weight: 500; margin-bottom: 8px; color: var(--text-secondary, #9CA3AF);">Size (px)</div>
+            <div class="property-row">
+                <div class="property-field">
+                    <label>W</label>
+                    <input type="number" id="inspector-width" value="${width}" data-element-id="${id}" data-prop="width">
+                </div>
+                <div class="property-field">
+                    <label>H</label>
+                    <input type="number" id="inspector-height" value="${height}" data-element-id="${id}" data-prop="height">
                 </div>
             </div>
+        </div>
 
-            <!-- Rotation Control -->
-            <div class="space-y-2">
-                <p class="text-xs text-gray-500">Rotation (°)</p>
-                <div class="flex gap-2 items-center">
-                    <input type="range" id="inspector-rotation" value="${rotation}" min="-180" max="180"
-                        class="flex-1 h-1 bg-gray-600 rounded appearance-none cursor-pointer"
-                        data-element-id="${id}" data-prop="rotation">
-                    <input type="number" id="inspector-rotation-num" value="${rotation}"
-                        class="w-16 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white text-center"
-                        data-element-id="${id}" data-prop="rotation">
-                </div>
+        <div style="margin-bottom: 16px;">
+            <div style="font-size: 12px; font-weight: 500; margin-bottom: 8px; color: var(--text-secondary, #9CA3AF);">Rotation (°)</div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="range" id="inspector-rotation" value="${rotation}" min="-180" max="180"
+                    style="flex: 1;"
+                    data-element-id="${id}" data-prop="rotation">
+                <input type="number" id="inspector-rotation-num" value="${rotation}"
+                    style="width: 60px;"
+                    data-element-id="${id}" data-prop="rotation">
             </div>
+        </div>
 
-            ${isTextElement ? `
-            <!-- Font Controls -->
-            <div class="space-y-2">
-                <p class="text-xs text-gray-500">Font</p>
-                <select id="inspector-font-family"
-                    class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white"
-                    data-element-id="${id}" data-prop="fontFamily">
-                    <option value="Inter" ${fontFamily === 'Inter' ? 'selected' : ''}>Inter</option>
-                    <option value="Open Sans" ${fontFamily === 'Open Sans' ? 'selected' : ''}>Open Sans</option>
-                    <option value="Roboto" ${fontFamily === 'Roboto' ? 'selected' : ''}>Roboto</option>
-                    <option value="Lato" ${fontFamily === 'Lato' ? 'selected' : ''}>Lato</option>
-                    <option value="Montserrat" ${fontFamily === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
-                    <option value="Playfair Display" ${fontFamily === 'Playfair Display' ? 'selected' : ''}>Playfair Display</option>
-                    <option value="Oswald" ${fontFamily === 'Oswald' ? 'selected' : ''}>Oswald</option>
-                    <option value="Merriweather" ${fontFamily === 'Merriweather' ? 'selected' : ''}>Merriweather</option>
-                </select>
-                <div class="flex gap-2">
-                    <div class="flex-1">
-                        <label class="text-xs text-gray-500">Size</label>
-                        <input type="number" id="inspector-font-size" value="${fontSize}" min="8" max="200"
-                            class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white"
-                            data-element-id="${id}" data-prop="fontSize">
-                    </div>
-                </div>
+        ${isTextElement ? `
+        <div style="margin-bottom: 16px;">
+            <div style="font-size: 12px; font-weight: 500; margin-bottom: 8px; color: var(--text-secondary, #9CA3AF);">Font</div>
+            <select id="inspector-font-family" style="width: 100%; margin-bottom: 8px;"
+                data-element-id="${id}" data-prop="fontFamily">
+                <option value="Inter" ${fontFamily === 'Inter' ? 'selected' : ''}>Inter</option>
+                <option value="Open Sans" ${fontFamily === 'Open Sans' ? 'selected' : ''}>Open Sans</option>
+                <option value="Roboto" ${fontFamily === 'Roboto' ? 'selected' : ''}>Roboto</option>
+                <option value="Lato" ${fontFamily === 'Lato' ? 'selected' : ''}>Lato</option>
+                <option value="Montserrat" ${fontFamily === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+                <option value="Playfair Display" ${fontFamily === 'Playfair Display' ? 'selected' : ''}>Playfair Display</option>
+                <option value="Oswald" ${fontFamily === 'Oswald' ? 'selected' : ''}>Oswald</option>
+                <option value="Merriweather" ${fontFamily === 'Merriweather' ? 'selected' : ''}>Merriweather</option>
+            </select>
+            <div class="property-field">
+                <label>Size</label>
+                <input type="number" id="inspector-font-size" value="${fontSize}" min="8" max="200"
+                    data-element-id="${id}" data-prop="fontSize">
             </div>
-            ` : ''}
+        </div>
+        ` : ''}
 
-            ${themeFill ? `
-            <div class="flex justify-between items-center text-xs">
-                <span class="text-gray-400">Theme Fill</span>
-                <span class="flex items-center gap-2">
-                    <span class="text-white">${themeFill}</span>
-                    <span class="w-3 h-3 rounded" style="background: ${THEMES[state.currentTheme].primaryColor}"></span>
-                </span>
-            </div>
-            ` : ''}
+        ${themeFill ? `
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 12px;">
+            <span style="color: var(--text-secondary, #9CA3AF);">Theme Fill</span>
+            <span style="display: flex; align-items: center; gap: 8px;">
+                <span>${themeFill}</span>
+                <span style="width: 12px; height: 12px; border-radius: 3px; background: ${THEMES[state.currentTheme].primaryColor};"></span>
+            </span>
+        </div>
+        ` : ''}
 
-            ${fieldType ? `
-            <div class="flex justify-between items-center text-xs">
-                <span class="text-gray-400">Field Type</span>
-                <span class="text-pink-400">&lt;a:fld type="${fieldType}"&gt;</span>
-            </div>
-            ` : ''}
+        ${fieldType ? `
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 12px;">
+            <span style="color: var(--text-secondary, #9CA3AF);">Field Type</span>
+            <code style="color: #EC4899;">&lt;a:fld type="${fieldType}"&gt;</code>
+        </div>
+        ` : ''}
 
-            <!-- Reset Button -->
-            <button id="inspector-reset-btn"
-                class="w-full bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs py-1.5 rounded">
-                Reset Position
-            </button>
+        <button id="inspector-reset-btn"
+            style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-primary, #374151); background: var(--bg-secondary, #111827); color: var(--text-primary, #F9FAFB); cursor: pointer; font-size: 13px; font-weight: 500;">
+            Reset Position
+        </button>
 
-            <div class="pt-2 border-t border-gray-700">
-                <p class="text-xs text-gray-500 mb-1">Tip: Use arrow keys to move (Shift+Arrow = 10px)</p>
-                <code class="text-xs text-green-400 block bg-gray-900 p-2 rounded break-all">
-                    data-${isMaster ? 'master' : 'layout'}-${attrName}="${id}"
-                </code>
-            </div>
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-primary, #374151);">
+            <div style="font-size: 11px; color: var(--text-secondary, #9CA3AF); margin-bottom: 8px;">Tip: Use arrow keys to move (Shift+Arrow = 10px)</div>
+            <code style="font-size: 11px; color: var(--text-tertiary, #6B7280); display: block; background: var(--bg-tertiary, #0F172A); padding: 8px; border-radius: 4px; word-break: break-all;">
+                data-${isMaster ? 'master' : 'layout'}-${attrName}="${id}"
+            </code>
         </div>
     `;
 

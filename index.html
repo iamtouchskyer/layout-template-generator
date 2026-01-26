@@ -4,676 +4,833 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Layout × Theme Generator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material-darker.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
     <style>
-        .CodeMirror { height: 100%; font-size: 13px; }
-        .preview-bg { background: #444; }
+        /* CSS Variables for Light/Dark Theme */
+        :root[data-theme="light"] {
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F9FAFB;
+            --bg-tertiary: #F3F4F6;
+            --border-primary: #E5E7EB;
+            --border-secondary: #D1D5DB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --text-tertiary: #9CA3AF;
+            --accent: #2563EB;
+            --accent-hover: #1D4ED8;
+            --accent-light: #DBEAFE;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
 
-        /* Thumbnail styles */
-        .thumbnail-container {
-            background: #374151;
-            border: 2px solid transparent;
-            border-radius: 4px;
+        :root[data-theme="dark"] {
+            --bg-primary: #1F2937;
+            --bg-secondary: #111827;
+            --bg-tertiary: #0F172A;
+            --border-primary: #374151;
+            --border-secondary: #4B5563;
+            --text-primary: #F9FAFB;
+            --text-secondary: #D1D5DB;
+            --text-tertiary: #9CA3AF;
+            --accent: #3B82F6;
+            --accent-hover: #2563EB;
+            --accent-light: #1E3A8A;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
             overflow: hidden;
-            cursor: pointer;
-            transition: border-color 0.15s;
-        }
-        .thumbnail-container:hover {
-            border-color: #6B7280;
-        }
-        .thumbnail-container.active {
-            border-color: #3B82F6;
-        }
-        .thumbnail-container.master {
-            border-width: 3px;
-        }
-        .thumbnail-container.master.active {
-            border-color: #F59E0B;
+            height: 100vh;
+            transition: background-color 200ms, color 200ms;
         }
 
-        .thumbnail-frame {
-            pointer-events: none;
+        /* App Layout */
+        .app-container {
+            display: grid;
+            grid-template-columns: 260px 1fr 340px;
+            grid-template-rows: 52px 1fr;
+            height: 100vh;
         }
 
-        .section-title {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #6B7280;
-        }
-
-        .tab-btn.active { background: #2563EB; }
-        .layer-btn.active { background: #2563EB; }
-
-        /* Tool buttons */
-        .tool-btn {
+        /* Header */
+        .app-header {
+            grid-column: 1 / -1;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-primary);
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: #9CA3AF;
-            transition: all 0.15s;
-        }
-        .tool-btn:hover {
-            color: white;
-            background: #4B5563;
-        }
-        .tool-btn:active {
-            background: #2563EB;
+            justify-content: space-between;
+            padding: 0 20px;
+            transition: background-color 200ms, border-color 200ms;
         }
 
-        /* Range slider styling */
-        input[type="range"] {
-            -webkit-appearance: none;
-            background: #374151;
-            border-radius: 4px;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
-            background: #3B82F6;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        input[type="range"]::-webkit-slider-thumb:hover {
-            background: #2563EB;
-        }
-
-        /* Ribbon toolbar styles */
-        .ribbon-group {
+        .app-logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-logo::before {
+            content: '◆';
+            color: var(--accent);
+            font-size: 16px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex;
             align-items: center;
             gap: 4px;
+            padding: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            border: 1px solid var(--border-primary);
         }
-        .ribbon-group-label {
-            font-size: 10px;
-            color: #6B7280;
+
+        .theme-btn {
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            transition: all 150ms;
         }
-        .ribbon-divider {
-            width: 1px;
-            height: 48px;
-            background: #374151;
-            margin: 0 4px;
-        }
-        .ribbon-btn-lg {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            padding: 6px 10px;
-            border-radius: 4px;
-            color: #9CA3AF;
-            font-size: 10px;
-            transition: all 0.15s;
-        }
-        .ribbon-btn-lg:hover {
-            background: #374151;
+
+        .theme-btn.active {
+            background: var(--accent);
             color: white;
         }
-        .ribbon-btn-lg:active {
-            background: #2563EB;
+
+        .btn {
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 150ms;
         }
 
-        .style-preset {
-            padding: 2px;
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Sidebars */
+        .sidebar {
+            background: var(--bg-primary);
+            border-right: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color 200ms, border-color 200ms;
+        }
+
+        .sidebar.right {
+            border-right: none;
+            border-left: 1px solid var(--border-primary);
+        }
+
+        .sidebar-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .sidebar-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            margin-bottom: 12px;
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            padding: 7px 10px;
+            border: 1px solid var(--border-primary);
+            border-radius: 5px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 150ms;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .page-size-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .page-size-btn {
+            flex: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 0;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
             border-radius: 4px;
-            border: 2px solid transparent;
-            transition: all 0.15s;
-        }
-        .style-preset:hover {
-            border-color: #6B7280;
-        }
-        .style-preset.active {
-            border-color: #3B82F6;
+            cursor: pointer;
+            transition: all 150ms;
         }
 
-        .font-btn, .align-btn {
+        .page-size-btn:hover {
+            border-color: var(--border-secondary);
+        }
+
+        .page-size-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Master Thumbnail */
+        .master-thumbnail {
+            border: 2px solid var(--border-primary);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 200ms;
+            background: var(--bg-tertiary);
+            position: relative;
+        }
+
+        .master-thumbnail:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-md);
+        }
+
+        .master-thumbnail.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .master-label {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        /* Layout List */
+        .layouts-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .layout-item {
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            border: 1px solid transparent;
+            transition: all 150ms;
+        }
+
+        .layout-item:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border-primary);
+        }
+
+        .layout-item.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Canvas */
+        .canvas-area {
+            background: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .canvas-toolbar {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-primary);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 12px;
+            border-right: 1px solid var(--border-primary);
+        }
+
+        .toolbar-group:first-child {
+            padding-left: 0;
+        }
+
+        .toolbar-group:last-child {
+            border-right: none;
+        }
+
+        .toolbar-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-tertiary);
+            margin-right: 6px;
+        }
+
+        .toolbar-btn {
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 28px;
-            height: 24px;
-            border-radius: 4px;
-            color: #9CA3AF;
-            transition: all 0.15s;
-        }
-        .font-btn:hover, .align-btn:hover {
-            background: #374151;
-            color: white;
-        }
-        .font-btn:active, .align-btn:active {
-            background: #2563EB;
-        }
-        .font-btn.active {
-            background: #3B82F6;
-            color: white;
+            border-radius: 5px;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 150ms;
         }
 
-        /* Color picker styling */
-        input[type="color"] {
-            -webkit-appearance: none;
+        .toolbar-btn:hover:not(:disabled) {
+            background: var(--bg-tertiary);
+            border-color: var(--border-secondary);
+        }
+
+        .toolbar-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .toolbar-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .canvas-viewport {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            overflow: auto;
+        }
+
+        .preview-container {
+            background: white;
+            box-shadow: var(--shadow-lg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .preview-frame {
+            display: block;
             border: none;
-            padding: 0;
         }
-        input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
+
+        /* Properties Panel */
+        .properties-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
         }
-        input[type="color"]::-webkit-color-swatch {
-            border: 1px solid #4B5563;
+
+        .property-section {
+            margin-bottom: 20px;
+        }
+
+        .property-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 150ms;
+        }
+
+        .checkbox-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            flex: 1;
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-item .item-desc {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-left: auto;
+        }
+
+        .property-group-header {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 12px;
+            margin-bottom: 6px;
+        }
+
+        .property-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .property-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .property-field label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .property-field input {
+            padding: 6px 8px;
+            font-size: 12px;
+        }
+
+        /* Tabs */
+        .tab-bar {
+            display: flex;
+            gap: 2px;
+            background: var(--bg-tertiary);
+            padding: 2px;
+            border-radius: 5px;
+        }
+
+        .tab-btn {
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 150ms;
+        }
+
+        .tab-btn:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 4px 8px;
             border-radius: 4px;
         }
 
-        /* Shape preset buttons */
-        .shape-preset-btn {
-            transition: all 0.15s;
-            white-space: nowrap;
-        }
-        .shape-preset-btn:hover {
-            background: #4B5563;
-            color: white;
-        }
-        .shape-preset-btn:active {
-            background: #3B82F6;
+        .status-badge.master {
+            background: #FEF3C7;
+            color: #92400E;
         }
 
-        /* Master shapes config scrollable */
-        #master-shapes-config {
-            max-height: 280px;
-            overflow-y: auto;
+        .status-badge.layout {
+            background: var(--accent-light);
+            color: white;
         }
+
+        /* Code Editor */
+        .CodeMirror {
+            height: 100%;
+            font-size: 13px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-secondary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+
+        /* Utility */
+        .hidden { display: none; }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
-    <div class="flex h-screen">
-        <!-- Left Sidebar: Master & Layout List -->
-        <div class="w-72 bg-gray-800 flex flex-col border-r border-gray-700 overflow-hidden">
-            <!-- Header -->
-            <div class="p-4 border-b border-gray-700 flex-shrink-0">
-                <h1 class="text-sm font-bold mb-3">Layout × Theme</h1>
-                <div class="space-y-2">
-                    <div>
-                        <label class="section-title block mb-1">Theme</label>
-                        <select id="theme-select" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm">
-                            <!-- Populated by JS -->
-                        </select>
-                    </div>
-                    <div>
-                        <label class="section-title block mb-1">Style</label>
-                        <select id="style-select" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm">
-                            <option value="modern">Modern</option>
-                            <option value="classic">Classic</option>
-                        </select>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="app-logo">Layout × Theme Generator</div>
+            <div class="header-right">
+                <div class="theme-toggle">
+                    <button class="theme-btn active" data-theme="light" onclick="setTheme('light')">Light</button>
+                    <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')">Dark</button>
+                </div>
+                <button id="btn-export-config" class="btn btn-primary">Export Config</button>
+            </div>
+        </header>
+
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Configuration</div>
+                <div class="control-group">
+                    <label>Theme</label>
+                    <select id="theme-select"></select>
+                </div>
+                <div class="control-group">
+                    <label>Style</label>
+                    <select id="style-select">
+                        <option value="modern">Modern</option>
+                        <option value="minimal">Minimal</option>
+                        <option value="clean">Clean</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Page Size</label>
+                    <div class="page-size-group">
+                        <button class="page-size-btn" data-ratio="4:3">4:3</button>
+                        <button class="page-size-btn active" data-ratio="16:9">16:9</button>
+                        <button class="page-size-btn" data-ratio="21:9">21:9</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Slide Master Thumbnail -->
-            <div class="p-4 border-b border-gray-700">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="section-title">Slide Master</span>
-                    <span class="text-xs text-yellow-500">●</span>
-                </div>
-                <div id="master-thumbnail" class="thumbnail-container master active" data-type="master">
-                    <div class="bg-gray-600 relative" style="width: 256px; height: 144px;">
-                        <iframe id="master-thumb-frame" class="thumbnail-frame"
-                            style="width: 1280px; height: 720px; transform: scale(0.2); transform-origin: top left; border: none;">
-                        </iframe>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Slide Master</div>
+                <div id="master-thumbnail" class="master-thumbnail active">
+                    <div class="master-label">MASTER</div>
+                    <div style="width: 100%; height: 130px; background: #E5E7EB;">
+                        <iframe id="master-thumb-frame" style="width: 1280px; height: 720px; transform: scale(0.18); transform-origin: top left; border: none; pointer-events: none;"></iframe>
                     </div>
                 </div>
             </div>
 
-            <!-- Slide Layouts List -->
-            <div class="flex-1 overflow-y-auto p-4">
-                <span class="section-title">Slide Layouts</span>
-                <div id="layout-list" class="mt-2 space-y-1">
-                    <!-- Populated by JS -->
+            <div class="layouts-list">
+                <div class="sidebar-title">Layouts</div>
+                <div id="layout-list"></div>
+            </div>
+        </aside>
+
+        <!-- Canvas -->
+        <main class="canvas-area">
+            <div class="canvas-toolbar">
+                <div class="toolbar-group">
+                    <span class="toolbar-label">History</span>
+                    <button id="undo-btn" class="toolbar-btn" title="Undo" disabled>↶</button>
+                    <button id="redo-btn" class="toolbar-btn" title="Redo" disabled>↷</button>
+                </div>
+                <div class="toolbar-group">
+                    <span class="toolbar-label">View</span>
+                    <div class="tab-bar">
+                        <button class="tab-btn active" data-tab="preview">Preview</button>
+                        <button class="tab-btn" data-tab="code">Code</button>
+                    </div>
+                </div>
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" id="show-grid" title="Grid">⊞</button>
+                    <button class="toolbar-btn" id="snap-to-grid" title="Snap">⊡</button>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" id="highlight-elements">
+                        <span style="font-size: 12px; color: var(--text-secondary);">Highlight</span>
+                    </label>
+                </div>
+                <div class="toolbar-group">
+                    <span id="current-info" class="status-badge master">Slide Master</span>
                 </div>
             </div>
 
-            <!-- Actions -->
-            <div class="border-t border-gray-700 p-3 flex-shrink-0">
-                <button id="btn-export-config" class="w-full bg-blue-600 hover:bg-blue-700 rounded px-3 py-2 text-xs font-medium">
-                    Export Config JSON
-                </button>
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col">
-            <!-- Ribbon Toolbar -->
-            <div class="bg-gray-800 border-b border-gray-700">
-                <!-- Title Bar -->
-                <div class="px-4 py-1.5 flex items-center justify-between border-b border-gray-700">
-                    <div class="flex items-center gap-3">
-                        <span id="current-info" class="text-sm text-gray-300 font-medium">Slide Master</span>
-                        <span id="edit-mode-badge" class="px-2 py-0.5 rounded text-xs bg-yellow-600">Editing Master</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="flex bg-gray-700 rounded overflow-hidden">
-                            <button class="tab-btn px-3 py-1 text-xs active" data-tab="preview">Preview</button>
-                            <button class="tab-btn px-3 py-1 text-xs" data-tab="code">Code</button>
-                        </div>
-                        <label class="flex items-center gap-1 text-xs cursor-pointer">
-                            <input type="checkbox" id="highlight-elements" class="rounded w-3 h-3">
-                            <span class="text-gray-400">Highlight</span>
-                        </label>
+            <div class="canvas-viewport">
+                <div id="preview-area">
+                    <div class="preview-container">
+                        <iframe id="preview-frame" class="preview-frame" style="width: 1280px; height: 720px;"></iframe>
                     </div>
                 </div>
-
-                <!-- Ribbon -->
-                <div id="edit-toolbar" class="px-4 py-2 flex items-start gap-6">
-                    <!-- Undo/Redo Group -->
-                    <div class="ribbon-group">
-                        <div class="flex gap-1">
-                            <button id="undo-btn" class="ribbon-btn-lg opacity-50" title="Undo (Ctrl+Z)" disabled>
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
-                                <span>Undo</span>
-                            </button>
-                            <button id="redo-btn" class="ribbon-btn-lg opacity-50" title="Redo (Ctrl+Shift+Z)" disabled>
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>
-                                <span>Redo</span>
-                            </button>
-                        </div>
-                        <div class="ribbon-group-label">History</div>
-                    </div>
-
-                    <div class="ribbon-divider"></div>
-
-                    <!-- Shape Styles Group -->
-                    <div class="ribbon-group">
-                        <div class="flex flex-col gap-1">
-                            <div class="flex gap-1">
-                                <button class="style-preset" data-style="solid" title="Solid Fill">
-                                    <div class="w-8 h-6 rounded bg-blue-500"></div>
-                                </button>
-                                <button class="style-preset" data-style="outline" title="Outline Only">
-                                    <div class="w-8 h-6 rounded border-2 border-blue-500 bg-transparent"></div>
-                                </button>
-                                <button class="style-preset" data-style="subtle" title="Subtle">
-                                    <div class="w-8 h-6 rounded bg-blue-500/20 border border-blue-500/50"></div>
-                                </button>
-                                <button class="style-preset" data-style="gradient" title="Gradient">
-                                    <div class="w-8 h-6 rounded bg-gradient-to-r from-blue-500 to-purple-500"></div>
-                                </button>
-                            </div>
-                            <div class="flex gap-1 items-center">
-                                <label class="text-xs text-gray-500">Fill:</label>
-                                <input type="color" id="fill-color" value="#3B82F6" class="w-6 h-6 rounded cursor-pointer border-0">
-                                <label class="text-xs text-gray-500 ml-2">Border:</label>
-                                <input type="color" id="border-color" value="#1D4ED8" class="w-6 h-6 rounded cursor-pointer border-0">
-                            </div>
-                        </div>
-                        <div class="ribbon-group-label">Shape Styles</div>
-                    </div>
-
-                    <div class="ribbon-divider"></div>
-
-                    <!-- Shape Presets Group (dynamic based on selected shape) -->
-                    <div id="shape-presets-group" class="ribbon-group hidden">
-                        <div class="flex flex-col gap-1">
-                            <div id="shape-presets-title" class="text-xs text-white font-medium mb-1">Header Badge</div>
-                            <div id="shape-presets-container" class="flex gap-1 flex-wrap max-w-48">
-                                <!-- Populated dynamically -->
-                            </div>
-                        </div>
-                        <div class="ribbon-group-label">Presets</div>
-                    </div>
-
-                    <div class="ribbon-divider"></div>
-
-                    <!-- Font Group -->
-                    <div class="ribbon-group">
-                        <div class="flex flex-col gap-1">
-                            <div class="flex gap-1 items-center">
-                                <select id="toolbar-font" class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white w-28">
-                                    <option value="Inter">Inter</option>
-                                    <option value="Open Sans">Open Sans</option>
-                                    <option value="Roboto">Roboto</option>
-                                    <option value="Montserrat">Montserrat</option>
-                                    <option value="Playfair Display">Playfair Display</option>
-                                    <option value="Oswald">Oswald</option>
-                                </select>
-                                <input type="number" id="toolbar-font-size" value="14" min="8" max="200" class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white w-14">
-                            </div>
-                            <div class="flex gap-0.5">
-                                <button class="font-btn" data-format="bold" title="Bold">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>
-                                </button>
-                                <button class="font-btn" data-format="italic" title="Italic">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"/></svg>
-                                </button>
-                                <button class="font-btn" data-format="underline" title="Underline">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"/></svg>
-                                </button>
-                                <div class="w-px bg-gray-600 mx-1"></div>
-                                <input type="color" id="font-color" value="#333333" class="w-6 h-6 rounded cursor-pointer border-0" title="Font Color">
-                            </div>
-                        </div>
-                        <div class="ribbon-group-label">Font</div>
-                    </div>
-
-                    <div class="ribbon-divider"></div>
-
-                    <!-- Align Group -->
-                    <div class="ribbon-group">
-                        <div class="flex flex-col gap-1">
-                            <div class="flex gap-0.5">
-                                <button class="align-btn" data-align="left" title="Align Left">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h2v18H3V3zm4 3h14v4H7V6zm0 6h10v4H7v-4zm0 6h14v4H7v-4z"/></svg>
-                                </button>
-                                <button class="align-btn" data-align="center-h" title="Align Center">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M11 3h2v4h6v4h-6v2h4v4h-4v4h-2v-4H7v-4h4v-2H5V7h6V3z"/></svg>
-                                </button>
-                                <button class="align-btn" data-align="right" title="Align Right">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3h2v18h-2V3zM3 6h14v4H3V6zm4 6h10v4H7v-4zM3 18h14v4H3v-4z"/></svg>
-                                </button>
-                            </div>
-                            <div class="flex gap-0.5">
-                                <button class="align-btn" data-align="top" title="Align Top">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h18v2H3V3zm3 4h4v14H6V7zm8 0h4v10h-4V7z"/></svg>
-                                </button>
-                                <button class="align-btn" data-align="center-v" title="Align Middle">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 11h4V5h4v6h2V7h4v4h4v2h-4v4h-4v-4h-2v6H7v-6H3v-2z"/></svg>
-                                </button>
-                                <button class="align-btn" data-align="bottom" title="Align Bottom">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 19h18v2H3v-2zm3-2h4V3H6v14zm8-4h4V3h-4v10z"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="ribbon-group-label">Align</div>
-                    </div>
-
-                    <div class="ribbon-divider"></div>
-
-                    <!-- Arrange Group -->
-                    <div class="ribbon-group">
-                        <div class="flex flex-col gap-1">
-                            <div class="flex gap-0.5">
-                                <button class="align-btn" data-distribute="horizontal" title="Distribute Horizontal">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 5h2v14H4V5zm14 0h2v14h-2V5zm-7 2h2v10h-2V7z"/></svg>
-                                </button>
-                                <button class="align-btn" data-distribute="vertical" title="Distribute Vertical">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M5 4v2h14V4H5zm0 14v2h14v-2H5zm2-7v2h10v-2H7z"/></svg>
-                                </button>
-                            </div>
-                            <div class="flex gap-1 items-center">
-                                <label class="flex items-center gap-1 text-xs cursor-pointer">
-                                    <input type="checkbox" id="show-grid" class="rounded w-3 h-3">
-                                    <span class="text-gray-400">Grid</span>
-                                </label>
-                                <label class="flex items-center gap-1 text-xs cursor-pointer">
-                                    <input type="checkbox" id="snap-to-grid" checked class="rounded w-3 h-3">
-                                    <span class="text-gray-400">Snap</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="ribbon-group-label">Arrange</div>
-                    </div>
+                <div id="code-area" class="hidden" style="width: 100%; height: 100%; max-width: 1200px;">
+                    <textarea id="code-editor"></textarea>
                 </div>
             </div>
+        </main>
 
-            <!-- Main Area -->
-            <div class="flex-1 flex">
-                <!-- Preview / Code Area -->
-                <div class="flex-1 flex">
-                    <!-- Preview Mode -->
-                    <div id="preview-area" class="flex-1 preview-bg p-2 flex items-center justify-center overflow-auto">
-                        <div class="bg-white rounded shadow-2xl relative" style="width: 1280px; height: 720px; overflow: hidden;">
-                            <iframe id="preview-frame"
-                                style="width: 1280px; height: 720px; transform: scale(1); transform-origin: top left; border: none;">
-                            </iframe>
+        <!-- Right Sidebar -->
+        <aside class="sidebar right">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Properties</div>
+            </div>
+            <div id="inspector-content" class="properties-content">
+                <div class="property-section">
+                    <div class="property-section-title">Master Elements</div>
+
+                    <!-- Shapes -->
+                    <div class="property-group-header">▸ Shapes (decorative)</div>
+                    <div id="master-shapes-config">
+                        <div class="property-group-header" style="margin-left: 8px;">Top</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-header-badge" data-master="header-badge" data-type="shape">
+                            <label for="shape-header-badge">Header Badge</label>
+                            <span class="item-desc">pill right</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-top-line" data-master="top-line" data-type="shape">
+                            <label for="shape-top-line">Top Line</label>
+                            <span class="item-desc">thin bar</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-top-bar" data-master="top-bar" data-type="shape">
+                            <label for="shape-top-bar">Top Bar</label>
+                            <span class="item-desc">thick bar</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-top-gradient" data-master="top-gradient" data-type="shape">
+                            <label for="shape-top-gradient">Top Gradient</label>
+                            <span class="item-desc">fade down</span>
+                        </div>
+
+                        <div class="property-group-header" style="margin-left: 8px;">Left</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-side-bar" data-master="side-bar" data-type="shape">
+                            <label for="shape-side-bar">Side Bar</label>
+                            <span class="item-desc">thin vertical</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-left-stripe" data-master="left-stripe" data-type="shape">
+                            <label for="shape-left-stripe">Left Stripe</label>
+                            <span class="item-desc">wide bar</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-left-gradient" data-master="left-gradient" data-type="shape">
+                            <label for="shape-left-gradient">Left Gradient</label>
+                            <span class="item-desc">fade right</span>
+                        </div>
+
+                        <div class="property-group-header" style="margin-left: 8px;">Right</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-right-bar" data-master="right-bar" data-type="shape">
+                            <label for="shape-right-bar">Right Bar</label>
+                            <span class="item-desc">thin vertical</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-accent-circle" data-master="accent-circle" data-type="shape">
+                            <label for="shape-accent-circle">Accent Circle</label>
+                            <span class="item-desc">decorative</span>
+                        </div>
+
+                        <div class="property-group-header" style="margin-left: 8px;">Bottom</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-bottom-strip" data-master="bottom-strip" data-type="shape">
+                            <label for="shape-bottom-strip">Bottom Strip</label>
+                            <span class="item-desc">gradient bar</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-footer-line" data-master="footer-line" data-type="shape">
+                            <label for="shape-footer-line">Footer Line</label>
+                            <span class="item-desc">thin line</span>
+                        </div>
+
+                        <div class="property-group-header" style="margin-left: 8px;">Corners</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-corner-accent" data-master="corner-accent" data-type="shape">
+                            <label for="shape-corner-accent">Corner TL</label>
+                            <span class="item-desc">triangle</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-corner-dots" data-master="corner-dots" data-type="shape">
+                            <label for="shape-corner-dots">Corner Dots</label>
+                            <span class="item-desc">pattern</span>
+                        </div>
+
+                        <div class="property-group-header" style="margin-left: 8px;">Content</div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-title-underline" data-master="title-underline" data-type="shape">
+                            <label for="shape-title-underline">Title Underline</label>
+                            <span class="item-desc">accent line</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shape-logo-area" data-master="logo-area" data-type="shape">
+                            <label for="shape-logo-area">Logo Area</label>
+                            <span class="item-desc">placeholder</span>
                         </div>
                     </div>
 
-                    <!-- Code Mode (hidden by default) -->
-                    <div id="code-area" class="flex-1 hidden">
-                        <textarea id="code-editor"></textarea>
+                    <!-- Placeholders -->
+                    <div class="property-group-header">▸ Placeholders (textbox)</div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="placeholder-title" data-master="title" checked>
+                        <label for="placeholder-title">Title</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="placeholder-body" data-master="body">
+                        <label for="placeholder-body">Body Text</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="placeholder-footer" data-master="footer">
+                        <label for="placeholder-footer">Footer</label>
+                    </div>
+
+                    <!-- Dynamic Fields -->
+                    <div class="property-group-header">▸ Dynamic Fields (&lt;a:fld&gt;)</div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="dynamic-date" data-master="date" data-type="dynamic">
+                        <label for="dynamic-date">Date</label>
+                        <span class="item-desc">datetime</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="dynamic-page-number" data-master="page-number" data-type="dynamic" checked>
+                        <label for="dynamic-page-number">Page Number</label>
+                        <span class="item-desc">slidenum</span>
                     </div>
                 </div>
 
-                <!-- Right Sidebar: Element Inspector & Master Config -->
-                <div class="w-72 bg-gray-800 border-l border-gray-700 flex flex-col">
-                    <!-- Page Size Config -->
-                    <div class="p-4 border-b border-gray-700">
-                        <h2 class="text-sm font-semibold mb-3">Page Size</h2>
-                        <div class="flex gap-1">
-                            <button class="page-size-btn flex-1 px-2 py-1.5 text-xs rounded bg-gray-700 hover:bg-gray-600" data-ratio="4:3">4:3</button>
-                            <button class="page-size-btn flex-1 px-2 py-1.5 text-xs rounded bg-blue-600" data-ratio="16:9">16:9</button>
-                            <button class="page-size-btn flex-1 px-2 py-1.5 text-xs rounded bg-gray-700 hover:bg-gray-600" data-ratio="21:9">21:9</button>
-                        </div>
-                    </div>
+                <!-- Layout Overrides -->
+                <div id="layout-override-panel" class="property-section hidden">
+                    <div class="property-section-title">Layout Overrides</div>
+                    <div id="layout-override-list"></div>
+                </div>
 
-                    <!-- Master Elements Config -->
-                    <div class="p-4 border-b border-gray-700 overflow-y-auto" style="max-height: 50vh;">
-                        <h2 class="text-sm font-semibold mb-3">Master Elements</h2>
-
-                        <!-- Decorative Shapes -->
-                        <div id="master-shapes-config" class="mb-3">
-                            <p class="text-xs text-gray-500 mb-1">Shapes <span class="text-gray-600">(decorative)</span></p>
-
-                            <!-- Top Area -->
-                            <p class="text-xs text-gray-600 mt-2 mb-1 px-2">▸ Top</p>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="header-badge" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Header Badge</span>
-                                <span class="text-xs text-gray-500 ml-auto">pill right</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="top-line" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Top Line</span>
-                                <span class="text-xs text-gray-500 ml-auto">thin bar</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="top-bar" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Top Bar</span>
-                                <span class="text-xs text-gray-500 ml-auto">thick bar</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="top-gradient" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Top Gradient</span>
-                                <span class="text-xs text-gray-500 ml-auto">fade down</span>
-                            </label>
-
-                            <!-- Left Area -->
-                            <p class="text-xs text-gray-600 mt-2 mb-1 px-2">▸ Left</p>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="side-bar" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Side Bar</span>
-                                <span class="text-xs text-gray-500 ml-auto">thin vertical</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="left-stripe" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Left Stripe</span>
-                                <span class="text-xs text-gray-500 ml-auto">wide bar</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="left-gradient" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Left Gradient</span>
-                                <span class="text-xs text-gray-500 ml-auto">fade right</span>
-                            </label>
-
-                            <!-- Right Area -->
-                            <p class="text-xs text-gray-600 mt-2 mb-1 px-2">▸ Right</p>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="right-bar" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Right Bar</span>
-                                <span class="text-xs text-gray-500 ml-auto">thin vertical</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="right-stripe" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Right Stripe</span>
-                                <span class="text-xs text-gray-500 ml-auto">wide bar</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="accent-circle" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Accent Circle</span>
-                                <span class="text-xs text-gray-500 ml-auto">decorative</span>
-                            </label>
-
-                            <!-- Bottom Area -->
-                            <p class="text-xs text-gray-600 mt-2 mb-1 px-2">▸ Bottom</p>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="bottom-strip" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Bottom Strip</span>
-                                <span class="text-xs text-gray-500 ml-auto">gradient bar</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="bottom-bar" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Bottom Bar</span>
-                                <span class="text-xs text-gray-500 ml-auto">thick solid</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="footer-line" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Footer Line</span>
-                                <span class="text-xs text-gray-500 ml-auto">thin line</span>
-                            </label>
-
-                            <!-- Corners -->
-                            <p class="text-xs text-gray-600 mt-2 mb-1 px-2">▸ Corners</p>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="corner-accent" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Corner TL</span>
-                                <span class="text-xs text-gray-500 ml-auto">triangle</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="corner-tr" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Corner TR</span>
-                                <span class="text-xs text-gray-500 ml-auto">triangle</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="corner-bl" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Corner BL</span>
-                                <span class="text-xs text-gray-500 ml-auto">triangle</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="corner-br" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Corner BR</span>
-                                <span class="text-xs text-gray-500 ml-auto">triangle</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="corner-dots" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Corner Dots</span>
-                                <span class="text-xs text-gray-500 ml-auto">pattern</span>
-                            </label>
-
-                            <!-- Content Area -->
-                            <p class="text-xs text-gray-600 mt-2 mb-1 px-2">▸ Content</p>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="title-underline" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Title Underline</span>
-                                <span class="text-xs text-gray-500 ml-auto">accent line</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="section-divider" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Section Divider</span>
-                                <span class="text-xs text-gray-500 ml-auto">center line</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="watermark" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Watermark</span>
-                                <span class="text-xs text-gray-500 ml-auto">bg text</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="logo-area" data-type="shape" class="rounded">
-                                <span class="text-gray-300">Logo Area</span>
-                                <span class="text-xs text-gray-500 ml-auto">placeholder</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="bg-pattern" data-type="shape" class="rounded">
-                                <span class="text-gray-300">BG Pattern</span>
-                                <span class="text-xs text-gray-500 ml-auto">dots grid</span>
-                            </label>
-                        </div>
-
-                        <!-- Placeholders -->
-                        <div id="master-placeholders-config" class="mb-3">
-                            <p class="text-xs text-gray-500 mb-1">Placeholders <span class="text-gray-600">(textbox)</span></p>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="title" data-type="placeholder" checked class="rounded">
-                                <span class="text-gray-300">Title</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="body" data-type="placeholder" class="rounded">
-                                <span class="text-gray-300">Body Text</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="footer" data-type="placeholder" class="rounded">
-                                <span class="text-gray-300">Footer</span>
-                            </label>
-                        </div>
-
-                        <!-- Dynamic Fields -->
-                        <div id="master-dynamic-fields-config">
-                            <p class="text-xs text-gray-500 mb-1">Dynamic Fields <span class="text-gray-600">(&lt;a:fld&gt;)</span></p>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="date" data-type="dynamic" class="rounded">
-                                <span class="text-gray-300">Date</span>
-                                <span class="text-xs text-gray-600">datetime</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm py-1 hover:bg-gray-700 rounded px-2 cursor-pointer">
-                                <input type="checkbox" data-master="page-number" data-type="dynamic" checked class="rounded">
-                                <span class="text-gray-300">Page Number</span>
-                                <span class="text-xs text-gray-600">slidenum</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Layout Override Config (shown when editing a layout) -->
-                    <div id="layout-override-panel" class="p-4 border-b border-gray-700 hidden">
-                        <h2 class="text-sm font-semibold mb-2">Layout Override</h2>
-                        <p class="text-xs text-gray-500 mb-3">Hide master elements for this layout only</p>
-                        <div id="layout-override-list" class="space-y-1">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
-
-                    <!-- Element Inspector -->
-                    <div class="flex-1 overflow-y-auto">
-                        <div class="p-4 border-b border-gray-700">
-                            <h2 class="text-sm font-semibold">Element Inspector</h2>
-                        </div>
-                        <div id="inspector-content" class="p-4">
-                            <p class="text-sm text-gray-500">Click an element in preview to inspect</p>
-                        </div>
-                    </div>
-
-                    <!-- Z-Order Legend -->
-                    <div class="border-t border-gray-700 p-4">
-                        <p class="section-title mb-2">Z-Order (Bottom → Top)</p>
-                        <div class="space-y-1 text-xs">
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 border-2 border-dashed border-yellow-500"></span>
-                                <span class="text-gray-400">Shapes</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 border-2 border-dashed border-purple-500"></span>
-                                <span class="text-gray-400">Placeholders</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 border-2 border-dashed border-pink-500"></span>
-                                <span class="text-gray-400">Dynamic Fields</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 border-2 border-solid border-green-500"></span>
-                                <span class="text-gray-400">Layout Elements</span>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Element Inspector -->
+                <div id="element-inspector-section" class="property-section hidden">
+                    <div class="property-section-title">Selected Element</div>
+                    <div id="element-inspector-content"></div>
                 </div>
             </div>
-        </div>
+        </aside>
     </div>
 
     <script src="themes.js"></script>
     <script src="layouts-data.js"></script>
     <script src="app.js"></script>
+    <script>
+        // Theme Switcher
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+
+            // Update button states
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === theme);
+            });
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        setTheme(savedTheme);
+    </script>
 </body>
 </html>

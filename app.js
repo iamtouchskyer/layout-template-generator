@@ -775,7 +775,7 @@ function updateLayoutList() {
     const layouts = AVAILABLE_LAYOUTS[state.currentStyle] || [];
 
     container.innerHTML = layouts.map(id => `
-        <div class="layout-item px-3 py-2 rounded text-sm cursor-pointer hover:bg-gray-700 transition-colors" data-layout="${id}">
+        <div class="layout-item" data-layout="${id}">
             ${formatLayoutName(id)}
         </div>
     `).join('');
@@ -884,14 +884,13 @@ function selectMaster() {
     // Update selection UI
     document.getElementById('master-thumbnail').classList.add('active');
     document.querySelectorAll('.layout-item').forEach(item => {
-        item.classList.remove('bg-blue-600');
-        item.classList.add('hover:bg-gray-700');
+        item.classList.remove('active');
     });
 
     // Update info
-    document.getElementById('current-info').textContent = 'Slide Master';
-    document.getElementById('edit-mode-badge').textContent = 'Editing Master';
-    document.getElementById('edit-mode-badge').className = 'px-2 py-0.5 rounded text-xs bg-yellow-600';
+    const currentInfo = document.getElementById('current-info');
+    currentInfo.textContent = 'Slide Master';
+    currentInfo.className = 'status-badge master';
 
     // Hide layout override panel
     document.getElementById('layout-override-panel').classList.add('hidden');
@@ -906,14 +905,13 @@ function selectLayout(layoutId) {
     // Update selection UI
     document.getElementById('master-thumbnail').classList.remove('active');
     document.querySelectorAll('.layout-item').forEach(item => {
-        item.classList.toggle('bg-blue-600', item.dataset.layout === layoutId);
-        item.classList.toggle('hover:bg-gray-700', item.dataset.layout !== layoutId);
+        item.classList.toggle('active', item.dataset.layout === layoutId);
     });
 
     // Update info
-    document.getElementById('current-info').textContent = formatLayoutName(layoutId);
-    document.getElementById('edit-mode-badge').textContent = 'Editing Layout';
-    document.getElementById('edit-mode-badge').className = 'px-2 py-0.5 rounded text-xs bg-blue-600';
+    const currentInfo = document.getElementById('current-info');
+    currentInfo.textContent = formatLayoutName(layoutId);
+    currentInfo.className = 'status-badge layout';
 
     // Show layout override panel
     updateLayoutOverridePanel(layoutId);
@@ -1099,9 +1097,7 @@ function buildMasterHTML() {
 function updatePageSizeUI() {
     document.querySelectorAll('.page-size-btn').forEach(btn => {
         const isActive = btn.dataset.ratio === state.pageSize;
-        btn.classList.toggle('bg-blue-600', isActive);
-        btn.classList.toggle('bg-gray-700', !isActive);
-        btn.classList.toggle('hover:bg-gray-600', !isActive);
+        btn.classList.toggle('active', isActive);
     });
 }
 

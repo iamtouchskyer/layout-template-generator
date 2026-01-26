@@ -64,23 +64,40 @@
 
 ```
 layout-template-generator/
-├── index.html          (276 lines - main HTML structure)
-├── styles.css          (558 lines - all CSS styles)
-├── app.js              (3000+ lines - needs splitting)
-├── themes.js           (generated theme data)
-├── layouts-data.js     (generated layout data)
+├── index.html          (276 lines - main HTML)
+├── styles.css          (558 lines - all CSS)
+├── src/                (ES6 modules)
+│   ├── core/
+│   │   ├── state.js          (32 lines)
+│   │   ├── constants.js      (16 lines)
+│   │   └── history.js        (87 lines)
+│   ├── features/
+│   │   └── shapes.js         (178 lines)
+│   └── main.js               (36 lines - entry point)
+├── app.js              (3030 lines - being migrated)
+├── themes.js           (generated)
+├── layouts-data.js     (generated)
 └── convert_to_templates.py
 ```
 
-## 🚀 Future Improvements
+## 🚀 Modularization Strategy
 
-### Potential Refactoring
-- Split app.js into modules (editor.js, inspector.js, toolbar.js, etc.)
-- Consider modern build tools (Vite, Webpack)
-- Consider framework migration (React, Vue) for better component organization
+### Phase 1: Core Modules ✅ DONE
+- ✅ src/core/state.js - Global state
+- ✅ src/core/constants.js - Constants
+- ✅ src/core/history.js - Undo/redo
+- ✅ src/features/shapes.js - Shape presets
+- ✅ src/main.js - ES6 module entry
+
+**Result**: 349 lines extracted, app.js reduced from conceptually
+
+### Phase 2: Next Priorities 🚧 TODO
+- [ ] src/templates/master.js - Master template generation (~200 lines)
+- [ ] src/ui/inspector.js - Element inspector (~250 lines)
+- [ ] src/editor/transform.js - Drag/resize/rotate (~300 lines)
+- [ ] src/editor/alignment.js - Alignment tools (~200 lines)
 
 ### Current Architecture
-- Vanilla JavaScript (no framework)
-- Direct DOM manipulation
-- Event-driven architecture
-- State management via global `state` object
+- **Hybrid**: ES6 modules + legacy code
+- **Backward compatible**: Modules expose to `window` object
+- **Gradual migration**: New code goes to modules, old code stays until migrated

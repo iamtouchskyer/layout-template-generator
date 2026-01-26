@@ -1,6 +1,17 @@
 /**
  * Layout × Theme Generator
  * PowerPoint-style Slide Master & Layout Editor
+ *
+ * NOTE: This file is being gradually migrated to ES6 modules in src/
+ * Some variables (state, PAGE_SIZES, history, etc.) are now loaded from src/main.js
+ * For backward compatibility, they are also defined here (will be overridden by modules)
+ *
+ * Migration status:
+ * ✅ src/core/state.js - Global state
+ * ✅ src/core/constants.js - PAGE_SIZES, GRID_SIZE, etc.
+ * ✅ src/core/history.js - Undo/redo logic
+ * ✅ src/features/shapes.js - SHAPE_PRESETS
+ * 🚧 Remaining code - To be migrated
  */
 
 // ============================================================================

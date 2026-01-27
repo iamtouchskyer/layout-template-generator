@@ -1814,15 +1814,15 @@ function deselectElement(iframeDoc) {
     });
     state.selectedElement = null;
 
-    // Support both old and new HTML structure
-    const inspectorContent = document.getElementById('inspector-content') || document.getElementById('element-inspector-content');
+    // Clear element inspector content (NOT the main inspector-content!)
+    const elementInspectorContent = document.getElementById('element-inspector-content');
     const inspectorSection = document.getElementById('element-inspector-section');
 
-    if (inspectorContent) {
-        inspectorContent.innerHTML = '<p class="text-sm text-gray-500">Click an element to inspect</p>';
+    if (elementInspectorContent) {
+        elementInspectorContent.innerHTML = '';
     }
 
-    // Hide element inspector in new HTML
+    // Hide element inspector section
     if (inspectorSection) {
         inspectorSection.classList.add('hidden');
     }
@@ -1926,22 +1926,22 @@ function updateInspectorPosition(el) {
 }
 
 function updateInspector(el, iframe) {
-    // Support both old and new HTML structure
-    const container = document.getElementById('inspector-content') || document.getElementById('element-inspector-content');
+    // Use element-inspector-content (NOT inspector-content which contains Master Elements config!)
+    const container = document.getElementById('element-inspector-content');
     const inspectorSection = document.getElementById('element-inspector-section');
 
     if (!el) {
-        // Hide element inspector in new HTML
+        // Hide element inspector section
         if (inspectorSection) {
             inspectorSection.classList.add('hidden');
         }
         if (container) {
-            container.innerHTML = '<p class="text-sm text-gray-500">Click an element to inspect</p>';
+            container.innerHTML = '';
         }
         return;
     }
 
-    // Show element inspector in new HTML
+    // Show element inspector section
     if (inspectorSection) {
         inspectorSection.classList.remove('hidden');
     }

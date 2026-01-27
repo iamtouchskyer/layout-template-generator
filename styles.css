@@ -147,11 +147,15 @@
             flex-direction: column;
             overflow: hidden;
             transition: background-color 200ms, border-color 200ms;
+            grid-column: 1;
+            grid-row: 2;
         }
 
         .sidebar.right {
             border-right: none;
             border-left: 1px solid var(--border-primary);
+            grid-column: 3;
+            grid-row: 2;
         }
 
         .sidebar-section {
@@ -298,6 +302,8 @@
             background: var(--bg-secondary);
             display: flex;
             flex-direction: column;
+            grid-column: 2;
+            grid-row: 2;
         }
 
         .canvas-toolbar {

@@ -8,7 +8,7 @@ export const state = {
     pageSize: '16:9', // '4:3' | '16:9' | '21:9'
     editMode: 'master', // 'master' | 'layout'
     currentLayout: null,
-    currentTab: 'preview',
+    currentTab: 'preview-mock', // 'preview-mock' | 'preview-template' | 'code'
     highlightElements: false,
     currentHTML: '',
     // Master elements configuration (applies to all layouts)

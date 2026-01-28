@@ -1598,6 +1598,18 @@ function applyMasterVisibilityToDoc(doc, layoutId) {
 }
 
 function applyThemeToHTML(html) {
+    // Apply theme variables (colors, fonts)
+    html = applyThemeVariables(html);
+
+    // Apply mock content only if in preview-mock mode
+    if (state.currentTab === 'preview-mock') {
+        html = applyMockContent(html);
+    }
+
+    return html;
+}
+
+function applyThemeVariables(html) {
     const theme = THEMES[state.currentTheme];
 
     const replacements = {
@@ -1614,12 +1626,15 @@ function applyThemeToHTML(html) {
     };
 
     for (const [key, value] of Object.entries(replacements)) {
-        html = html.replaceAll(key, value);
+        html = html.replaceAll(key, value || 'inherit');
     }
 
-    // Replace content placeholders
-    html = html.replace(/\{\{([^}]+)\}\}/g, (match, key) => getSampleContent(key.trim()));
+    return html;
+}
 
+function applyMockContent(html) {
+    // Replace content placeholders with sample data
+    html = html.replace(/\{\{([^}]+)\}\}/g, (match, key) => getSampleContent(key.trim()));
     return html;
 }
 
@@ -1745,12 +1760,16 @@ function updateTabUI() {
         btn.classList.toggle('active', btn.dataset.tab === state.currentTab);
     });
 
-    document.getElementById('preview-area').classList.toggle('hidden', state.currentTab !== 'preview');
+    const isPreview = state.currentTab === 'preview-mock' || state.currentTab === 'preview-template';
+    document.getElementById('preview-area').classList.toggle('hidden', !isPreview);
     document.getElementById('code-area').classList.toggle('hidden', state.currentTab !== 'code');
 
     if (state.currentTab === 'code' && state.currentHTML) {
         editor.setValue(state.currentHTML);
         editor.refresh();
+    } else if (isPreview) {
+        // Re-render preview when switching between mock/template views
+        updateMainPreview();
     }
 }
 

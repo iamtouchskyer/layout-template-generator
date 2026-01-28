@@ -9,15 +9,19 @@ const state = {
     masterShapes: [],
     masterPlaceholders: ['page-number'],
     // L2
-    pageType: 'content',           // 'content' | 'cover' | 'divider'
-    dividerLayout: 'cards-highlight', // which divider layout style
-    dividerIndex: 0,               // 0=全部(TOC), 1-4=specific section
-    expandedDivider: null,         // which divider group is expanded
-    // L3
+    pageType: 'content-grid',      // 'cover' | 'divider' | 'content-grid' | 'content-smartart'
+    // Divider state
+    dividerLayout: 'cards-highlight',
+    dividerIndex: 0,
+    expandedDivider: null,
+    // SmartArt state
+    smartartCategory: 'funnel',
+    smartartType: 'funnel-diagram',
+    smartartPlacement: 'left-desc',
+    expandedSmartartCat: 'funnel',
+    // Grid Layout (merged L3+L4)
+    gridLayout: 'two-col-equal',
+    zoneContents: { A: 'chart', B: 'text' },
     titleStyle: 'with-tag',
-    layoutType: 'chart-left',
-    gridPattern: 'two-equal',
     sourceStyle: 'citation',
-    // L4
-    cards: [{ type: 'chart' }, { type: 'text' }]
 };

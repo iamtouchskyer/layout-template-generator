@@ -7,6 +7,7 @@ function setActiveLayer(layer) {
     });
     document.querySelectorAll('.editor-view').forEach(el => el.classList.add('hidden'));
     document.getElementById(`editor-l${layer}`).classList.remove('hidden');
+    render(); // Re-render to show/hide content boundary for L2
 }
 
 function setPreviewTab(tab) {
@@ -31,16 +32,92 @@ function updateState() {
     document.querySelectorAll('[id^="ph-"]:checked').forEach(el => {
         state.masterPlaceholders.push(el.id.replace('ph-', ''));
     });
-    state.titleStyle = document.getElementById('title-style').value;
-    state.sourceStyle = document.getElementById('source-style').value;
     render();
 }
 
 function updatePageType(type) {
     state.pageType = type;
-    const dividerSection = document.getElementById('divider-section');
-    dividerSection.style.display = type === 'divider' ? 'block' : 'none';
+    document.getElementById('divider-section').style.display = type === 'divider' ? 'block' : 'none';
+    document.getElementById('smartart-section').style.display = type === 'content-smartart' ? 'block' : 'none';
+
+    // Show/hide grid operation bar
+    const gridBar = document.getElementById('grid-operation-bar');
+    if (type === 'content-grid') {
+        gridBar.classList.add('visible');
+        renderGridOperationBar();
+    } else {
+        gridBar.classList.remove('visible');
+    }
+
     if (type === 'divider') renderDividerLayouts();
+    if (type === 'content-smartart') {
+        renderSmartartCategories();
+        renderSmartartPlacements();
+    }
+    render();
+}
+
+// Grid Operation Bar Functions
+function renderGridOperationBar() {
+    renderLayoutPatterns();
+    renderZoneAssignments();
+}
+
+function renderLayoutPatterns() {
+    const container = document.getElementById('layout-patterns');
+    container.innerHTML = Object.entries(GRID_LAYOUTS).map(([id, layout]) => {
+        const isActive = state.gridLayout === id;
+        return `
+            <button class="layout-pattern-btn ${isActive ? 'active' : ''}"
+                    onclick="selectGridLayout('${id}')" title="${layout.label}">
+                <div class="pattern-preview ${layout.direction === 'column' ? 'vertical' : ''}">
+                    ${layout.zones.map(z => `<div class="pattern-zone" style="flex:${z.flex}"></div>`).join('')}
+                </div>
+                <span class="pattern-label">${layout.label}</span>
+            </button>
+        `;
+    }).join('');
+}
+
+function renderZoneAssignments() {
+    const container = document.getElementById('zone-assignments');
+    const layout = GRID_LAYOUTS[state.gridLayout];
+    if (!layout) return;
+
+    container.innerHTML = layout.zones.map(zone => {
+        const currentType = state.zoneContents[zone.id] || 'text';
+        return `
+            <div class="zone-assignment">
+                <span class="zone-badge">${zone.id}</span>
+                <select onchange="updateZoneContent('${zone.id}', this.value)">
+                    ${ZONE_CONTENT_TYPES.map(t => `<option value="${t.id}" ${currentType === t.id ? 'selected' : ''}>${t.label}</option>`).join('')}
+                </select>
+            </div>
+        `;
+    }).join('');
+}
+
+function selectGridLayout(layoutId) {
+    state.gridLayout = layoutId;
+    // Initialize zone contents for new layout
+    const layout = GRID_LAYOUTS[layoutId];
+    const newZoneContents = {};
+    layout.zones.forEach((zone, i) => {
+        newZoneContents[zone.id] = state.zoneContents[zone.id] || (i === 0 ? 'chart' : 'text');
+    });
+    state.zoneContents = newZoneContents;
+    renderGridOperationBar();
+    render();
+}
+
+function updateZoneContent(zoneId, contentType) {
+    state.zoneContents[zoneId] = contentType;
+    render();
+}
+
+function updateGridOptions() {
+    state.titleStyle = document.getElementById('title-style').value;
+    state.sourceStyle = document.getElementById('source-style').value;
     render();
 }
 
@@ -80,6 +157,62 @@ function selectDividerVariant(layoutId, index) {
     state.dividerLayout = layoutId;
     state.dividerIndex = index;
     renderDividerLayouts();
+    render();
+}
+
+// SmartArt UI Functions
+function renderSmartartCategories() {
+    const container = document.getElementById('smartart-categories');
+    container.innerHTML = Object.entries(SMARTART_CATEGORIES).map(([catId, cat]) => {
+        const isExpanded = state.expandedSmartartCat === catId;
+        const types = Object.entries(SMARTART_TYPES).filter(([_, t]) => t.category === catId);
+        const hasActiveType = types.some(([id, _]) => state.smartartType === id);
+        return `
+            <div class="smartart-cat-group ${hasActiveType ? 'active' : ''} ${isExpanded ? 'expanded' : ''}" data-cat="${catId}">
+                <div class="smartart-cat-header" onclick="toggleSmartartCat('${catId}')">
+                    <span class="smartart-cat-icon">${cat.icon}</span>
+                    <div class="smartart-cat-info">
+                        <span class="smartart-cat-label">${cat.label}</span>
+                        <span class="smartart-cat-desc">${cat.desc}</span>
+                    </div>
+                    <span class="expand-icon">${isExpanded ? '▼' : '▶'}</span>
+                </div>
+                <div class="smartart-type-list" style="display:${isExpanded ? 'flex' : 'none'}">
+                    ${types.map(([typeId, typeInfo]) => `
+                        <button class="smartart-type-btn ${state.smartartType === typeId ? 'active' : ''}"
+                                onclick="selectSmartartType('${typeId}')">${typeInfo.label}</button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderSmartartPlacements() {
+    const container = document.getElementById('smartart-placements');
+    container.innerHTML = `<div class="placement-btns">
+        ${Object.entries(SMARTART_PLACEMENTS).map(([id, p]) => `
+            <button class="placement-btn ${state.smartartPlacement === id ? 'active' : ''}"
+                    onclick="selectSmartartPlacement('${id}')" title="${p.desc}">${p.label}</button>
+        `).join('')}
+    </div>`;
+}
+
+function toggleSmartartCat(catId) {
+    state.expandedSmartartCat = state.expandedSmartartCat === catId ? null : catId;
+    renderSmartartCategories();
+}
+
+function selectSmartartType(typeId) {
+    state.smartartType = typeId;
+    state.smartartCategory = SMARTART_TYPES[typeId].category;
+    renderSmartartCategories();
+    render();
+}
+
+function selectSmartartPlacement(placementId) {
+    state.smartartPlacement = placementId;
+    renderSmartartPlacements();
     render();
 }
 
@@ -144,35 +277,54 @@ function updateNavValues() {
     document.getElementById('nav-l1-value').textContent = `${themeName.split(' ')[0]} + ${shapeCount} shapes`;
 
     // L2 value
-    let l2Value = state.pageType.charAt(0).toUpperCase() + state.pageType.slice(1);
+    let l2Value = state.pageType;
     if (state.pageType === 'divider') {
         const dividerLayout = DIVIDER_LAYOUTS[state.dividerLayout];
         const indexLabel = state.dividerIndex === 0 ? '全部' : state.dividerIndex;
         l2Value = `${dividerLayout?.label || state.dividerLayout} (${indexLabel})`;
+    } else if (state.pageType === 'content-smartart') {
+        const smartartType = SMARTART_TYPES[state.smartartType];
+        const placement = SMARTART_PLACEMENTS[state.smartartPlacement];
+        l2Value = `${smartartType?.label || state.smartartType} · ${placement?.label || ''}`;
+    } else if (state.pageType === 'content-grid') {
+        const gridLayout = GRID_LAYOUTS[state.gridLayout];
+        const zoneTypes = Object.values(state.zoneContents).join('+');
+        l2Value = `${gridLayout?.label || state.gridLayout} (${zoneTypes})`;
+    } else if (state.pageType === 'cover') {
+        l2Value = '封面';
     }
     document.getElementById('nav-l2-value').textContent = l2Value;
-
-    const layout = LAYOUT_TYPES[state.layoutType];
-    document.getElementById('nav-l3-value').textContent = layout ? layout.label : state.layoutType;
-    const cardTypes = state.cards.map(c => c.type.charAt(0).toUpperCase() + c.type.slice(1));
-    document.getElementById('nav-l4-value').textContent = cardTypes.join(' + ');
 }
 
 function updateJsonOutput() {
-    const layout = LAYOUT_TYPES[state.layoutType];
+    const gridLayout = GRID_LAYOUTS[state.gridLayout];
     const config = {
         theme: state.theme,
         slideMaster: { decorativeShapes: state.masterShapes, placeholders: state.masterPlaceholders },
         pageType: state.pageType,
         ...(state.pageType === 'divider' ? {
-            divider: {
-                layout: state.dividerLayout,
-                sectionIndex: state.dividerIndex // 0=TOC, 1-4=section page
+            divider: { layout: state.dividerLayout, sectionIndex: state.dividerIndex }
+        } : {}),
+        ...(state.pageType === 'content-smartart' ? {
+            smartart: {
+                type: state.smartartType,
+                category: state.smartartCategory,
+                placement: state.smartartPlacement,
+                dataType: SMARTART_TYPES[state.smartartType]?.dataType
             }
         } : {}),
-        ...(state.pageType === 'content' ? {
-            layout: { type: state.layoutType, category: layout?.category, titleStyle: state.titleStyle, sourceStyle: state.sourceStyle },
-            zones: layout?.zones.map((zone, i) => ({ zone, cardType: state.cards[i]?.type || 'text' }))
+        ...(state.pageType === 'content-grid' ? {
+            grid: {
+                layout: state.gridLayout,
+                titleStyle: state.titleStyle,
+                sourceStyle: state.sourceStyle,
+                zones: gridLayout?.zones.map(zone => ({
+                    id: zone.id,
+                    flex: zone.flex,
+                    content: state.zoneContents[zone.id] || 'text',
+                    gridCells: gridLayout.gridCells[zone.id]
+                }))
+            }
         } : {})
     };
     document.getElementById('json-output').textContent = JSON.stringify(config, null, 2);
@@ -186,4 +338,38 @@ function exportConfig() {
     const a = document.createElement('a');
     a.href = url; a.download = 'slide-config.json'; a.click();
     URL.revokeObjectURL(url);
+}
+
+async function generatePPTX() {
+    updateJsonOutput();
+    const config = JSON.parse(document.getElementById('json-output').textContent);
+
+    const btn = document.querySelector('.btn-primary');
+    const originalText = btn.textContent;
+    btn.textContent = 'Generating...';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch('/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            // Download the generated file
+            const link = document.createElement('a');
+            link.href = '/' + result.file;
+            link.download = result.file;
+            link.click();
+        } else {
+            alert('Generation failed: ' + result.error);
+        }
+    } catch (e) {
+        alert('Request failed: ' + e.message);
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
 }

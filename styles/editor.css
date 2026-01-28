@@ -309,3 +309,230 @@ select:focus, input:focus {
     border-color: var(--accent-l2);
     color: white;
 }
+
+/* SmartArt Category Groups */
+.smartart-categories { display: flex; flex-direction: column; gap: 8px; }
+
+.smartart-cat-group {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: all 0.15s;
+}
+
+.smartart-cat-group.active { border-color: var(--accent-l3); }
+
+.smartart-cat-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+}
+
+.smartart-cat-header:hover { background: var(--bg-tertiary); }
+
+.smartart-cat-icon { font-size: 18px; }
+.smartart-cat-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.smartart-cat-label { font-size: 13px; font-weight: 500; }
+.smartart-cat-desc { font-size: 10px; color: var(--text-secondary); }
+
+.smartart-type-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 12px 12px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 10px;
+}
+
+.smartart-type-btn {
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.smartart-type-btn:hover { background: var(--bg-tertiary); }
+
+.smartart-type-btn.active {
+    background: var(--accent-l3);
+    border-color: var(--accent-l3);
+    color: white;
+}
+
+/* SmartArt Placement Buttons */
+.smartart-placements { margin-top: 8px; }
+
+.placement-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.placement-btn {
+    flex: 1;
+    min-width: 60px;
+    padding: 8px 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.placement-btn:hover { background: var(--bg-tertiary); }
+
+.placement-btn.active {
+    background: var(--accent-l3);
+    border-color: var(--accent-l3);
+    color: white;
+}
+
+/* Grid Operation Bar */
+.grid-operation-bar {
+    display: none;
+    height: 70px;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 24px;
+    gap: 20px;
+}
+
+.grid-operation-bar.visible {
+    display: flex;
+    align-items: center;
+}
+
+.grid-op-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.grid-op-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+}
+
+.grid-op-divider {
+    width: 1px;
+    height: 60px;
+    background: var(--border-color);
+}
+
+/* Layout Patterns */
+.layout-patterns {
+    display: flex;
+    gap: 8px;
+}
+
+.layout-pattern-btn {
+    width: 64px;
+    height: 44px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    cursor: pointer;
+    padding: 4px;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.layout-pattern-btn:hover {
+    border-color: var(--text-secondary);
+}
+
+.layout-pattern-btn.active {
+    border-color: var(--accent-l3);
+    background: rgba(56, 161, 105, 0.1);
+}
+
+.layout-pattern-btn .pattern-preview {
+    width: 100%;
+    height: 24px;
+    display: flex;
+    gap: 2px;
+}
+
+.layout-pattern-btn .pattern-preview.vertical {
+    flex-direction: column;
+}
+
+.layout-pattern-btn .pattern-zone {
+    background: var(--accent-l3);
+    opacity: 0.5;
+    border-radius: 2px;
+}
+
+.layout-pattern-btn .pattern-label {
+    font-size: 9px;
+    color: var(--text-secondary);
+}
+
+/* Zone Assignments */
+.zone-assignments {
+    display: flex;
+    gap: 12px;
+}
+
+.zone-assignment {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.zone-badge {
+    width: 24px;
+    height: 24px;
+    background: var(--accent-l3);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+}
+
+.zone-assignment select {
+    width: 100px;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+/* Grid Options */
+.grid-op-options {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+}
+
+.grid-op-option {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.grid-op-option label {
+    font-size: 10px;
+    color: var(--text-secondary);
+}
+
+.grid-op-option select {
+    width: 90px;
+    padding: 6px 8px;
+    font-size: 12px;
+}

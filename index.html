@@ -7,13 +7,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/base.css">
-    <link rel="stylesheet" href="styles/editor.css">
-    <link rel="stylesheet" href="styles/preview.css">
-    <link rel="stylesheet" href="styles/slide.css">
-    <link rel="stylesheet" href="styles/cards.css">
-    <link rel="stylesheet" href="styles/layouts.css">
-    <link rel="stylesheet" href="styles/sections.css">
+    <link rel="stylesheet" href="styles/base.css?v=8">
+    <link rel="stylesheet" href="styles/editor.css?v=8">
+    <link rel="stylesheet" href="styles/preview.css?v=8">
+    <link rel="stylesheet" href="styles/slide.css?v=8">
+    <link rel="stylesheet" href="styles/cards.css?v=8">
+    <link rel="stylesheet" href="styles/layouts.css?v=8">
+    <link rel="stylesheet" href="styles/sections.css?v=8">
 </head>
 <body>
     <header class="app-header">
@@ -26,20 +26,13 @@
             <span class="layer-arrow">→</span>
             <div class="layer-nav-item" data-layer="2" onclick="setActiveLayer(2)">
                 <span class="layer-badge">L2</span>
-                <div><div class="layer-label">Page Type</div><div class="layer-value" id="nav-l2-value">Content</div></div>
-            </div>
-            <span class="layer-arrow">→</span>
-            <div class="layer-nav-item" data-layer="3" onclick="setActiveLayer(3)">
-                <span class="layer-badge">L3</span>
-                <div><div class="layer-label">Layout</div><div class="layer-value" id="nav-l3-value">Chart Left</div></div>
-            </div>
-            <span class="layer-arrow">→</span>
-            <div class="layer-nav-item" data-layer="4" onclick="setActiveLayer(4)">
-                <span class="layer-badge">L4</span>
-                <div><div class="layer-label">Cards</div><div class="layer-value" id="nav-l4-value">Chart + Text</div></div>
+                <div><div class="layer-label">Page Type</div><div class="layer-value" id="nav-l2-value">Content-Grid</div></div>
             </div>
         </nav>
-        <div class="header-actions"><button class="btn" onclick="exportConfig()">Export JSON</button></div>
+        <div class="header-actions">
+            <button class="btn" onclick="exportConfig()">Export JSON</button>
+            <button class="btn btn-primary" onclick="generatePPTX()">Generate PPTX</button>
+        </div>
     </header>
 
     <div class="main-content">
@@ -91,32 +84,21 @@
                         <div class="checkbox-group">
                             <label class="checkbox-item"><input type="radio" name="page-type" value="cover" onchange="updatePageType(this.value)"><span class="item-label">封面</span><span class="item-desc">Cover</span></label>
                             <label class="checkbox-item"><input type="radio" name="page-type" value="divider" onchange="updatePageType(this.value)"><span class="item-label">目录/章节</span><span class="item-desc">Divider</span></label>
-                            <label class="checkbox-item"><input type="radio" name="page-type" value="content" checked onchange="updatePageType(this.value)"><span class="item-label">内容页</span><span class="item-desc">Content</span></label>
+                            <label class="checkbox-item"><input type="radio" name="page-type" value="content-grid" checked onchange="updatePageType(this.value)"><span class="item-label">内容-Grid</span><span class="item-desc">卡片/图表布局</span></label>
+                            <label class="checkbox-item"><input type="radio" name="page-type" value="content-smartart" onchange="updatePageType(this.value)"><span class="item-label">内容-SmartArt</span><span class="item-desc">关系图形</span></label>
                         </div>
                     </div>
-                    <div class="editor-section divider-section" id="divider-section" style="display:none;">
+                    <div class="editor-section" id="divider-section" style="display:none;">
                         <div class="editor-section-title">目录/章节布局</div>
                         <div class="divider-layouts" id="divider-layouts"></div>
                     </div>
-                </div>
-            </div>
-            <!-- L3 Editor -->
-            <div class="editor-view hidden" id="editor-l3">
-                <div class="editor-header" data-layer="3"><span class="layer-badge">L3</span><div><h2>Content Layout</h2><p>Layout type based on presenter skill</p></div></div>
-                <div class="editor-content">
-                    <div class="editor-section"><div class="editor-section-title">Title Style</div>
-                        <select id="title-style" onchange="updateState()"><option value="none">None</option><option value="simple">Simple</option><option value="with-tag" selected>With Tag</option></select>
-                    </div>
-                    <div class="editor-section"><div class="editor-section-title">Layout Type</div><div class="layout-type-selector" id="layout-type-selector"></div></div>
-                    <div class="editor-section"><div class="editor-section-title">Source Citation</div>
-                        <select id="source-style" onchange="updateState()"><option value="none">None</option><option value="citation" selected>Show Citation</option></select>
+                    <div class="editor-section" id="smartart-section" style="display:none;">
+                        <div class="editor-section-title">SmartArt 类型</div>
+                        <div class="smartart-categories" id="smartart-categories"></div>
+                        <div class="editor-section-title" style="margin-top:16px;">布局位置</div>
+                        <div class="smartart-placements" id="smartart-placements"></div>
                     </div>
                 </div>
-            </div>
-            <!-- L4 Editor -->
-            <div class="editor-view hidden" id="editor-l4">
-                <div class="editor-header" data-layer="4"><span class="layer-badge">L4</span><div><h2>Cards</h2><p>Content for each grid cell</p></div></div>
-                <div class="editor-content"><div class="editor-section"><div class="editor-section-title">Card Types</div><div class="card-slots" id="card-slots"></div></div></div>
             </div>
         </div>
 
@@ -128,6 +110,36 @@
                     <div class="preview-tabs"><button class="preview-tab active" onclick="setPreviewTab('preview')">Preview</button><button class="preview-tab" onclick="setPreviewTab('json')">JSON</button></div>
                 </div>
             </div>
+            <!-- Grid Operation Bar (visible only for content-grid) -->
+            <div class="grid-operation-bar" id="grid-operation-bar">
+                <div class="grid-op-section">
+                    <div class="grid-op-title">布局模式</div>
+                    <div class="layout-patterns" id="layout-patterns"></div>
+                </div>
+                <div class="grid-op-divider"></div>
+                <div class="grid-op-section">
+                    <div class="grid-op-title">区域内容</div>
+                    <div class="zone-assignments" id="zone-assignments"></div>
+                </div>
+                <div class="grid-op-divider"></div>
+                <div class="grid-op-section grid-op-options">
+                    <div class="grid-op-option">
+                        <label>标题样式</label>
+                        <select id="title-style" onchange="updateGridOptions()">
+                            <option value="none">无</option>
+                            <option value="simple">简单</option>
+                            <option value="with-tag" selected>带标签</option>
+                        </select>
+                    </div>
+                    <div class="grid-op-option">
+                        <label>数据来源</label>
+                        <select id="source-style" onchange="updateGridOptions()">
+                            <option value="none">无</option>
+                            <option value="citation" selected>显示</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
             <div class="preview-viewport" id="preview-viewport">
                 <div class="slide-wrapper">
                     <div class="slide-container" id="slide"><div class="master-layer" id="master-layer"></div><div class="content-layer" id="content-layer"></div></div>
@@ -137,12 +149,14 @@
         </div>
     </div>
 
-    <script src="js/config.js"></script>
-    <script src="js/state.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/render.js"></script>
-    <script src="js/render-layouts.js"></script>
-    <script src="js/render-cards.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/infographics.bundle.js"></script>
+    <script src="js/config-loader.js?v=8"></script>
+    <script src="js/config.js?v=8"></script>
+    <script src="js/state.js?v=8"></script>
+    <script src="js/ui.js?v=8"></script>
+    <script src="js/render.js?v=8"></script>
+    <script src="js/render-layouts.js?v=8"></script>
+    <script src="js/render-cards.js?v=8"></script>
+    <script src="js/main.js?v=8"></script>
 </body>
 </html>

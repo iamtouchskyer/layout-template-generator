@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/base.css?v=9">
-    <link rel="stylesheet" href="styles/editor.css?v=12">
+    <link rel="stylesheet" href="styles/base.css?v=10">
+    <link rel="stylesheet" href="styles/editor.css?v=13">
     <link rel="stylesheet" href="styles/preview.css?v=9">
     <link rel="stylesheet" href="styles/slide.css?v=17">
     <link rel="stylesheet" href="styles/cards.css?v=9">
@@ -18,17 +18,6 @@
 <body>
     <header class="app-header">
         <div class="app-logo">Layout × Theme</div>
-        <nav class="layer-nav">
-            <div class="layer-nav-item active" data-layer="1" onclick="setActiveLayer(1)">
-                <span class="layer-badge">L1</span>
-                <div><div class="layer-label">Theme & Master</div><div class="layer-value" id="nav-l1-value">Soft Peach + 0 shapes</div></div>
-            </div>
-            <span class="layer-arrow">→</span>
-            <div class="layer-nav-item" data-layer="2" onclick="setActiveLayer(2)">
-                <span class="layer-badge">L2</span>
-                <div><div class="layer-label">Page Type</div><div class="layer-value" id="nav-l2-value">Content-Grid</div></div>
-            </div>
-        </nav>
         <div class="header-actions">
             <button class="btn" onclick="exportConfig()">Export JSON</button>
             <button class="btn btn-primary" onclick="generatePPTX()">Generate PPTX</button>
@@ -38,9 +27,16 @@
     <div class="main-content">
         <div class="editor-panel">
             <!-- L1 Editor -->
-            <div class="editor-view" id="editor-l1">
-                <div class="editor-header" data-layer="1"><span class="layer-badge">L1</span><div><h2>Theme & Slide Master</h2><p>Visual style + decorative elements</p></div></div>
-                <div class="editor-content">
+            <div class="editor-section-group" id="editor-l1">
+                <div class="section-group-header" onclick="toggleSection('l1')">
+                    <span class="layer-badge">L1</span>
+                    <div class="section-group-title">
+                        <h3>Theme & Master</h3>
+                        <span class="section-group-value" id="nav-l1-value">Soft Peach + 0 shapes</span>
+                    </div>
+                    <span class="section-toggle" id="toggle-l1">▼</span>
+                </div>
+                <div class="section-group-content" id="content-l1">
                     <div class="editor-section">
                         <div class="editor-section-title">Theme (.thmx)</div>
                         <div class="control-group"><label>Color & Font Scheme</label>
@@ -80,9 +76,16 @@
                 </div>
             </div>
             <!-- L2 Editor -->
-            <div class="editor-view hidden" id="editor-l2">
-                <div class="editor-header" data-layer="2"><span class="layer-badge">L2</span><div><h2>Page Type</h2><p>Overall page structure</p></div></div>
-                <div class="editor-content">
+            <div class="editor-section-group" id="editor-l2">
+                <div class="section-group-header" onclick="toggleSection('l2')">
+                    <span class="layer-badge">L2</span>
+                    <div class="section-group-title">
+                        <h3>Page Type</h3>
+                        <span class="section-group-value" id="nav-l2-value">Content-Grid</span>
+                    </div>
+                    <span class="section-toggle" id="toggle-l2">▼</span>
+                </div>
+                <div class="section-group-content" id="content-l2">
                     <div class="editor-section">
                         <div class="editor-section-title">页面类型</div>
                         <div class="checkbox-group">
@@ -176,7 +179,7 @@
     <script src="js/config-loader.js?v=14"></script>
     <script src="js/config.js?v=9"></script>
     <script src="js/state.js?v=15"></script>
-    <script src="js/ui.js?v=18"></script>
+    <script src="js/ui.js?v=19"></script>
     <script src="js/render.js?v=17"></script>
     <script src="js/render-layouts.js?v=9"></script>
     <script src="js/render-cards.js?v=9"></script>

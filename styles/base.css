@@ -27,13 +27,13 @@ body {
 
 /* Header */
 .app-header {
-    height: 60px;
+    height: 48px;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
-    padding: 0 24px;
-    gap: 32px;
+    justify-content: space-between;
+    padding: 0 20px;
 }
 
 .app-logo {
@@ -41,60 +41,6 @@ body {
     font-weight: 600;
     color: var(--text-secondary);
 }
-
-/* Layer Navigation */
-.layer-nav {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-}
-
-.layer-nav-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid transparent;
-}
-
-.layer-nav-item:hover { background: var(--bg-tertiary); }
-.layer-nav-item.active {
-    background: var(--bg-tertiary);
-    border-color: var(--border-color);
-}
-
-.layer-nav-item .layer-badge {
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    color: white;
-}
-
-.layer-nav-item[data-layer="1"] .layer-badge { background: var(--accent-l1); }
-.layer-nav-item[data-layer="2"] .layer-badge { background: var(--accent-l2); }
-.layer-nav-item[data-layer="3"] .layer-badge { background: var(--accent-l3); }
-.layer-nav-item[data-layer="4"] .layer-badge { background: var(--accent-l4); }
-
-.layer-nav-item .layer-label { font-size: 13px; font-weight: 500; }
-.layer-nav-item .layer-value {
-    font-size: 11px;
-    color: var(--text-secondary);
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.layer-arrow { color: var(--text-secondary); font-size: 12px; }
 
 .header-actions { display: flex; gap: 12px; }
 

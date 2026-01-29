@@ -1,46 +1,83 @@
 /* Editor Panel Styles */
 
 .editor-panel {
-    width: 360px;
+    width: 320px;
     background: var(--bg-secondary);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
-.editor-header {
-    padding: 16px 20px;
+/* Section Group (collapsible L1/L2) */
+.editor-section-group {
     border-bottom: 1px solid var(--border-color);
+}
+
+.section-group-header {
+    padding: 12px 16px;
     display: flex;
     align-items: center;
     gap: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
 }
 
-.editor-header .layer-badge {
+.section-group-header:hover {
+    background: var(--bg-tertiary);
+}
+
+.section-group-header .layer-badge {
     width: 28px;
     height: 28px;
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     color: white;
+    flex-shrink: 0;
 }
 
-.editor-header[data-layer="1"] .layer-badge { background: var(--accent-l1); }
-.editor-header[data-layer="2"] .layer-badge { background: var(--accent-l2); }
-.editor-header[data-layer="3"] .layer-badge { background: var(--accent-l3); }
-.editor-header[data-layer="4"] .layer-badge { background: var(--accent-l4); }
+#editor-l1 .layer-badge { background: var(--accent-l1); }
+#editor-l2 .layer-badge { background: var(--accent-l2); }
 
-.editor-header h2 { font-size: 15px; font-weight: 600; }
-.editor-header p { font-size: 12px; color: var(--text-secondary); }
-
-.editor-content {
+.section-group-title {
     flex: 1;
-    overflow-y: auto;
-    padding: 20px;
+    min-width: 0;
+}
+
+.section-group-title h3 {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.section-group-value {
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.section-toggle {
+    font-size: 10px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.section-group-content {
+    padding: 0 16px 16px;
+    overflow: hidden;
+    transition: max-height 0.2s, padding 0.2s;
+}
+
+.section-group-content.collapsed {
+    max-height: 0 !important;
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 .editor-section { margin-bottom: 24px; }

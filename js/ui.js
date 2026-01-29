@@ -1,13 +1,10 @@
 // UI Interaction Functions
 
-function setActiveLayer(layer) {
-    state.activeLayer = layer;
-    document.querySelectorAll('.layer-nav-item').forEach(el => {
-        el.classList.toggle('active', parseInt(el.dataset.layer) === layer);
-    });
-    document.querySelectorAll('.editor-view').forEach(el => el.classList.add('hidden'));
-    document.getElementById(`editor-l${layer}`).classList.remove('hidden');
-    render(); // Re-render to show/hide content boundary for L2
+function toggleSection(section) {
+    const content = document.getElementById(`content-${section}`);
+    const toggle = document.getElementById(`toggle-${section}`);
+    const isCollapsed = content.classList.toggle('collapsed');
+    toggle.textContent = isCollapsed ? '▶' : '▼';
 }
 
 function setPreviewTab(tab) {

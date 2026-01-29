@@ -7,13 +7,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/base.css?v=8">
-    <link rel="stylesheet" href="styles/editor.css?v=8">
-    <link rel="stylesheet" href="styles/preview.css?v=8">
-    <link rel="stylesheet" href="styles/slide.css?v=8">
-    <link rel="stylesheet" href="styles/cards.css?v=8">
-    <link rel="stylesheet" href="styles/layouts.css?v=8">
-    <link rel="stylesheet" href="styles/sections.css?v=8">
+    <link rel="stylesheet" href="styles/base.css?v=9">
+    <link rel="stylesheet" href="styles/editor.css?v=12">
+    <link rel="stylesheet" href="styles/preview.css?v=9">
+    <link rel="stylesheet" href="styles/slide.css?v=17">
+    <link rel="stylesheet" href="styles/cards.css?v=9">
+    <link rel="stylesheet" href="styles/layouts.css?v=9">
+    <link rel="stylesheet" href="styles/sections.css?v=11">
 </head>
 <body>
     <header class="app-header">
@@ -63,15 +63,19 @@
                                 </optgroup>
                             </select>
                         </div>
+                        <div class="control-group"><label>Aspect Ratio</label>
+                            <select id="aspect-ratio-select" onchange="updateAspectRatio(this.value)">
+                            </select>
+                        </div>
                     </div>
                     <div class="editor-section"><div class="editor-section-title">Decorative Shapes</div><div class="checkbox-group" id="shapes-list"></div></div>
                     <div class="editor-section">
                         <div class="editor-section-title">Placeholders</div>
-                        <div class="checkbox-group">
-                            <label class="checkbox-item"><input type="checkbox" id="ph-logo" onchange="updateState()"><span class="item-label">Logo</span><span class="item-desc">top left</span></label>
-                            <label class="checkbox-item"><input type="checkbox" id="ph-page-number" checked onchange="updateState()"><span class="item-label">Page Number</span><span class="item-desc">bottom right</span></label>
-                            <label class="checkbox-item"><input type="checkbox" id="ph-date" onchange="updateState()"><span class="item-label">Date</span><span class="item-desc">bottom left</span></label>
-                        </div>
+                        <div class="placeholder-list" id="placeholder-list"></div>
+                    </div>
+                    <div class="editor-section">
+                        <div class="editor-section-title">Content Areas</div>
+                        <div class="content-areas-config" id="content-areas-config"></div>
                     </div>
                 </div>
             </div>
@@ -88,16 +92,6 @@
                             <label class="checkbox-item"><input type="radio" name="page-type" value="content-smartart" onchange="updatePageType(this.value)"><span class="item-label">内容-SmartArt</span><span class="item-desc">关系图形</span></label>
                         </div>
                     </div>
-                    <div class="editor-section" id="divider-section" style="display:none;">
-                        <div class="editor-section-title">目录/章节布局</div>
-                        <div class="divider-layouts" id="divider-layouts"></div>
-                    </div>
-                    <div class="editor-section" id="smartart-section" style="display:none;">
-                        <div class="editor-section-title">SmartArt 类型</div>
-                        <div class="smartart-categories" id="smartart-categories"></div>
-                        <div class="editor-section-title" style="margin-top:16px;">布局位置</div>
-                        <div class="smartart-placements" id="smartart-placements"></div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -110,33 +104,62 @@
                     <div class="preview-tabs"><button class="preview-tab active" onclick="setPreviewTab('preview')">Preview</button><button class="preview-tab" onclick="setPreviewTab('json')">JSON</button></div>
                 </div>
             </div>
+            <!-- Divider Operation Bar (visible only for divider) -->
+            <div class="divider-operation-bar" id="divider-operation-bar">
+                <div class="grid-op-row">
+                    <div class="grid-op-section">
+                        <div class="grid-op-title">布局样式</div>
+                        <div class="divider-style-selector" id="divider-style-selector"></div>
+                    </div>
+                    <div class="grid-op-section">
+                        <div class="grid-op-title">章节数量</div>
+                        <div class="divider-count-selector" id="divider-count-selector"></div>
+                    </div>
+                    <div class="grid-op-section">
+                        <div class="grid-op-title">编号样式</div>
+                        <div class="divider-number-selector" id="divider-number-selector"></div>
+                    </div>
+                    <div class="grid-op-section">
+                        <div class="grid-op-title">文字层级</div>
+                        <div class="divider-text-selector" id="divider-text-selector"></div>
+                    </div>
+                    <div class="grid-op-section">
+                        <div class="grid-op-title">背景样式</div>
+                        <div class="divider-bg-selector" id="divider-bg-selector"></div>
+                    </div>
+                    <div class="grid-op-section">
+                        <div class="grid-op-title">当前章节</div>
+                        <div class="divider-index-selector" id="divider-index-selector"></div>
+                    </div>
+                </div>
+            </div>
             <!-- Grid Operation Bar (visible only for content-grid) -->
             <div class="grid-operation-bar" id="grid-operation-bar">
-                <div class="grid-op-section">
-                    <div class="grid-op-title">布局模式</div>
-                    <div class="layout-patterns" id="layout-patterns"></div>
-                </div>
-                <div class="grid-op-divider"></div>
-                <div class="grid-op-section">
-                    <div class="grid-op-title">区域内容</div>
-                    <div class="zone-assignments" id="zone-assignments"></div>
-                </div>
-                <div class="grid-op-divider"></div>
-                <div class="grid-op-section grid-op-options">
-                    <div class="grid-op-option">
-                        <label>标题样式</label>
-                        <select id="title-style" onchange="updateGridOptions()">
-                            <option value="none">无</option>
-                            <option value="simple">简单</option>
-                            <option value="with-tag" selected>带标签</option>
-                        </select>
+                <div class="grid-op-row">
+                    <div class="grid-op-section">
+                        <div class="grid-op-title">布局模式</div>
+                        <div class="layout-patterns" id="layout-patterns"></div>
                     </div>
-                    <div class="grid-op-option">
-                        <label>数据来源</label>
-                        <select id="source-style" onchange="updateGridOptions()">
-                            <option value="none">无</option>
-                            <option value="citation" selected>显示</option>
-                        </select>
+                </div>
+                <div class="grid-op-row">
+                    <div class="grid-op-section">
+                        <div class="grid-op-title">区域内容</div>
+                        <div class="zone-assignments" id="zone-assignments"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- SmartArt Operation Bar (visible only for content-smartart) -->
+            <div class="smartart-operation-bar" id="smartart-operation-bar">
+                <div class="grid-op-row">
+                    <div class="grid-op-section">
+                        <div class="grid-op-title">SmartArt 类型</div>
+                        <div class="smartart-type-selector" id="smartart-type-selector"></div>
+                    </div>
+                </div>
+                <div class="grid-op-row">
+                    <div class="grid-op-section">
+                        <div class="grid-op-title">布局位置</div>
+                        <div class="smartart-placements" id="smartart-placements"></div>
                     </div>
                 </div>
             </div>
@@ -150,13 +173,13 @@
     </div>
 
     <script src="js/infographics.bundle.js"></script>
-    <script src="js/config-loader.js?v=8"></script>
-    <script src="js/config.js?v=8"></script>
-    <script src="js/state.js?v=8"></script>
-    <script src="js/ui.js?v=8"></script>
-    <script src="js/render.js?v=8"></script>
-    <script src="js/render-layouts.js?v=8"></script>
-    <script src="js/render-cards.js?v=8"></script>
-    <script src="js/main.js?v=8"></script>
+    <script src="js/config-loader.js?v=14"></script>
+    <script src="js/config.js?v=9"></script>
+    <script src="js/state.js?v=15"></script>
+    <script src="js/ui.js?v=18"></script>
+    <script src="js/render.js?v=17"></script>
+    <script src="js/render-layouts.js?v=9"></script>
+    <script src="js/render-cards.js?v=9"></script>
+    <script src="js/main.js?v=9"></script>
 </body>
 </html>

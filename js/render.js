@@ -8,7 +8,7 @@ function render() {
     slide.setAttribute('data-theme', state.theme);
     let pageClass = `page-type-${state.pageType}`;
     if (state.pageType === 'divider') {
-        pageClass = `page-type-divider-${state.dividerLayout}`;
+        pageClass = `page-type-divider-${state.dividerLayout} bg-${state.dividerBgStyle}`;
     } else if (state.pageType === 'content-smartart') {
         pageClass = `page-type-smartart placement-${state.smartartPlacement}`;
     }
@@ -19,25 +19,128 @@ function render() {
     if (state.previewTab === 'json') updateJsonOutput();
 }
 
+function renderPlaceholderList() {
+    const container = document.getElementById('placeholder-list');
+    if (!container || !PLACEHOLDERS_CONFIG) return;
+
+    container.innerHTML = Object.entries(PLACEHOLDERS_CONFIG).map(([phId, phConfig]) => {
+        const phState = state.masterPlaceholders[phId] || { enabled: false };
+        const isActive = phState.enabled;
+
+        // Position options
+        const positionOptions = Object.entries(phConfig.positions)
+            .map(([posId, pos]) => `<option value="${posId}" ${phState.position === posId ? 'selected' : ''}>${pos.label}</option>`)
+            .join('');
+
+        // Size options (only for logo)
+        let sizeOptionsHtml = '';
+        if (phConfig.sizes) {
+            const sizeOptions = Object.entries(phConfig.sizes)
+                .map(([sizeId, size]) => `<option value="${sizeId}" ${phState.size === sizeId ? 'selected' : ''}>${size.label}</option>`)
+                .join('');
+            sizeOptionsHtml = `
+                <div class="option-row">
+                    <label>大小</label>
+                    <select onchange="updatePlaceholderSize('${phId}', this.value)">${sizeOptions}</select>
+                </div>
+            `;
+        }
+
+        // Upload button (only for logo)
+        let uploadHtml = '';
+        if (phConfig.allowUpload) {
+            const hasImage = phState.imageUrl;
+            uploadHtml = `
+                <div class="option-row logo-upload-row">
+                    <label>图片</label>
+                    <div class="logo-upload-controls">
+                        <input type="file" id="logo-upload-${phId}" accept="image/*" onchange="handleLogoUpload('${phId}', this)" style="display:none">
+                        <button class="upload-btn" onclick="document.getElementById('logo-upload-${phId}').click()">
+                            ${hasImage ? '更换' : '上传'}
+                        </button>
+                        ${hasImage ? `<button class="clear-btn" onclick="clearLogoImage('${phId}')">清除</button>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="placeholder-item ${isActive ? 'active' : ''}" data-placeholder="${phId}">
+                <div class="placeholder-item-header" onclick="togglePlaceholder('${phId}')">
+                    <input type="checkbox" ${isActive ? 'checked' : ''} onclick="event.stopPropagation(); togglePlaceholder('${phId}')">
+                    <span class="item-label">${phConfig.label}</span>
+                </div>
+                <div class="placeholder-item-options">
+                    <div class="option-row">
+                        <label>位置</label>
+                        <select onchange="updatePlaceholderPosition('${phId}', this.value)">${positionOptions}</select>
+                    </div>
+                    ${sizeOptionsHtml}
+                    ${uploadHtml}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
 function renderShapesList() {
     const container = document.getElementById('shapes-list');
     container.innerHTML = Object.entries(SHAPE_PRESETS).map(([shapeId, shape]) => {
         const isActive = state.masterShapes.some(s => s.id === shapeId);
-        const currentPreset = state.masterShapes.find(s => s.id === shapeId)?.preset || shape.presets[0].id;
+        const shapeState = state.masterShapes.find(s => s.id === shapeId);
+
+        let optionsHtml = '';
+        if (shape.configType === 'thickness-positions') {
+            // New thickness-positions config
+            const currentThickness = shapeState?.thickness || shape.defaultThickness;
+            const currentPositions = shapeState?.positions || shape.defaultPositions || [];
+
+            // Thickness dropdown
+            const thicknessOptions = Object.entries(shape.thickness)
+                .map(([id, t]) => `<option value="${id}" ${currentThickness === id ? 'selected' : ''}>${t.label}</option>`)
+                .join('');
+
+            // Position checkboxes
+            const positionCheckboxes = Object.entries(shape.positions)
+                .map(([id, p]) => {
+                    const isChecked = currentPositions.includes(id);
+                    return `<label class="position-checkbox">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="updateShapePosition('${shapeId}', '${id}', this.checked)">
+                        <span>${p.label}</span>
+                    </label>`;
+                })
+                .join('');
+
+            optionsHtml = `
+                <div class="option-row">
+                    <label>大小</label>
+                    <select onchange="updateShapeThickness('${shapeId}', this.value)">${thicknessOptions}</select>
+                </div>
+                <div class="option-row">
+                    <label>位置</label>
+                    <div class="position-checkboxes">${positionCheckboxes}</div>
+                </div>
+            `;
+        } else {
+            // Legacy preset-based config
+            const currentPreset = shapeState?.preset || shape.presets[0].id;
+            optionsHtml = `
+                <div class="option-row">
+                    <label>Variant</label>
+                    <select onchange="updateShapePreset('${shapeId}', this.value)">
+                        ${shape.presets.map(p => `<option value="${p.id}" ${currentPreset === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+                    </select>
+                </div>
+            `;
+        }
+
         return `
             <div class="shape-item ${isActive ? 'active' : ''}" data-shape="${shapeId}">
                 <div class="shape-item-header" onclick="toggleShape('${shapeId}')">
                     <input type="checkbox" ${isActive ? 'checked' : ''} onclick="event.stopPropagation(); toggleShape('${shapeId}')">
                     <span class="item-label">${shape.label}</span>
                 </div>
-                <div class="shape-item-options">
-                    <div class="option-row">
-                        <label>Variant</label>
-                        <select onchange="updateShapePreset('${shapeId}', this.value)">
-                            ${shape.presets.map(p => `<option value="${p.id}" ${currentPreset === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
-                        </select>
-                    </div>
-                </div>
+                <div class="shape-item-options">${optionsHtml}</div>
             </div>
         `;
     }).join('');
@@ -102,35 +205,80 @@ function renderMasterLayer() {
     let decorativeHtml = '';  // Background decorations (z-index: 0)
     let shapeHtml = '';       // Space-occupying shapes (z-index: 1)
 
-    state.masterShapes.forEach(({ id: shapeId, preset: presetId }) => {
+    state.masterShapes.forEach((shapeState) => {
+        const shapeId = shapeState.id;
         const shapeConfig = SHAPE_PRESETS[shapeId];
-        const isDecorative = shapeConfig && shapeConfig.occupiesSpace === false;
+        if (!shapeConfig) return;
 
-        const shapeMap = {
-            // Space-occupying shapes
-            'header-badge': `<div class="master-shape header-badge" data-preset="${presetId}">SECTION</div>`,
-            'top-line': `<div class="master-shape top-line" data-preset="${presetId}"></div>`,
-            'footer-line': `<div class="master-shape footer-line" data-preset="${presetId}"></div>`,
-            'side-bar': `<div class="master-shape side-bar" data-preset="${presetId}"></div>`,
-            // Decorative shapes (pure background)
-            'corner': `<div class="master-shape decorative corner-shape" data-preset="${presetId}"></div>`,
-            'corner-dots': `<div class="master-shape decorative corner-dots" data-preset="${presetId}"></div>`,
-            'accent-circle': `<div class="master-shape decorative accent-circle" data-preset="${presetId}"></div>`,
-        };
+        const isDecorative = shapeConfig.occupiesSpace === false;
 
-        const shapeHtmlContent = shapeMap[shapeId] || '';
-        if (isDecorative) {
-            decorativeHtml += shapeHtmlContent;
+        if (shapeConfig.configType === 'thickness-positions') {
+            // New thickness-positions config - render for each position
+            const thickness = shapeState.thickness || shapeConfig.defaultThickness;
+            const positions = shapeState.positions || shapeConfig.defaultPositions || [];
+            const thicknessConfig = shapeConfig.thickness[thickness];
+
+            positions.forEach(pos => {
+                const presetKey = `${thickness}-${pos}`;
+                const html = renderThicknessPositionShape(shapeId, thickness, pos, thicknessConfig, shapeConfig.style);
+                if (isDecorative) {
+                    decorativeHtml += html;
+                } else {
+                    shapeHtml += html;
+                }
+            });
         } else {
-            shapeHtml += shapeHtmlContent;
+            // Legacy preset-based config
+            const presetId = shapeState.preset;
+            const shapeMap = {
+                'header-badge': `<div class="master-shape header-badge" data-preset="${presetId}">SECTION</div>`,
+                'header-line': `<div class="master-shape header-line" data-preset="${presetId}"></div>`,
+                'footer-line': `<div class="master-shape footer-line" data-preset="${presetId}"></div>`,
+            };
+
+            const shapeHtmlContent = shapeMap[shapeId] || '';
+            if (isDecorative) {
+                decorativeHtml += shapeHtmlContent;
+            } else {
+                shapeHtml += shapeHtmlContent;
+            }
         }
     });
 
     // Placeholders
     let placeholderHtml = '';
-    if (state.masterPlaceholders.includes('logo')) placeholderHtml += `<div class="master-placeholder logo">LOGO</div>`;
-    if (state.masterPlaceholders.includes('page-number')) placeholderHtml += `<div class="master-placeholder page-number">3 / 12</div>`;
-    if (state.masterPlaceholders.includes('date')) placeholderHtml += `<div class="master-placeholder date-field">2024-01-15</div>`;
+    Object.entries(state.masterPlaceholders).forEach(([phId, phState]) => {
+        if (!phState.enabled) return;
+
+        const phConfig = PLACEHOLDERS_CONFIG[phId];
+        if (!phConfig) return;
+
+        const posConfig = phConfig.positions[phState.position];
+        if (!posConfig) return;
+
+        const posStyle = generatePlaceholderPositionStyle(posConfig.position);
+
+        if (phId === 'logo') {
+            const sizeConfig = phConfig.sizes[phState.size || phConfig.defaultSize];
+            const width = sizeConfig?.width || 80;
+            const height = sizeConfig?.height || 30;
+            const sizeStyle = `width: ${width}px; height: ${height}px;`;
+            const hasImageClass = phState.imageUrl ? 'has-image' : '';
+
+            if (phState.imageUrl) {
+                placeholderHtml += `<div class="master-placeholder logo ${hasImageClass}" style="${posStyle}; ${sizeStyle}">
+                    <img src="${phState.imageUrl}" alt="Logo">
+                </div>`;
+            } else {
+                placeholderHtml += `<div class="master-placeholder logo" style="${posStyle}; ${sizeStyle}">LOGO</div>`;
+            }
+        } else if (phId === 'page-number') {
+            const extraStyle = phState.position === 'bc' ? 'left: 50%; transform: translateX(-50%);' : '';
+            placeholderHtml += `<div class="master-placeholder page-number" style="${posStyle}; ${extraStyle}">3 / 12</div>`;
+        } else if (phId === 'date') {
+            placeholderHtml += `<div class="master-placeholder date-field" style="${posStyle}">2024-01-15</div>`;
+        }
+    });
 
     // Content boundary indicator for L2
     let boundaryHtml = '';
@@ -140,6 +288,109 @@ function renderMasterLayer() {
 
     // Order: decorative (back) → shapes → placeholders → boundary (front)
     return decorativeHtml + shapeHtml + placeholderHtml + boundaryHtml;
+}
+
+/**
+ * Render a shape with thickness-positions config for a specific position
+ */
+function renderThicknessPositionShape(shapeId, thickness, position, thicknessConfig, defaultStyle) {
+    const presetKey = `${thickness}-${position}`;
+    const decorativeClass = SHAPE_PRESETS[shapeId]?.occupiesSpace === false ? 'decorative' : '';
+
+    switch (shapeId) {
+        case 'side-bar': {
+            return `<div class="master-shape ${decorativeClass} side-bar" data-preset="${presetKey}"></div>`;
+        }
+        case 'corner': {
+            return `<div class="master-shape ${decorativeClass} corner-shape" data-preset="${presetKey}"></div>`;
+        }
+        case 'corner-dots': {
+            const size = thicknessConfig.size || 60;
+            const dotSize = thicknessConfig.dotSize || 2;
+            const gap = thicknessConfig.gap || 10;
+            const opacity = defaultStyle?.opacity || 0.3;
+            const posStyle = getCornerPositionStyle(position, size);
+            const style = `${posStyle}; width: ${size}px; height: ${size}px; background-image: radial-gradient(var(--theme-accent) ${dotSize}px, transparent ${dotSize}px); background-size: ${gap + dotSize}px ${gap + dotSize}px; opacity: ${opacity};`;
+            return `<div class="master-shape ${decorativeClass} corner-dots-dynamic" style="${style}"></div>`;
+        }
+        case 'corner-lines': {
+            const size = thicknessConfig.size || 40;
+            const lineWidth = thicknessConfig.lineWidth || 1;
+            const gap = thicknessConfig.gap || 8;
+            const opacity = defaultStyle?.opacity || 0.2;
+            const posStyle = getCornerPositionStyle(position, size);
+            // Render 3 diagonal lines
+            const lineCount = Math.floor(size / (gap + lineWidth));
+            let linesHtml = '';
+            for (let i = 0; i < Math.min(lineCount, 5); i++) {
+                const offset = i * (gap + lineWidth);
+                linesHtml += `<div style="position:absolute; background:var(--theme-accent); ${getLineStyle(position, offset, size, lineWidth)}"></div>`;
+            }
+            return `<div class="master-shape ${decorativeClass} corner-lines-dynamic" style="${posStyle}; width: ${size}px; height: ${size}px; opacity: ${opacity}; overflow: hidden;">${linesHtml}</div>`;
+        }
+        case 'accent-circle': {
+            const size = thicknessConfig.size || 100;
+            const offset = thicknessConfig.offset || -25;
+            const opacity = defaultStyle?.opacity || 0.08;
+            const posStyle = getCornerPositionStyle(position, size, offset);
+            const style = `${posStyle}; width: ${size}px; height: ${size}px; border-radius: 50%; opacity: ${opacity};`;
+            return `<div class="master-shape ${decorativeClass} accent-circle-dynamic" style="${style}"></div>`;
+        }
+        case 'accent-ring': {
+            const size = thicknessConfig.size || 80;
+            const strokeWidth = thicknessConfig.strokeWidth || 3;
+            const offset = thicknessConfig.offset || -20;
+            const opacity = defaultStyle?.opacity || 0.15;
+            const posStyle = getCornerPositionStyle(position, size, offset);
+            const style = `${posStyle}; width: ${size}px; height: ${size}px; border-radius: 50%; border: ${strokeWidth}px solid var(--theme-accent); background: transparent; opacity: ${opacity};`;
+            return `<div class="master-shape ${decorativeClass} accent-ring-dynamic" style="${style}"></div>`;
+        }
+        default:
+            return '';
+    }
+}
+
+/**
+ * Get CSS position style for corner positions (tl, tr, bl, br) or side positions (left, right, top, bottom)
+ */
+function getCornerPositionStyle(position, size, offset = 20) {
+    switch (position) {
+        case 'tl': return `position: absolute; top: ${offset}px; left: ${offset}px`;
+        case 'tr': return `position: absolute; top: ${offset}px; right: ${offset}px`;
+        case 'bl': return `position: absolute; bottom: ${offset}px; left: ${offset}px`;
+        case 'br': return `position: absolute; bottom: ${offset}px; right: ${offset}px`;
+        case 'left': return `position: absolute; top: 0; bottom: 0; left: 0`;
+        case 'right': return `position: absolute; top: 0; bottom: 0; right: 0`;
+        case 'top': return `position: absolute; left: 0; right: 0; top: 0`;
+        case 'bottom': return `position: absolute; left: 0; right: 0; bottom: 0`;
+        default: return '';
+    }
+}
+
+/**
+ * Generate CSS position style for placeholders
+ */
+function generatePlaceholderPositionStyle(posConfig) {
+    const styles = [];
+    if (posConfig.top !== undefined) styles.push(`top: ${posConfig.top}px`);
+    if (posConfig.bottom !== undefined) styles.push(`bottom: ${posConfig.bottom}px`);
+    if (posConfig.left !== undefined) styles.push(`left: ${posConfig.left}px`);
+    if (posConfig.right !== undefined) styles.push(`right: ${posConfig.right}px`);
+    return styles.join('; ');
+}
+
+/**
+ * Get line style for corner-lines based on position
+ */
+function getLineStyle(position, offset, size, lineWidth) {
+    // Diagonal lines from corner
+    switch (position) {
+        case 'tl': return `top: ${offset}px; left: 0; width: ${size - offset}px; height: ${lineWidth}px; transform: rotate(-45deg); transform-origin: top left;`;
+        case 'tr': return `top: ${offset}px; right: 0; width: ${size - offset}px; height: ${lineWidth}px; transform: rotate(45deg); transform-origin: top right;`;
+        case 'bl': return `bottom: ${offset}px; left: 0; width: ${size - offset}px; height: ${lineWidth}px; transform: rotate(45deg); transform-origin: bottom left;`;
+        case 'br': return `bottom: ${offset}px; right: 0; width: ${size - offset}px; height: ${lineWidth}px; transform: rotate(-45deg); transform-origin: bottom right;`;
+        default: return '';
+    }
 }
 
 /**
@@ -156,24 +407,34 @@ function getContentBounds() {
  * Render content boundary with zone visualization
  */
 function renderContentBoundary() {
-    const bounds = getContentBounds();
     const slideWidth = SLIDE_CONFIG.width;
     const slideHeight = SLIDE_CONFIG.height;
+    const hasTitle = state.masterContentAreas.titleStyle !== 'none';
+    // Check if any footer element is enabled
+    const hasSourceCitation = state.masterContentAreas.sourceStyle === 'citation';
+    const hasPageNumber = state.masterPlaceholders['page-number']?.enabled;
+    const hasDate = state.masterPlaceholders['date']?.enabled;
+    const hasFooter = hasSourceCitation || hasPageNumber || hasDate;
 
-    const width = slideWidth - bounds.left - bounds.right;
-    const height = slideHeight - bounds.top - bounds.bottom;
+    let html = '';
 
-    // Get current grid layout
-    const gridLayout = GRID_LAYOUTS[state.gridLayout];
-    if (!gridLayout) {
-        return `
-            <div class="content-boundary" style="top: ${bounds.top}px; left: ${bounds.left}px; width: ${width}px; height: ${height}px;">
-                <div class="content-boundary-label">Content Area (${width}×${height}px)</div>
+    // Header boundary
+    if (hasTitle) {
+        const headerBounds = getHeaderBoundsFromConfig(state);
+        const headerWidth = slideWidth - headerBounds.left - headerBounds.right;
+        html += `
+            <div class="content-boundary header-boundary" style="top: ${headerBounds.top}px; left: ${headerBounds.left}px; width: ${headerWidth}px; height: ${headerBounds.height}px;">
+                <div class="content-boundary-label">Header (${headerWidth}×${headerBounds.height}px)</div>
             </div>
         `;
     }
 
-    // Render zones based on layout
+    // Body boundary
+    const bodyBounds = getBodyBoundsFromConfig(state, hasTitle);
+    const bodyWidth = slideWidth - bodyBounds.left - bodyBounds.right;
+    const bodyHeight = slideHeight - bodyBounds.top - bodyBounds.bottom;
+
+    const gridLayout = GRID_LAYOUTS[state.gridLayout];
     const zoneColors = {
         'A': 'rgba(56, 161, 105, 0.15)',
         'B': 'rgba(66, 153, 225, 0.15)',
@@ -182,48 +443,62 @@ function renderContentBoundary() {
     };
 
     let zonesHtml = '';
-    if (gridLayout.direction === 'grid') {
-        // 2x2 grid layout
-        zonesHtml = `<div class="zone-grid-2x2">
-            ${gridLayout.zones.map(zone => {
-                const contentType = state.zoneContents[zone.id] || 'text';
-                return `<div class="zone-box" style="background: ${zoneColors[zone.id]}">
-                    <span class="zone-label">${zone.id}</span>
-                    <span class="zone-type">${contentType}</span>
-                </div>`;
-            }).join('')}
-        </div>`;
-    } else if (gridLayout.direction === 'custom') {
-        // Custom layout (like top-two-bottom)
-        zonesHtml = `<div class="zone-custom-layout" data-layout="${state.gridLayout}">
-            ${gridLayout.zones.map(zone => {
-                const contentType = state.zoneContents[zone.id] || 'text';
-                return `<div class="zone-box" style="flex: ${zone.flex}; background: ${zoneColors[zone.id]}">
-                    <span class="zone-label">${zone.id}</span>
-                    <span class="zone-type">${contentType}</span>
-                </div>`;
-            }).join('')}
-        </div>`;
-    } else {
-        // Row or column layout
-        const direction = gridLayout.direction === 'column' ? 'column' : 'row';
-        zonesHtml = `<div class="zone-flex-layout" style="flex-direction: ${direction}">
-            ${gridLayout.zones.map(zone => {
-                const contentType = state.zoneContents[zone.id] || 'text';
-                return `<div class="zone-box" style="flex: ${zone.flex}; background: ${zoneColors[zone.id]}">
-                    <span class="zone-label">${zone.id}</span>
-                    <span class="zone-type">${contentType}</span>
-                </div>`;
-            }).join('')}
-        </div>`;
+    if (gridLayout) {
+        if (gridLayout.direction === 'grid') {
+            zonesHtml = `<div class="zone-grid-2x2">
+                ${gridLayout.zones.map(zone => {
+                    const contentType = state.zoneContents[zone.id] || 'text';
+                    return `<div class="zone-box" style="background: ${zoneColors[zone.id]}">
+                        <span class="zone-label">${zone.id}</span>
+                        <span class="zone-type">${contentType}</span>
+                    </div>`;
+                }).join('')}
+            </div>`;
+        } else if (gridLayout.direction === 'custom') {
+            zonesHtml = `<div class="zone-custom-layout" data-layout="${state.gridLayout}">
+                ${gridLayout.zones.map(zone => {
+                    const contentType = state.zoneContents[zone.id] || 'text';
+                    return `<div class="zone-box" style="flex: ${zone.flex}; background: ${zoneColors[zone.id]}">
+                        <span class="zone-label">${zone.id}</span>
+                        <span class="zone-type">${contentType}</span>
+                    </div>`;
+                }).join('')}
+            </div>`;
+        } else {
+            const direction = gridLayout.direction === 'column' ? 'column' : 'row';
+            zonesHtml = `<div class="zone-flex-layout" style="flex-direction: ${direction}">
+                ${gridLayout.zones.map(zone => {
+                    const contentType = state.zoneContents[zone.id] || 'text';
+                    return `<div class="zone-box" style="flex: ${zone.flex}; background: ${zoneColors[zone.id]}">
+                        <span class="zone-label">${zone.id}</span>
+                        <span class="zone-type">${contentType}</span>
+                    </div>`;
+                }).join('')}
+            </div>`;
+        }
     }
 
-    return `
-        <div class="content-boundary" style="top: ${bounds.top}px; left: ${bounds.left}px; width: ${width}px; height: ${height}px;">
-            <div class="content-boundary-label">Content Area (${width}×${height}px) · ${gridLayout.label}</div>
+    const bodyLabel = gridLayout ? `Body (${bodyWidth}×${bodyHeight}px) · ${gridLayout.label}` : `Body (${bodyWidth}×${bodyHeight}px)`;
+    html += `
+        <div class="content-boundary body-boundary" style="top: ${bodyBounds.top}px; left: ${bodyBounds.left}px; width: ${bodyWidth}px; height: ${bodyHeight}px;">
+            <div class="content-boundary-label">${bodyLabel}</div>
             ${zonesHtml}
         </div>
     `;
+
+    // Footer boundary (shown if any footer element is enabled)
+    if (hasFooter) {
+        const contentBounds = getContentBoundsFromConfig(state);
+        const footerWidth = slideWidth - contentBounds.left - contentBounds.right;
+        const footerHeight = CONTENT_AREAS.footer.getHeight(state.masterContentAreas.footerHeight || 'compact');
+        html += `
+            <div class="content-boundary footer-boundary" style="left: ${contentBounds.left}px; right: ${contentBounds.right}px; bottom: ${contentBounds.bottom}px; height: ${footerHeight}px; width: ${footerWidth}px;">
+                <div class="content-boundary-label">Footer (${footerWidth}×${footerHeight}px)</div>
+            </div>
+        `;
+    }
+
+    return html;
 }
 
 function renderContentLayer() {
@@ -238,39 +513,69 @@ function renderGridContent() {
     const gridLayout = GRID_LAYOUTS[state.gridLayout];
     if (!gridLayout) return '';
 
-    // Get content bounds based on master elements
-    const bounds = getContentBounds();
-    const boundsStyle = `position: absolute; top: ${bounds.top}px; left: ${bounds.left}px; right: ${bounds.right}px; bottom: ${bounds.bottom}px; display: flex; flex-direction: column;`;
+    const hasTitle = state.masterContentAreas.titleStyle !== 'none';
+    // Check if any footer element is enabled (source citation, page-number, date)
+    const hasSourceCitation = state.masterContentAreas.sourceStyle === 'citation';
+    const hasPageNumber = state.masterPlaceholders['page-number']?.enabled;
+    const hasDate = state.masterPlaceholders['date']?.enabled;
+    const hasFooter = hasSourceCitation || hasPageNumber || hasDate;
 
-    let innerHtml = '';
+    let html = '';
 
-    // Title zone
-    if (state.titleStyle === 'simple') {
-        innerHtml += `<div class="title-zone"><h1>市场趋势分析</h1></div>`;
-    } else if (state.titleStyle === 'with-tag') {
-        innerHtml += `<div class="title-zone"><span class="title-tag">分析报告</span><h1>市场趋势分析</h1></div>`;
+    // Header area (title) - always at top, separate from body
+    if (hasTitle) {
+        const headerBounds = getHeaderBoundsFromConfig(state);
+        const headerStyle = `position: absolute; top: ${headerBounds.top}px; left: ${headerBounds.left}px; right: ${headerBounds.right}px; height: ${headerBounds.height}px; display: flex; flex-direction: column; justify-content: flex-end;`;
+
+        if (state.masterContentAreas.titleStyle === 'simple') {
+            html += `<div class="header-area" style="${headerStyle}"><div class="title-zone"><h1>市场趋势分析</h1></div></div>`;
+        } else if (state.masterContentAreas.titleStyle === 'with-tag') {
+            html += `<div class="header-area" style="${headerStyle}"><div class="title-zone"><span class="title-tag">分析报告</span><h1>市场趋势分析</h1></div></div>`;
+        }
     }
 
-    // Content zones based on grid layout
-    const direction = gridLayout.direction === 'column' ? 'column' : 'row';
-    const layoutClass = gridLayout.direction === 'grid' ? 'grid-layout-2x2' : `flex-layout-${direction}`;
+    // Body area (content zones) - starts below header
+    const bodyBounds = getBodyBoundsFromConfig(state, hasTitle);
+    const bodyStyle = `position: absolute; top: ${bodyBounds.top}px; left: ${bodyBounds.left}px; right: ${bodyBounds.right}px; bottom: ${bodyBounds.bottom}px; display: flex; flex-direction: column; overflow: hidden;`;
 
-    innerHtml += `<div class="grid-content ${layoutClass}">`;
+    const direction = gridLayout.direction === 'column' ? 'column' : 'row';
+    let layoutClass;
+    let customDataAttr = '';
+    if (gridLayout.direction === 'grid') {
+        // Support different grid sizes: 2x2, 3x2, 4x6, etc.
+        const cols = gridLayout.columns || 2;
+        const rows = gridLayout.rows || 2;
+        layoutClass = `grid-layout-${cols}x${rows}`;
+    } else if (gridLayout.direction === 'custom') {
+        layoutClass = 'custom-layout';
+        customDataAttr = ` data-layout="${gridLayout.customType || 'top-two-bottom'}"`;
+    } else {
+        layoutClass = `flex-layout-${direction}`;
+    }
+
+    let bodyHtml = `<div class="grid-content ${layoutClass}"${customDataAttr} style="flex: 1;">`;
     gridLayout.zones.forEach(zone => {
         const contentType = state.zoneContents[zone.id] || 'text';
-        innerHtml += `<div class="grid-zone" style="flex: ${zone.flex}">
+        const flexStyle = zone.flex ? `flex: ${zone.flex}` : '';
+        bodyHtml += `<div class="grid-zone" style="${flexStyle}">
             ${renderZoneContent(contentType, zone.id)}
         </div>`;
     });
-    innerHtml += `</div>`;
+    bodyHtml += `</div>`;
 
-    // Source citation
-    if (state.sourceStyle === 'citation') {
-        innerHtml += `<div class="source-zone">数据来源：行业研究报告 2024</div>`;
+    html += `<div class="body-area" style="${bodyStyle}">${bodyHtml}</div>`;
+
+    // Footer area (source citation) - inside baseMargin area at bottom
+    if (hasSourceCitation) {
+        const contentBounds = getContentBoundsFromConfig(state);
+        const footerHeight = CONTENT_AREAS.footer.getHeight(state.masterContentAreas.footerHeight || 'compact');
+        // Footer sits inside baseMargin, not at its top edge
+        const footerBottom = 10;  // Small offset from slide bottom
+        const footerAreaStyle = `position: absolute; left: ${contentBounds.left}px; right: ${contentBounds.right}px; bottom: ${footerBottom}px; height: ${footerHeight}px;`;
+        html += `<div class="footer-area" style="${footerAreaStyle}"><div class="source-zone">数据来源：行业研究报告 2024</div></div>`;
     }
 
-    // Wrap content in bounded container
-    return `<div class="content-bounded" style="${boundsStyle}">${innerHtml}</div>`;
+    return html;
 }
 
 function renderZoneContent(contentType, zoneId) {
@@ -314,6 +619,8 @@ function renderDivider() {
     if (layout === 'arrow') return renderArrow(idx);
     if (layout === 'fullbleed') return renderFullbleed(idx);
     if (layout === 'left-align') return renderLeftAlign(idx);
+    if (layout === 'left-align-mirror') return renderLeftAlignMirror(idx);
+    if (layout === 'left-align-minimal') return renderLeftAlignMinimal(idx);
     return '';
 }
 
@@ -322,24 +629,71 @@ const SECTION_DATA = [
     { num: '2', zh: '工作完成情况', en: 'WORK COMPLETION', part: '第二部分' },
     { num: '3', zh: '项目成果展示', en: 'PROJECT RESULTS', part: '第三部分' },
     { num: '4', zh: '工作不足与改进', en: 'IMPROVEMENTS', part: '第四部分' },
+    { num: '5', zh: '未来发展规划', en: 'FUTURE PLANS', part: '第五部分' },
+    { num: '6', zh: '总结与展望', en: 'SUMMARY & OUTLOOK', part: '第六部分' },
 ];
 
+function getSectionData() {
+    return SECTION_DATA.slice(0, state.dividerSectionCount);
+}
+
+// Number formatting based on style
+const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+const CHINESE_NUMERALS = ['一', '二', '三', '四', '五', '六'];
+const CIRCLED_NUMERALS = ['①', '②', '③', '④', '⑤', '⑥'];
+
+function formatNumber(n, style) {
+    const idx = parseInt(n) - 1;
+    switch (style || state.dividerNumberStyle) {
+        case 'roman': return ROMAN_NUMERALS[idx] || n;
+        case 'chinese': return CHINESE_NUMERALS[idx] || n;
+        case 'circled': return CIRCLED_NUMERALS[idx] || n;
+        case 'arabic':
+        default: return n;
+    }
+}
+
+function formatNumberPadded(n, style) {
+    const formatted = formatNumber(n, style);
+    // Only pad arabic numbers with leading zero
+    if ((style || state.dividerNumberStyle) === 'arabic') {
+        return '0' + formatted;
+    }
+    return formatted;
+}
+
+function formatPart(n, style) {
+    const s = style || state.dividerNumberStyle;
+    const num = formatNumber(n, s);
+    switch (s) {
+        case 'roman': return `Part ${num}`;
+        case 'chinese': return `第${num}部分`;
+        case 'circled': return `Part ${num}`;
+        case 'arabic':
+        default: return `第${num}部分`;
+    }
+}
+
+function isCompact() {
+    return state.dividerTextLevel === 'compact';
+}
+
 function renderStrips(activeIdx) {
-    // activeIdx: 0=show all, 1-4=highlight specific
+    const sections = getSectionData();
+    const compact = isCompact();
     return `
         <div class="toc-strips-left">
             <div class="toc-strips-label">CONTENTS</div>
             <h1 class="toc-strips-title">目录</h1>
-            <div class="toc-strips-brand">WORK SUMMARY</div>
+            ${compact ? '' : '<div class="toc-strips-brand">WORK SUMMARY</div>'}
         </div>
         <div class="toc-strips-right">
-            ${SECTION_DATA.map((item, i) => `
+            ${sections.map((item, i) => `
                 <div class="toc-strip ${activeIdx > 0 && activeIdx - 1 === i ? 'active' : ''}" style="--strip-index:${i}">
-                    <div class="strip-num">0${item.num}</div>
-                    <div class="strip-en">${item.en}</div>
+                    <div class="strip-num">${formatNumberPadded(item.num)}</div>
+                    ${compact ? '' : `<div class="strip-en">${item.en}</div>`}
                     <div class="strip-zh">${item.zh}</div>
-                    <div class="strip-line"></div>
-                    <div class="strip-desc">在这里输入本章节的简要概述</div>
+                    ${compact ? '' : '<div class="strip-line"></div><div class="strip-desc">在这里输入本章节的简要概述</div>'}
                 </div>
             `).join('')}
         </div>
@@ -347,16 +701,18 @@ function renderStrips(activeIdx) {
 }
 
 function renderCards(activeIdx) {
+    const sections = getSectionData();
+    const compact = isCompact();
     return `
         <div class="toc-cards-header"><h1>目录 / CONTENTS</h1></div>
         <div class="toc-cards-grid">
-            ${SECTION_DATA.map((item, i) => `
+            ${sections.map((item, i) => `
                 <div class="toc-card ${activeIdx > 0 && activeIdx - 1 === i ? 'active' : ''}">
-                    <div class="toc-card-num">0${item.num}</div>
+                    <div class="toc-card-num">${formatNumberPadded(item.num)}</div>
                     <div class="toc-card-title">${item.zh}</div>
-                    <div class="toc-card-subtitle">${item.en}</div>
+                    ${compact ? '' : `<div class="toc-card-subtitle">${item.en}</div>
                     <div class="toc-card-divider"></div>
-                    <ul class="toc-card-list"><li>${item.num}.1 细分内容</li><li>${item.num}.2 细分内容</li></ul>
+                    <ul class="toc-card-list"><li>${formatNumber(item.num)}.1 细分内容</li><li>${formatNumber(item.num)}.2 细分内容</li></ul>`}
                 </div>
             `).join('')}
         </div>
@@ -364,64 +720,106 @@ function renderCards(activeIdx) {
 }
 
 function renderCardsHighlight(activeIdx) {
-    const showIdx = activeIdx > 0 ? activeIdx - 1 : 0;
+    const sections = getSectionData();
+    const compact = isCompact();
+    // activeIdx=0 means "全部", no highlight
+    const showIdx = activeIdx > 0 ? activeIdx - 1 : -1;
     return `
         <div class="toc-highlight-header"><h1>目录</h1></div>
         <div class="toc-highlight-grid">
-            ${SECTION_DATA.map((item, i) => `
+            ${sections.map((item, i) => `
                 <div class="toc-highlight-card ${i === showIdx ? 'active' : ''}">
                     <div class="toc-highlight-title">${item.zh}</div>
-                    <div class="toc-highlight-en">${item.en}</div>
-                    <div class="toc-highlight-num">${item.num}</div>
+                    ${compact ? '' : `<div class="toc-highlight-en">${item.en}</div>`}
+                    <div class="toc-highlight-num">${formatNumber(item.num)}</div>
                 </div>
             `).join('')}
         </div>
-        <div class="toc-highlight-footer">PRIOR YEAR 2023 WORK SUMMARY</div>
+        ${compact ? '' : '<div class="toc-highlight-footer">PRIOR YEAR 2023 WORK SUMMARY</div>'}
     `;
 }
 
 function renderArrow(activeIdx) {
-    const idx = activeIdx > 0 ? activeIdx - 1 : 0;
-    const item = SECTION_DATA[idx];
+    const sections = getSectionData();
+    const compact = isCompact();
+    const idx = Math.min(activeIdx > 0 ? activeIdx - 1 : 0, sections.length - 1);
+    const item = sections[idx];
     return `
-        <div class="section-arrow-badge"><span>${item.part}</span></div>
+        <div class="section-arrow-badge"><span>${formatPart(item.num)}</span></div>
         <h1 class="section-arrow-title">${item.zh}</h1>
-        <p class="section-arrow-subtitle">${item.en}</p>
+        ${compact ? '' : `<p class="section-arrow-subtitle">${item.en}</p>
         <p class="section-arrow-desc">在这里输入本章节的简要概述，请将自己的内容在这个位置，展开简要描述</p>
         <div class="section-arrow-icons">
             <span>📋</span><span>📊</span><span>📁</span><span>👥</span><span>📥</span>
-        </div>
+        </div>`}
     `;
 }
 
 function renderFullbleed(activeIdx) {
-    const idx = activeIdx > 0 ? activeIdx - 1 : 0;
-    const item = SECTION_DATA[idx];
+    const sections = getSectionData();
+    const compact = isCompact();
+    const idx = Math.min(activeIdx > 0 ? activeIdx - 1 : 0, sections.length - 1);
+    const item = sections[idx];
     return `
-        <div class="section-fullbleed-bg">PART 0${item.num}</div>
+        <div class="section-fullbleed-bg">PART ${formatNumberPadded(item.num)}</div>
         <div class="section-fullbleed-content">
             <div class="section-fullbleed-line"><span class="dot"></span><span class="line"></span></div>
             <h1 class="section-fullbleed-title">${item.zh}</h1>
             <div class="section-fullbleed-line"><span class="line"></span><span class="dot"></span></div>
-            <p class="section-fullbleed-subtitle">${item.en}</p>
-            <p class="section-fullbleed-desc">在这里输入本章节的简要概述，请将自己的内容在这个位置，展开简要描述</p>
+            ${compact ? '' : `<p class="section-fullbleed-subtitle">${item.en}</p>
+            <p class="section-fullbleed-desc">在这里输入本章节的简要概述，请将自己的内容在这个位置，展开简要描述</p>`}
         </div>
     `;
 }
 
 function renderLeftAlign(activeIdx) {
-    const idx = activeIdx > 0 ? activeIdx - 1 : 0;
-    const item = SECTION_DATA[idx];
+    const sections = getSectionData();
+    const compact = isCompact();
+    const idx = Math.min(activeIdx > 0 ? activeIdx - 1 : 0, sections.length - 1);
+    const item = sections[idx];
     return `
         <div class="section-left-topline"></div>
         <div class="section-left-logo">/ LOGO</div>
         <div class="section-left-content">
-            <div class="section-left-part">${item.part}</div>
+            <div class="section-left-part">${formatPart(item.num)}</div>
             <h1 class="section-left-title">${item.zh}</h1>
-            <p class="section-left-subtitle">${item.en}</p>
+            ${compact ? '' : `<p class="section-left-subtitle">${item.en}</p>`}
         </div>
-        <div class="section-left-num">${item.num}</div>
-        <div class="section-left-footer">2023 WORK REPORT</div>
+        <div class="section-left-num">${formatNumber(item.num)}</div>
+        ${compact ? '' : '<div class="section-left-footer">2023 WORK REPORT</div>'}
+    `;
+}
+
+function renderLeftAlignMirror(activeIdx) {
+    const sections = getSectionData();
+    const compact = isCompact();
+    const idx = Math.min(activeIdx > 0 ? activeIdx - 1 : 0, sections.length - 1);
+    const item = sections[idx];
+    return `
+        <div class="section-left-topline mirror"></div>
+        <div class="section-left-num mirror">${formatNumber(item.num)}</div>
+        <div class="section-left-content mirror">
+            <div class="section-left-part">${formatPart(item.num)}</div>
+            <h1 class="section-left-title">${item.zh}</h1>
+            ${compact ? '' : `<p class="section-left-subtitle">${item.en}</p>`}
+        </div>
+        <div class="section-left-logo mirror">LOGO /</div>
+        ${compact ? '' : '<div class="section-left-footer mirror">2023 WORK REPORT</div>'}
+    `;
+}
+
+function renderLeftAlignMinimal(activeIdx) {
+    const sections = getSectionData();
+    const compact = isCompact();
+    const idx = Math.min(activeIdx > 0 ? activeIdx - 1 : 0, sections.length - 1);
+    const item = sections[idx];
+    return `
+        <div class="section-left-content minimal">
+            <div class="section-left-part">${formatPart(item.num)}</div>
+            <h1 class="section-left-title">${item.zh}</h1>
+            ${compact ? '' : `<p class="section-left-subtitle">${item.en}</p>`}
+        </div>
+        <div class="section-left-num">${formatNumber(item.num)}</div>
     `;
 }
 
@@ -551,9 +949,9 @@ function renderInfographic() {
 
 function renderLayoutContent() {
     let html = '';
-    if (state.titleStyle === 'simple') html += `<div class="title-zone"><h1>市场趋势分析</h1></div>`;
-    else if (state.titleStyle === 'with-tag') html += `<div class="title-zone"><span class="title-tag">分析报告</span><h1>市场趋势分析</h1></div>`;
+    if (state.masterContentAreas.titleStyle === 'simple') html += `<div class="title-zone"><h1>市场趋势分析</h1></div>`;
+    else if (state.masterContentAreas.titleStyle === 'with-tag') html += `<div class="title-zone"><span class="title-tag">分析报告</span><h1>市场趋势分析</h1></div>`;
     html += renderLayoutStructure();
-    if (state.sourceStyle === 'citation') html += `<div class="source-zone">数据来源：行业研究报告 2024</div>`;
+    if (state.masterContentAreas.sourceStyle === 'citation') html += `<div class="source-zone">数据来源：行业研究报告 2024</div>`;
     return html;
 }

@@ -147,6 +147,108 @@ select:focus, input:focus {
 
 .shape-item-options .option-row select { flex: 1; }
 
+/* Position Checkboxes for thickness-positions config */
+.position-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.position-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.15s;
+}
+
+.position-checkbox:hover {
+    background: var(--bg-tertiary);
+}
+
+.position-checkbox input {
+    width: 12px;
+    height: 12px;
+    margin: 0;
+}
+
+.position-checkbox input:checked + span {
+    color: var(--accent-l1);
+    font-weight: 500;
+}
+
+/* Placeholder Items */
+.placeholder-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.placeholder-item {
+    background: var(--bg-primary);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.placeholder-item-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+}
+
+.placeholder-item-header:hover { background: var(--bg-tertiary); }
+.placeholder-item-header input { width: 16px; height: 16px; margin: 0; }
+.placeholder-item-header .item-label { flex: 1; font-size: 13px; }
+
+.placeholder-item-options {
+    padding: 0 12px 12px 38px;
+    display: none;
+}
+
+.placeholder-item.active .placeholder-item-options { display: block; }
+
+.placeholder-item-options .option-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.placeholder-item-options .option-row label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    min-width: 40px;
+}
+
+.placeholder-item-options .option-row select { flex: 1; padding: 6px 10px; font-size: 12px; }
+
+/* Logo Upload */
+.logo-upload-controls {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+}
+
+.upload-btn, .clear-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.upload-btn:hover { background: var(--accent-l1); color: white; border-color: var(--accent-l1); }
+.clear-btn:hover { background: #e53e3e; color: white; border-color: #e53e3e; }
+
 /* Layout Type Selector */
 .layout-type-selector {
     display: flex;
@@ -297,6 +399,7 @@ select:focus, input:focus {
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background: var(--bg-secondary);
+    color: var(--text-primary);
     font-size: 12px;
     cursor: pointer;
     transition: all 0.15s;
@@ -352,6 +455,7 @@ select:focus, input:focus {
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background: var(--bg-secondary);
+    color: var(--text-primary);
     font-size: 11px;
     cursor: pointer;
     transition: all 0.15s;
@@ -381,6 +485,7 @@ select:focus, input:focus {
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background: var(--bg-secondary);
+    color: var(--text-primary);
     font-size: 11px;
     cursor: pointer;
     transition: all 0.15s;
@@ -394,19 +499,148 @@ select:focus, input:focus {
     color: white;
 }
 
-/* Grid Operation Bar */
-.grid-operation-bar {
-    display: none;
-    height: 70px;
-    background: var(--bg-tertiary);
-    border-bottom: 1px solid var(--border-color);
-    padding: 10px 24px;
-    gap: 20px;
+/* SmartArt Type Selector (for operation bar) */
+.smartart-type-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.grid-operation-bar.visible {
+.smartart-cat-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.smartart-cat-btn {
     display: flex;
     align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.smartart-cat-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+.smartart-cat-btn.active {
+    background: var(--accent-l3);
+    border-color: var(--accent-l3);
+    color: white;
+}
+
+.smartart-cat-btn .cat-icon {
+    font-size: 14px;
+}
+
+.smartart-cat-btn .cat-label {
+    white-space: nowrap;
+}
+
+.smartart-subtype-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.smartart-subtype-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.smartart-subtype-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+.smartart-subtype-btn.active {
+    background: var(--accent-l2);
+    border-color: var(--accent-l2);
+    color: white;
+}
+
+/* Divider Style Selector */
+.divider-style-row,
+.divider-count-row,
+.divider-number-row,
+.divider-text-row,
+.divider-bg-row,
+.divider-index-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.divider-style-btn,
+.divider-count-btn,
+.divider-number-btn,
+.divider-text-btn,
+.divider-bg-btn,
+.divider-index-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.divider-style-btn:hover,
+.divider-count-btn:hover,
+.divider-number-btn:hover,
+.divider-text-btn:hover,
+.divider-bg-btn:hover,
+.divider-index-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+.divider-style-btn.active,
+.divider-count-btn.active,
+.divider-number-btn.active,
+.divider-text-btn.active,
+.divider-bg-btn.active,
+.divider-index-btn.active {
+    background: var(--accent-l2);
+    border-color: var(--accent-l2);
+    color: white;
+}
+
+/* Operation Bars */
+.grid-operation-bar,
+.smartart-operation-bar,
+.divider-operation-bar {
+    display: none;
+    flex-direction: column;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 24px;
+    gap: 12px;
+}
+
+.grid-operation-bar.visible,
+.smartart-operation-bar.visible,
+.divider-operation-bar.visible {
+    display: flex;
+}
+
+.grid-op-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 .grid-op-section {
@@ -441,6 +675,7 @@ select:focus, input:focus {
     border: 2px solid var(--border-color);
     border-radius: 6px;
     background: var(--bg-primary);
+    color: var(--text-primary);
     cursor: pointer;
     padding: 4px;
     transition: all 0.15s;
@@ -522,17 +757,47 @@ select:focus, input:focus {
 
 .grid-op-option {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
 }
 
 .grid-op-option label {
     font-size: 10px;
     color: var(--text-secondary);
+    order: 2;
+    white-space: nowrap;
 }
 
 .grid-op-option select {
-    width: 90px;
+    width: 70px;
     padding: 6px 8px;
     font-size: 12px;
+    order: 1;
+}
+
+/* Content Areas Config (L1) */
+.content-areas-config {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.content-area-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.content-area-row select {
+    width: 90px;
+    padding: 8px 10px;
+    font-size: 12px;
+}
+
+.content-area-row label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
 }

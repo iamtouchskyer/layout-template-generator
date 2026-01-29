@@ -1,7 +1,117 @@
 /* Divider Page Styles (TOC & Section) */
 
+/* === Background Styles === */
+/* Solid (default) */
+.slide-container.bg-solid {
+    background: var(--theme-accent) !important;
+}
+
+/* Gradient */
+.slide-container.bg-gradient {
+    background: linear-gradient(135deg, var(--theme-accent) 0%, color-mix(in srgb, var(--theme-accent) 70%, black) 100%) !important;
+}
+
+/* Split */
+.slide-container.bg-split {
+    background: linear-gradient(90deg, var(--theme-accent) 50%, color-mix(in srgb, var(--theme-accent) 85%, black) 50%) !important;
+}
+
+/* Light */
+.slide-container.bg-light {
+    background: var(--theme-bg, #f5f5f5) !important;
+}
+.slide-container.bg-light .toc-strips-title,
+.slide-container.bg-light .toc-cards-header h1,
+.slide-container.bg-light .toc-highlight-header h1,
+.slide-container.bg-light .section-arrow-title,
+.slide-container.bg-light .section-fullbleed-title,
+.slide-container.bg-light .section-left-title,
+.slide-container.bg-light .section-left-part {
+    color: var(--theme-accent) !important;
+}
+.slide-container.bg-light .toc-strips-label,
+.slide-container.bg-light .toc-strips-brand,
+.slide-container.bg-light .strip-num,
+.slide-container.bg-light .strip-en,
+.slide-container.bg-light .strip-zh,
+.slide-container.bg-light .strip-desc,
+.slide-container.bg-light .section-arrow-subtitle,
+.slide-container.bg-light .section-arrow-desc,
+.slide-container.bg-light .section-fullbleed-subtitle,
+.slide-container.bg-light .section-fullbleed-desc,
+.slide-container.bg-light .section-left-subtitle,
+.slide-container.bg-light .section-left-footer,
+.slide-container.bg-light .section-left-logo {
+    color: var(--theme-text, #333) !important;
+    opacity: 0.8;
+}
+.slide-container.bg-light .section-left-num,
+.slide-container.bg-light .section-fullbleed-bg {
+    color: rgba(0,0,0,0.08) !important;
+}
+.slide-container.bg-light .section-left-topline {
+    background: rgba(0,0,0,0.1) !important;
+}
+.slide-container.bg-light .section-left-logo {
+    background: rgba(0,0,0,0.05) !important;
+}
+.slide-container.bg-light .toc-strips-left {
+    background: var(--theme-accent) !important;
+}
+.slide-container.bg-light .toc-strip {
+    background: color-mix(in srgb, var(--theme-accent) 15%, white) !important;
+}
+.slide-container.bg-light .toc-strip .strip-num,
+.slide-container.bg-light .toc-strip .strip-en,
+.slide-container.bg-light .toc-strip .strip-zh,
+.slide-container.bg-light .toc-strip .strip-desc {
+    color: var(--theme-accent) !important;
+}
+/* Cards in light mode */
+.slide-container.bg-light .toc-card {
+    background: white;
+    border-color: var(--theme-card-border);
+}
+.slide-container.bg-light .toc-card-num,
+.slide-container.bg-light .toc-card-title {
+    color: var(--theme-accent) !important;
+}
+.slide-container.bg-light .toc-card-subtitle,
+.slide-container.bg-light .toc-card-list li {
+    color: var(--theme-text, #333) !important;
+}
+/* Cards highlight in light mode */
+.slide-container.bg-light .toc-highlight-card {
+    background: #f0f0f0;
+}
+.slide-container.bg-light .toc-highlight-card.active {
+    background: var(--theme-accent);
+}
+.slide-container.bg-light .toc-highlight-title {
+    color: var(--theme-accent) !important;
+}
+.slide-container.bg-light .toc-highlight-card.active .toc-highlight-title {
+    color: white !important;
+}
+.slide-container.bg-light .toc-highlight-en {
+    color: var(--theme-text-muted, #666) !important;
+}
+.slide-container.bg-light .toc-highlight-num {
+    color: rgba(0,0,0,0.06) !important;
+}
+.slide-container.bg-light .toc-highlight-footer {
+    color: var(--theme-text-muted, #666) !important;
+}
+/* Arrow in light mode */
+.slide-container.bg-light .section-arrow-badge {
+    background: var(--theme-accent);
+}
+.slide-container.bg-light .section-arrow-icons span {
+    color: var(--theme-text, #333);
+}
+
 /* === Strips Layout === */
-.slide-container.page-type-divider-strips { background: var(--theme-accent) !important; }
+/* strips bg-solid handled by generic .bg-solid */
 .page-type-divider-strips .content-layer { display: flex; padding: 0; height: 100%; }
 .toc-strips-left {
     width: 280px; padding: 60px 40px; display: flex; flex-direction: column;
@@ -93,7 +203,7 @@
 .section-arrow-icons span { display: flex; align-items: center; justify-content: center; }
 
 /* === Fullbleed Layout === */
-.slide-container.page-type-divider-fullbleed { background: var(--theme-accent) !important; }
+/* fullbleed bg-solid handled by generic .bg-solid */
 .page-type-divider-fullbleed .content-layer {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 60px; text-align: center; position: relative;
@@ -114,20 +224,35 @@
 .section-fullbleed-desc { font-size: 16px; color: white; opacity: 0.7; max-width: 800px; line-height: 1.6; margin-top: 32px; }
 
 /* === Left Align Layout === */
-.slide-container.page-type-divider-left-align { background: var(--theme-accent) !important; }
-.page-type-divider-left-align .content-layer {
+/* Left align layouts - bg controlled by generic bg-* classes */
+
+.page-type-divider-left-align .content-layer,
+.page-type-divider-left-align-mirror .content-layer,
+.page-type-divider-left-align-minimal .content-layer {
     display: flex; flex-direction: column; padding: 40px 60px; position: relative;
 }
 .section-left-topline {
     position: absolute; top: 40px; left: 200px; right: 60px;
     height: 1px; background: rgba(255,255,255,0.3);
 }
+.section-left-topline.mirror {
+    left: 60px; right: 200px;
+}
 .section-left-logo {
     font-size: 14px; color: white; opacity: 0.8; letter-spacing: 0.1em;
     background: rgba(255,255,255,0.15); padding: 8px 16px; display: inline-block;
     margin-bottom: 60px;
 }
+.section-left-logo.mirror {
+    align-self: flex-end;
+}
 .section-left-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.section-left-content.mirror {
+    align-items: flex-end; text-align: right;
+}
+.section-left-content.minimal {
+    justify-content: center;
+}
 .section-left-part {
     font-size: 56px; font-weight: 700; color: white;
     font-family: var(--theme-heading-font); margin-bottom: 8px;
@@ -141,8 +266,14 @@
     position: absolute; right: 80px; top: 50%; transform: translateY(-50%);
     font-size: 400px; font-weight: 300; color: rgba(255,255,255,0.12); line-height: 1;
 }
+.section-left-num.mirror {
+    right: auto; left: 80px;
+}
 .section-left-footer {
     font-size: 14px; color: white; font-weight: 600; letter-spacing: 0.15em;
+}
+.section-left-footer.mirror {
+    text-align: right;
 }
 
 /* === SmartArt Page Styles === */

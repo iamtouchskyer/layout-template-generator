@@ -86,4 +86,6 @@ const DIVIDER_LAYOUTS = {
     'arrow': { label: '箭头徽章', desc: '顶部箭头 + 图标行', sections: 4 },
     'fullbleed': { label: '全屏渐变', desc: '大号透明编号', sections: 4 },
     'left-align': { label: '左对齐', desc: '左内容 + 右编号', sections: 4 },
+    'left-align-mirror': { label: '左对齐-镜像', desc: '左编号 + 右内容', sections: 4 },
+    'left-align-minimal': { label: '左对齐-简约', desc: '无装饰线', sections: 4 },
 };

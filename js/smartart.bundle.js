@@ -448,33 +448,87 @@
         return { type: 'list', shapes, connectors: [], bounds: { x: 0, y: 0, width, height } };
     }
 
-    // Hexagon Layout
+    // AlternatingHexagons Layout - 2x2 matrix with center circle
+    // Based on OOXML drawing13.xml
     function hexagonLayout(option, config) {
         const { items, size, theme } = option;
         const { width, height } = size;
-        const count = items.length || 3;
         const shapes = [];
-        const hexWidth = width / (count * 0.8);
-        const hexHeight = hexWidth * 0.866;
+        const connectors = [];
 
-        items.forEach((item, idx) => {
-            const row = idx % 2;
-            const col = Math.floor(idx / 2) * 2 + row;
-            const x = col * hexWidth * 0.75 + (width - count * hexWidth * 0.75) / 2;
-            const y = row * hexHeight * 0.5 + (height - hexHeight) / 2;
+        // Layout constants from OOXML (drawing13.xml)
+        const boxW = width * 0.329;
+        const boxH = height * 0.32;
+        const leftX = width * 0.067;
+        const rightX = width * 0.604;
+        const topY = height * 0.0;
+        const bottomY = height * 0.68;
+
+        // Corner positions: [topLeft, topRight, bottomRight, bottomLeft]
+        const positions = [
+            { x: leftX, y: topY },
+            { x: rightX, y: topY },
+            { x: rightX, y: bottomY },
+            { x: leftX, y: bottomY }
+        ];
+
+        // Add 4 corner boxes
+        for (let i = 0; i < 4; i++) {
+            const item = items[i % items.length] || { text: `Item ${i + 1}` };
+            const pos = positions[i];
             shapes.push({
-                id: `hex-${idx}`,
-                type: 'hexagon',
-                x, y, width: hexWidth, height: hexHeight,
+                id: `box-${i}`,
+                type: 'roundRect',
+                x: pos.x, y: pos.y,
+                width: boxW, height: boxH,
                 text: item.text || item,
-                fill: getAccentColor(theme, idx),
-                stroke: theme.light1,
-                strokeWidth: 2,
+                fill: getAccentColor(theme, i),
+                stroke: 'none',
+                strokeWidth: 0,
                 textColor: theme.light1,
-                fontSize: 14
+                fontSize: 14,
+                rx: 8, ry: 8
             });
+        }
+
+        // Center circle made of 4 pie wedges
+        const cx = width / 2;
+        const cy = height / 2;
+        const outerR = Math.min(width, height) * 0.18;
+        const innerR = outerR * 0.3;
+
+        for (let i = 0; i < 4; i++) {
+            const startAngle = i * 90 - 45;
+            const endAngle = startAngle + 90;
+            shapes.push({
+                id: `pie-${i}`,
+                type: 'pie',
+                cx, cy,
+                innerRadius: innerR,
+                outerRadius: outerR,
+                startAngle, endAngle,
+                fill: getAccentColor(theme, i),
+                stroke: theme.light1,
+                strokeWidth: 1
+            });
+        }
+
+        // Curved arrows between corners
+        const arrowRadius = Math.min(width, height) * 0.32;
+        connectors.push({
+            type: 'curvedArrow',
+            cx, cy, radius: arrowRadius,
+            startAngle: -45, endAngle: 45,
+            stroke: theme.dark2 || '#666'
         });
-        return { type: 'list', shapes, connectors: [], bounds: { x: 0, y: 0, width, height } };
+        connectors.push({
+            type: 'curvedArrow',
+            cx, cy, radius: arrowRadius,
+            startAngle: 135, endAngle: 225,
+            stroke: theme.dark2 || '#666'
+        });
+
+        return { type: 'list', shapes, connectors, bounds: { x: 0, y: 0, width, height } };
     }
 
     // Picture Layout
@@ -635,6 +689,19 @@
         const { width, height } = option.size;
 
         const svg = createSVGElement('svg', { width, height, viewBox: `0 0 ${width} ${height}`, class: 'smartart-svg' });
+
+        // Add arrowhead marker definition
+        const defs = createSVGElement('defs');
+        const marker = createSVGElement('marker', {
+            id: 'arrowhead', markerWidth: 10, markerHeight: 7,
+            refX: 9, refY: 3.5, orient: 'auto'
+        });
+        const polygon = createSVGElement('polygon', {
+            points: '0 0, 10 3.5, 0 7', fill: '#666'
+        });
+        marker.appendChild(polygon);
+        defs.appendChild(marker);
+        svg.appendChild(defs);
 
         connectors.forEach(conn => {
             const el = renderConnector(conn);
@@ -877,7 +944,31 @@
                 stroke: conn.stroke || '#666', 'stroke-width': conn.strokeWidth || 2
             });
         }
+        if (conn.type === 'curvedArrow') {
+            return renderCurvedArrow(conn);
+        }
         return null;
+    }
+
+    function renderCurvedArrow(conn) {
+        const { cx, cy, radius, startAngle, endAngle, stroke } = conn;
+        const startRad = ((startAngle + 15) * Math.PI) / 180;
+        const endRad = ((endAngle - 15) * Math.PI) / 180;
+        const x1 = cx + Math.cos(startRad) * radius;
+        const y1 = cy + Math.sin(startRad) * radius;
+        const x2 = cx + Math.cos(endRad) * radius;
+        const y2 = cy + Math.sin(endRad) * radius;
+        const d = `M ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2}`;
+
+        const g = createSVGElement('g');
+        const path = createSVGElement('path', {
+            d, fill: 'none',
+            stroke: stroke || '#666',
+            'stroke-width': 2,
+            'marker-end': 'url(#arrowhead)'
+        });
+        g.appendChild(path);
+        return g;
     }
 
     function createSVGElement(tag, attrs = {}) {

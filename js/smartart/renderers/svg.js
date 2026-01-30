@@ -15,6 +15,24 @@ export function renderSVG(data, option) {
         class: 'smartart-svg'
     });
 
+    // Add arrowhead marker definition
+    const defs = createSVGElement('defs');
+    const marker = createSVGElement('marker', {
+        id: 'arrowhead',
+        markerWidth: 10,
+        markerHeight: 7,
+        refX: 9,
+        refY: 3.5,
+        orient: 'auto'
+    });
+    const polygon = createSVGElement('polygon', {
+        points: '0 0, 10 3.5, 0 7',
+        fill: '#666'
+    });
+    marker.appendChild(polygon);
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+
     // Render connectors first (behind shapes)
     connectors.forEach(conn => {
         const el = renderConnector(conn);

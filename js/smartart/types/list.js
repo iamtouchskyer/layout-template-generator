@@ -96,11 +96,11 @@ export function listLayout(option, config = {}) {
 }
 
 /**
- * AlternatingHexagons Layout - 2x2 matrix with center circle
- * Based on OOXML drawing13.xml:
- * - 4 roundRect at corners: x=6.7%/60.4%, y=0%/68%, w=32.9%, h=32%
- * - 4 pieWedge forming center circle
- * - Curved arrows between boxes
+ * AlternatingHexagons Layout - Cycle matrix with corner text boxes
+ * Based on PPT reference:
+ * - Center: Large circle divided into 4 quadrants with text
+ * - 4 corners: Small rounded rectangles with bullet text
+ * - Center: Cycle arrows icon
  */
 function hexagonLayout(option, config) {
     const { items, size, theme } = option;
@@ -109,96 +109,94 @@ function hexagonLayout(option, config) {
     const shapes = [];
     const connectors = [];
 
-    // Layout constants from OOXML (drawing13.xml)
-    const boxW = width * 0.329;
-    const boxH = height * 0.32;
-    const leftX = width * 0.067;
-    const rightX = width * 0.604;
-    const topY = height * 0.0;
-    const bottomY = height * 0.68;
+    const cx = width / 2;
+    const cy = height / 2;
+    const circleR = Math.min(width, height) * 0.38;
 
-    // Corner positions: [topLeft, topRight, bottomRight, bottomLeft]
-    const positions = [
-        { x: leftX, y: topY },
-        { x: rightX, y: topY },
-        { x: rightX, y: bottomY },
-        { x: leftX, y: bottomY }
+    // Corner text box dimensions
+    const boxW = width * 0.22;
+    const boxH = height * 0.15;
+    const margin = width * 0.02;
+
+    // 4 corner text boxes [topLeft, topRight, bottomRight, bottomLeft]
+    const cornerPositions = [
+        { x: margin, y: margin },
+        { x: width - boxW - margin, y: margin },
+        { x: width - boxW - margin, y: height - boxH - margin },
+        { x: margin, y: height - boxH - margin }
     ];
 
-    // Add 4 corner boxes (use first 4 items, cycle if fewer)
+    // Add corner text boxes (white bg, accent border)
     for (let i = 0; i < 4; i++) {
         const item = items[i % items.length] || { text: `Item ${i + 1}` };
-        const pos = positions[i];
-        const colorIdx = i % 6;
-        const accentKey = `accent${colorIdx + 1}`;
+        const pos = cornerPositions[i];
 
         shapes.push({
-            id: `box-${i}`,
+            id: `corner-${i}`,
             type: 'roundRect',
             x: pos.x,
             y: pos.y,
             width: boxW,
             height: boxH,
-            text: item.text || item,
-            fill: theme[accentKey] || theme.accent1,
-            stroke: 'none',
-            strokeWidth: 0,
-            textColor: theme.light1,
-            fontSize: 14,
-            rx: 8,
-            ry: 8
+            text: '• ' + (item.text || item),
+            fill: theme.light1 || '#FFFFFF',
+            stroke: theme.accent1 || '#156082',
+            strokeWidth: 1.5,
+            textColor: theme.dark1 || '#333333',
+            fontSize: 12,
+            rx: 6,
+            ry: 6
         });
     }
 
-    // Center circle made of 4 pie wedges
-    const cx = width / 2;
-    const cy = height / 2;
-    const outerR = Math.min(width, height) * 0.18;
-    const innerR = outerR * 0.3;
+    // 4 pie quadrants forming the main circle
+    // Quadrant order: top-left(AA), top-right(BB), bottom-right(CC), bottom-left(DDDD)
+    const quadrantAngles = [
+        { start: 180, end: 270 },  // top-left
+        { start: 270, end: 360 },  // top-right
+        { start: 0, end: 90 },     // bottom-right
+        { start: 90, end: 180 }    // bottom-left
+    ];
 
-    // 4 pie wedges (0°, 90°, 180°, 270°)
     for (let i = 0; i < 4; i++) {
-        const startAngle = i * 90 - 45;  // -45, 45, 135, 225
-        const endAngle = startAngle + 90;
-        const colorIdx = i % 6;
-        const accentKey = `accent${colorIdx + 1}`;
+        const item = items[i % items.length] || { text: `Item ${i + 1}` };
+        const angles = quadrantAngles[i];
 
         shapes.push({
-            id: `pie-${i}`,
+            id: `quadrant-${i}`,
             type: 'pie',
             cx,
             cy,
-            innerRadius: innerR,
-            outerRadius: outerR,
-            startAngle,
-            endAngle,
-            fill: theme[accentKey] || theme.accent1,
-            stroke: theme.light1,
-            strokeWidth: 1
+            innerRadius: 0,
+            outerRadius: circleR,
+            startAngle: angles.start,
+            endAngle: angles.end,
+            fill: theme.accent1 || '#156082',
+            stroke: theme.light1 || '#FFFFFF',
+            strokeWidth: 2,
+            text: item.text || item,
+            textColor: theme.light1 || '#FFFFFF',
+            fontSize: 16
         });
     }
 
-    // Curved arrows between corners
-    const arrowRadius = Math.min(width, height) * 0.32;
-    // Arrow from top-right to bottom-right (clockwise)
+    // Center cycle arrows (two curved arrows)
+    const arrowR = circleR * 0.18;
     connectors.push({
         type: 'curvedArrow',
-        cx,
-        cy,
-        radius: arrowRadius,
-        startAngle: -45,
-        endAngle: 45,
-        stroke: theme.dark2 || '#666'
+        cx, cy,
+        radius: arrowR,
+        startAngle: -30,
+        endAngle: 150,
+        stroke: theme.light1 || '#FFFFFF'
     });
-    // Arrow from bottom-left to top-left (clockwise)
     connectors.push({
         type: 'curvedArrow',
-        cx,
-        cy,
-        radius: arrowRadius,
-        startAngle: 135,
-        endAngle: 225,
-        stroke: theme.dark2 || '#666'
+        cx, cy,
+        radius: arrowR,
+        startAngle: 150,
+        endAngle: 330,
+        stroke: theme.light1 || '#FFFFFF'
     });
 
     return {

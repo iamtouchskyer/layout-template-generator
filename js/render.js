@@ -17,6 +17,59 @@ function render() {
     contentLayer.innerHTML = renderContentLayer();
     updateNavValues();
     if (state.previewTab === 'json') updateJsonOutput();
+
+    // Initialize ECharts after DOM update
+    if (state.pageType === 'content-grid') {
+        setTimeout(() => initZoneCharts(), 0);
+    }
+}
+
+// Initialize ECharts in chart zones
+function initZoneCharts() {
+    if (typeof echarts === 'undefined') return;
+
+    const gridLayout = GRID_LAYOUTS[state.gridLayout];
+    if (!gridLayout) return;
+
+    gridLayout.zones.forEach(zone => {
+        const contentType = state.zoneContents[zone.id] || 'text';
+        if (contentType !== 'chart') return;
+
+        const container = document.getElementById(`chart-${zone.id}`);
+        if (!container) return;
+
+        const idx = getZoneIndex(zone.id);
+        const sample = CHART_SAMPLES[idx % CHART_SAMPLES.length];
+
+        // Dispose existing chart
+        const existingChart = echarts.getInstanceByDom(container);
+        if (existingChart) existingChart.dispose();
+
+        // Create new chart using portable data format
+        const chart = echarts.init(container);
+        const option = toEChartsOption(sample);
+
+        // Apply theme colors
+        const themeAccent = getComputedStyle(document.documentElement).getPropertyValue('--theme-accent').trim() || '#e07b56';
+        if (option.series) {
+            option.series.forEach((s, i) => {
+                if (!s.itemStyle) s.itemStyle = {};
+                s.itemStyle.color = i === 0 ? themeAccent : adjustColor(themeAccent, i * 30);
+                if (s.areaStyle) s.areaStyle.color = themeAccent;
+            });
+        }
+
+        chart.setOption(option);
+    });
+}
+
+function adjustColor(hex, amount) {
+    // Simple color adjustment
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+    const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+    const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+    return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`;
 }
 
 function renderPlaceholderList() {
@@ -502,11 +555,126 @@ function renderContentBoundary() {
 }
 
 function renderContentLayer() {
-    if (state.pageType === 'cover') return `<h1 class="page-title">演示文稿标题</h1><p class="page-subtitle">副标题或作者信息</p>`;
+    if (state.pageType === 'cover') return renderCover();
     if (state.pageType === 'divider') return renderDivider();
     if (state.pageType === 'content-smartart') return renderSmartartPage();
     if (state.pageType === 'content-grid') return renderGridContent();
     return '';
+}
+
+// Cover Page Rendering
+function renderCover() {
+    const layout = COVER_LAYOUTS[state.coverLayout];
+    if (!layout) return '';
+    const content = state.coverContent || {};
+
+    let html = '<div class="cover-container">';
+
+    // Render shapes
+    (layout.shapes || []).forEach(shape => {
+        html += renderCoverShape(shape);
+    });
+
+    // Render text areas
+    const textAreas = layout.textAreas || {};
+    if (textAreas.year && content.year) {
+        html += renderCoverTextArea(textAreas.year, content.year);
+    }
+    if (textAreas.tag && content.tag) {
+        html += renderCoverTextArea(textAreas.tag, content.tag);
+    }
+    if (textAreas.title && content.title) {
+        html += renderCoverTextArea(textAreas.title, content.title);
+    }
+    if (textAreas.highlight && content.highlight) {
+        html += renderCoverTextArea(textAreas.highlight, content.highlight);
+    }
+    if (textAreas.subtitle && content.subtitle) {
+        html += renderCoverTextArea(textAreas.subtitle, content.subtitle);
+    }
+
+    // Render brand tag if present
+    if (layout.brandTag && content.brandTag) {
+        html += renderCoverTextArea(layout.brandTag, content.brandTag);
+    }
+
+    // Render footer
+    if (layout.footer && layout.footer.enabled) {
+        html += renderCoverFooter(layout.footer, content.footer || {});
+    }
+
+    html += '</div>';
+    return html;
+}
+
+function resolveCoverColor(colorRef) {
+    if (colorRef.startsWith('#')) return colorRef;
+    // Map color references to CSS variables
+    const colorMap = {
+        'accent': 'var(--theme-accent)',
+        'accent1': 'var(--theme-accent1, var(--theme-accent))',
+        'accent2': 'var(--theme-accent2, var(--theme-accent))',
+        'accent3': 'var(--theme-accent3, var(--theme-accent))',
+        'accent4': 'var(--theme-accent4, var(--theme-accent))',
+        'text': 'var(--theme-text)',
+        'text_muted': 'var(--theme-text-muted)',
+        'primary': 'var(--theme-primary)',
+        'bg': 'var(--theme-bg)',
+        'bg2': 'var(--theme-card-bg, var(--theme-bg))',
+        'tx2': 'var(--theme-accent1, var(--theme-accent))',
+    };
+    return colorMap[colorRef] || 'var(--theme-accent)';
+}
+
+function renderCoverShape(shape) {
+    const { type, x, y, w, h, fill, rotation } = shape;
+    const color = resolveCoverColor(fill || 'accent');
+    let style = `position: absolute; left: ${x}px; top: ${y}px; width: ${w}px; height: ${h}px; background: ${color};`;
+    if (rotation) style += ` transform: rotate(${rotation}deg);`;
+
+    let shapeClass = 'cover-shape';
+    if (type === 'ellipse') {
+        style += ' border-radius: 50%;';
+    } else if (type === 'triangle' || type === 'rtTriangle') {
+        // CSS triangle using borders
+        style = `position: absolute; left: ${x}px; top: ${y}px; width: 0; height: 0;`;
+        style += ` border-left: ${w}px solid transparent; border-bottom: ${h}px solid ${color};`;
+        if (rotation) style += ` transform: rotate(${rotation}deg); transform-origin: bottom left;`;
+    }
+
+    return `<div class="${shapeClass}" style="${style}"></div>`;
+}
+
+function renderCoverTextArea(config, text) {
+    const { x, y, w, h, fontSize, color, bold, align } = config;
+    const textColor = resolveCoverColor(color || 'text');
+    let style = `position: absolute; left: ${x}px; top: ${y}px; width: ${w}px; height: ${h}px;`;
+    style += ` font-size: ${fontSize || 16}px; color: ${textColor};`;
+    if (bold) style += ' font-weight: bold;';
+    if (align) style += ` text-align: ${align};`;
+    return `<div class="cover-text" style="${style}">${text}</div>`;
+}
+
+function renderCoverFooter(footerConfig, footerContent) {
+    const bar = footerConfig.bar || {};
+    const barColor = resolveCoverColor(bar.fill || 'bg2');
+    const barStyle = `position: absolute; left: ${bar.x}px; top: ${bar.y}px; width: ${bar.w}px; height: ${bar.h}px; background: ${barColor}; border-radius: ${bar.type === 'roundRect' ? '8px' : '0'};`;
+
+    const location = footerContent.location || '芝士科技大厦';
+    const date = footerContent.date || '2025.01';
+    const contact = footerContent.contact || '400-123-4567';
+    const logo = footerContent.logo || 'LOGO';
+
+    return `
+        <div class="cover-footer-bar" style="${barStyle}">
+            <div class="cover-footer-items">
+                <span class="cover-footer-item"><span class="icon">📍</span>${location}</span>
+                <span class="cover-footer-item"><span class="icon">📅</span>${date}</span>
+                <span class="cover-footer-item"><span class="icon">📞</span>${contact}</span>
+                <span class="cover-footer-logo">${logo}</span>
+            </div>
+        </div>
+    `;
 }
 
 function renderGridContent() {
@@ -578,35 +746,200 @@ function renderGridContent() {
     return html;
 }
 
+// Sample chart configurations - portable format for both ECharts (frontend) and python-pptx (export)
+const CHART_SAMPLES = [
+    {
+        title: '月度销售趋势',
+        chartType: 'line',  // python-pptx: LINE_MARKERS
+        categories: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        series: [{ name: '销售额', data: [820, 932, 901, 1234, 1290, 1430] }],
+        // ECharts specific options
+        echarts: {
+            grid: { top: 30, right: 20, bottom: 30, left: 40 },
+            smooth: true,
+            areaStyle: { opacity: 0.3 }
+        }
+    },
+    {
+        title: '市场份额分布',
+        chartType: 'pie',  // python-pptx: PIE
+        categories: ['产品A', '产品B', '产品C', '其他'],
+        series: [{ name: '份额', data: [35, 28, 22, 15] }],
+        echarts: {
+            radius: ['40%', '70%'],
+            label: { fontSize: 10 }
+        }
+    },
+    {
+        title: '季度对比分析',
+        chartType: 'bar',  // python-pptx: COLUMN_CLUSTERED
+        categories: ['Q1', 'Q2', 'Q3', 'Q4'],
+        series: [
+            { name: '2023', data: [120, 145, 168, 190] },
+            { name: '2024', data: [150, 178, 195, 230] }
+        ],
+        echarts: {
+            grid: { top: 30, right: 20, bottom: 30, left: 40 },
+            barGap: '10%'
+        }
+    },
+    {
+        title: '用户增长曲线',
+        chartType: 'area',  // python-pptx: AREA
+        categories: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        series: [{ name: 'DAU', data: [150, 230, 224, 318, 435, 410, 520] }],
+        echarts: {
+            grid: { top: 30, right: 20, bottom: 30, left: 50 },
+            smooth: true,
+            areaStyle: { opacity: 0.5 }
+        }
+    },
+];
+
+// Convert portable chart data to ECharts option
+function toEChartsOption(chartData) {
+    const { chartType, categories, series, echarts: opts = {} } = chartData;
+
+    if (chartType === 'pie') {
+        return {
+            series: [{
+                type: 'pie',
+                radius: opts.radius || '50%',
+                center: ['50%', '50%'],
+                label: opts.label || { fontSize: 10 },
+                data: categories.map((name, i) => ({ name, value: series[0].data[i] }))
+            }]
+        };
+    }
+
+    // Line, bar, area charts
+    const option = {
+        grid: opts.grid || { top: 30, right: 20, bottom: 30, left: 40 },
+        xAxis: {
+            type: 'category',
+            data: categories,
+            axisLine: { lineStyle: { color: '#ccc' } },
+            axisLabel: { color: '#666', fontSize: 10 }
+        },
+        yAxis: {
+            type: 'value',
+            axisLine: { show: false },
+            splitLine: { lineStyle: { color: '#eee' } },
+            axisLabel: { color: '#666', fontSize: 10 }
+        },
+        series: series.map(s => {
+            const seriesOpt = {
+                type: chartType === 'area' ? 'line' : chartType,
+                name: s.name,
+                data: s.data
+            };
+            if (chartType === 'line' || chartType === 'area') {
+                seriesOpt.smooth = opts.smooth !== false;
+            }
+            if (chartType === 'area') {
+                seriesOpt.areaStyle = opts.areaStyle || { opacity: 0.5 };
+            }
+            if (chartType === 'bar' && opts.barGap) {
+                seriesOpt.barGap = opts.barGap;
+            }
+            return seriesOpt;
+        })
+    };
+
+    return option;
+}
+
+// Expose CHART_SAMPLES for JSON export
+window.CHART_SAMPLES = CHART_SAMPLES;
+
+const TEXT_SAMPLES = [
+    { title: '核心优势', content: '通过技术创新和精细化运营，我们在行业内建立了独特的竞争壁垒，持续为客户创造价值。' },
+    { title: '市场洞察', content: '根据最新市场研究，目标用户群体呈现年轻化趋势，数字化需求显著提升，为业务增长提供新机遇。' },
+    { title: '战略方向', content: '聚焦核心业务，深化技术布局，拓展国际市场，构建可持续发展的商业生态系统。' },
+    { title: '执行要点', content: '明确目标分解、资源高效配置、敏捷迭代推进、数据驱动决策，确保战略落地执行。' },
+];
+
+const METRIC_SAMPLES = [
+    { value: '127%', label: '营收增长率', trend: '↑' },
+    { value: '4.8', label: '客户满意度', trend: '★' },
+    { value: '98.5%', label: '系统可用性', trend: '●' },
+    { value: '2.3M', label: '活跃用户数', trend: '↑' },
+];
+
+const BULLETS_SAMPLES = [
+    ['完成核心产品迭代升级', '拓展3个新兴市场区域', '团队规模增长40%', '获得行业创新大奖'],
+    ['优化用户体验流程', '提升转化率15%', '降低获客成本20%', '建立品牌合作矩阵'],
+    ['技术架构全面升级', '数据安全通过认证', '响应速度提升50%', '支持百万级并发'],
+    ['建立人才培养体系', '完善绩效考核机制', '提升员工满意度', '降低人员流失率'],
+];
+
+const TABLE_SAMPLES = [
+    { title: '季度业绩对比', headers: ['指标', 'Q1', 'Q2', 'Q3'], rows: [['营收', '120M', '145M', '168M'], ['利润', '18M', '22M', '28M']] },
+    { title: '产品数据概览', headers: ['产品', '用户数', '增长率'], rows: [['产品A', '850K', '+12%'], ['产品B', '620K', '+28%']] },
+];
+
+const IMAGE_SAMPLES = [
+    { title: '产品展示', desc: '新品发布主视觉' },
+    { title: '团队风采', desc: '年度合影照片' },
+    { title: '场景应用', desc: '实际使用案例' },
+    { title: '数据可视化', desc: '信息图表展示' },
+];
+
+function getZoneIndex(zoneId) {
+    return zoneId.charCodeAt(0) - 65; // A=0, B=1, C=2, etc.
+}
+
 function renderZoneContent(contentType, zoneId) {
+    const idx = getZoneIndex(zoneId);
+
     switch (contentType) {
-        case 'chart':
+        case 'chart': {
+            const sample = CHART_SAMPLES[idx % CHART_SAMPLES.length];
             return `<div class="zone-preview zone-chart-preview">
-                <div class="chart-placeholder">📊 Chart ${zoneId}</div>
+                <div class="chart-title">${sample.title}</div>
+                <div class="chart-container" id="chart-${zoneId}"></div>
             </div>`;
-        case 'image':
+        }
+        case 'image': {
+            const sample = IMAGE_SAMPLES[idx % IMAGE_SAMPLES.length];
             return `<div class="zone-preview zone-image-preview">
-                <div class="image-placeholder">🖼️ Image ${zoneId}</div>
+                <div class="image-icon">🖼️</div>
+                <div class="image-title">${sample.title}</div>
+                <div class="image-desc">${sample.desc}</div>
             </div>`;
-        case 'metric':
+        }
+        case 'metric': {
+            const sample = METRIC_SAMPLES[idx % METRIC_SAMPLES.length];
             return `<div class="zone-preview zone-metric-preview">
-                <div class="metric-value">85%</div>
-                <div class="metric-label">关键指标</div>
+                <div class="metric-trend">${sample.trend}</div>
+                <div class="metric-value">${sample.value}</div>
+                <div class="metric-label">${sample.label}</div>
             </div>`;
-        case 'table':
+        }
+        case 'table': {
+            const sample = TABLE_SAMPLES[idx % TABLE_SAMPLES.length];
             return `<div class="zone-preview zone-table-preview">
-                <div class="table-placeholder">📋 Table ${zoneId}</div>
+                <div class="table-title">${sample.title}</div>
+                <table class="sample-table">
+                    <thead><tr>${sample.headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                    <tbody>${sample.rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
+                </table>
             </div>`;
-        case 'bullets':
+        }
+        case 'bullets': {
+            const sample = BULLETS_SAMPLES[idx % BULLETS_SAMPLES.length];
             return `<div class="zone-preview zone-bullets-preview">
-                <ul><li>要点一</li><li>要点二</li><li>要点三</li></ul>
+                <ul>${sample.map(item => `<li>${item}</li>`).join('')}</ul>
             </div>`;
+        }
         case 'text':
-        default:
+        default: {
+            const sample = TEXT_SAMPLES[idx % TEXT_SAMPLES.length];
             return `<div class="zone-preview zone-text-preview">
-                <h3>区域 ${zoneId}</h3>
-                <p>这里是文本内容区域，可以放置段落、描述或说明文字。</p>
+                <h3>${sample.title}</h3>
+                <p>${sample.content}</p>
             </div>`;
+        }
     }
 }
 
@@ -826,8 +1159,22 @@ function renderLeftAlignMinimal(activeIdx) {
 // SmartArt Page Rendering
 function renderSmartartPage() {
     const placement = state.smartartPlacement;
+    const typeInfo = SMARTART_TYPES[state.smartartType];
+    const ooxmlId = typeInfo?.ooxmlId || state.smartartType;
 
-    const smartartContainer = `<div class="smartart-main"><div id="smartart-render-target"></div></div>`;
+    // PPT reference thumbnail (supports both .png and .svg)
+    const refThumbnail = `
+        <div class="smartart-ref-thumbnail" id="smartart-ref-thumb">
+            <img src="assets/smartart-refs/${ooxmlId}.png"
+                 onerror="this.src='assets/smartart-refs/${ooxmlId}.svg'; this.onerror=()=>this.parentElement.classList.add('hidden')"
+                 alt="PPT Reference" />
+            <div class="ref-header">
+                <span class="ref-label">PPT 参考</span>
+                <span class="ref-close" onclick="this.closest('.smartart-ref-thumbnail').classList.add('hidden')">✕</span>
+            </div>
+        </div>`;
+
+    const smartartContainer = `<div class="smartart-main">${refThumbnail}<div id="smartart-render-target"></div></div>`;
 
     const descBlock = `
         <div class="smartart-desc-block">
@@ -856,53 +1203,58 @@ function renderSmartartPage() {
         html = smartartContainer;
     }
 
-    // Schedule infographic rendering after DOM update
-    setTimeout(() => renderInfographic(), 0);
+    // Schedule SmartArt rendering after DOM update
+    setTimeout(() => renderSmartArtChart(), 0);
     return html;
 }
 
-// Sample data for different SmartArt types
+// Sample data for SmartArt (OOXML compatible format)
+// More items than needed, will be sliced by smartartItemCount
 const SMARTART_SAMPLE_DATA = {
-    sequential: [
-        { label: '第一阶段', value: 25, description: '规划与准备' },
-        { label: '第二阶段', value: 50, description: '执行与开发' },
-        { label: '第三阶段', value: 75, description: '测试与优化' },
-        { label: '第四阶段', value: 100, description: '发布与维护' },
-    ],
-    funnel: [
-        { label: '曝光', value: 10000, description: '广告展示' },
-        { label: '点击', value: 3000, description: '用户点击' },
-        { label: '注册', value: 800, description: '完成注册' },
-        { label: '付费', value: 200, description: '付费转化' },
-    ],
-    journey: [
-        { label: '需求分析', description: '明确项目目标' },
-        { label: '方案设计', description: '制定实施计划' },
-        { label: '开发实现', description: '编码与集成' },
-        { label: '上线运营', description: '部署与监控' },
-    ],
+    pyramid: ['战略愿景', '经营目标', '执行计划', '日常任务', '基础支撑', '资源保障'],
+    matrix: ['高影响/低成本', '高影响/高成本', '低影响/低成本', '低影响/高成本'],
+    cycle: ['计划', '执行', '检查', '改进', '总结', '优化'],
+    process: ['需求分析', '方案设计', '开发实现', '测试验收', '上线运营', '迭代优化'],
     hierarchy: [
-        { label: '战略层', description: '企业愿景与目标' },
-        { label: '管理层', description: '资源调配与决策' },
-        { label: '执行层', description: '任务执行与反馈' },
-        { label: '支撑层', description: '基础设施与工具' },
+        { id: 'ceo', text: 'CEO' },
+        { id: 'cto', text: 'CTO', parentId: 'ceo' },
+        { id: 'cfo', text: 'CFO', parentId: 'ceo' },
+        { id: 'dev', text: '研发部', parentId: 'cto' },
+        { id: 'qa', text: '质量部', parentId: 'cto' },
+        { id: 'fin', text: '财务部', parentId: 'cfo' },
     ],
-    comparison: [
-        { label: '方案 A', description: '成本低，周期长' },
-        { label: '方案 B', description: '成本中，周期中' },
-        { label: '方案 C', description: '成本高，周期短' },
-    ],
+    relationship: ['核心目标', '策略A', '策略B', '策略C', '策略D', '策略E'],
+    list: ['要点一', '要点二', '要点三', '要点四', '要点五', '要点六'],
+    picture: ['产品经理', '技术架构师', '项目经理', '设计师', 'QA工程师', '运维工程师'],
 };
 
-function renderInfographic() {
+// SmartArt instance cache
+let smartArtInstance = null;
+
+function renderSmartArtChart() {
     const target = document.getElementById('smartart-render-target');
-    if (!target) return;
+    if (!target || typeof SmartArt === 'undefined') return;
 
     const typeInfo = SMARTART_TYPES[state.smartartType];
     if (!typeInfo) return;
 
-    const dataType = typeInfo.dataType || 'comparison';
-    const sampleData = SMARTART_SAMPLE_DATA[dataType] || SMARTART_SAMPLE_DATA.comparison;
+    // Get sample data based on category and slice by count
+    const category = typeInfo.category;
+    const count = state.smartartItemCount || 4;
+    let sampleData = SMARTART_SAMPLE_DATA[category] || SMARTART_SAMPLE_DATA.list;
+    // Slice to requested count (hierarchy is special - it's a tree)
+    if (category !== 'hierarchy') {
+        sampleData = sampleData.slice(0, count);
+    }
+
+    // Use custom items if available, otherwise use sample data
+    // Initialize smartartItems if count changed or not set
+    if (!state.smartartItems || state.smartartItems.length !== count) {
+        state.smartartItems = sampleData.map(item =>
+            typeof item === 'string' ? item : (item.text || item)
+        );
+    }
+    const items = state.smartartItems;
 
     // Calculate size based on placement
     const isVertical = state.smartartPlacement === 'top-desc' || state.smartartPlacement === 'bottom-desc';
@@ -910,42 +1262,103 @@ function renderInfographic() {
     const width = isFull ? 1000 : (isVertical ? 1000 : 600);
     const height = isFull ? 500 : (isVertical ? 300 : 450);
 
-    // Map theme to infographic color scheme
-    const themeToScheme = {
-        'soft_peach_cream': 'warm',
-        'executive': 'professional',
-        'forest_green': 'nature',
-        'sunset_orange': 'sunset',
-        'cosmic': 'cool',
-        'azure': 'professional',
-        'bright_red_blue': 'vibrant',
-        'bright_blue_red': 'vibrant',
-        'deep_red_blue': 'professional',
-        'deep_green_gold': 'nature',
-        'deep_blue_gold': 'professional',
-        'blue_green_gold': 'ocean',
-    };
-    const colorScheme = themeToScheme[state.theme] || 'professional';
+    // Get theme colors from color scheme
+    const themeColors = getSmartArtColorsFromScheme(state.smartartColorScheme);
 
     try {
-        target.innerHTML = '';
-        new Infographic({
-            container: target,
+        // Dispose previous instance
+        if (smartArtInstance) {
+            smartArtInstance.dispose();
+        }
+
+        // Create new SmartArt instance
+        smartArtInstance = SmartArt.init(target);
+        smartArtInstance.setOption({
             type: state.smartartType,
-            data: sampleData,
-            width: width,
-            height: height,
-            theme: colorScheme,
+            items: items,
+            size: { width, height },
+            theme: themeColors
         });
+
+        // Listen for text edits (remove old listener first to avoid duplicates)
+        target.removeEventListener('smartart-text-change', handleSmartartTextChange);
+        target.addEventListener('smartart-text-change', handleSmartartTextChange);
     } catch (e) {
-        console.warn('Infographic render failed:', e.message);
+        console.warn('SmartArt render failed:', e.message);
         target.innerHTML = `<div class="smartart-fallback">
             <div class="smartart-icon">${SMARTART_CATEGORIES[typeInfo.category]?.icon || '📊'}</div>
             <div class="smartart-type-name">${typeInfo.label}</div>
-            <div class="smartart-error">${e.message}</div>
         </div>`;
     }
 }
+
+// Handle SmartArt text edits
+function handleSmartartTextChange(e) {
+    const { shapeId, text } = e.detail;
+    // Extract index from shapeId (e.g., "list-2" -> 2)
+    const match = shapeId.match(/(\d+)$/);
+    if (match && state.smartartItems) {
+        const idx = parseInt(match[1], 10);
+        if (idx >= 0 && idx < state.smartartItems.length) {
+            state.smartartItems[idx] = text;
+        }
+    }
+}
+
+// Convert color scheme ID to SmartArt accent colors (uses current theme's accentColors)
+function getSmartArtColorsFromScheme(schemeId) {
+    // Get dynamic color schemes based on current theme
+    const colorSchemes = getSmartArtColorSchemes(state.theme);
+
+    // Find the scheme
+    let accents = null;
+    for (const group of colorSchemes) {
+        const item = group.items.find(i => i.id === schemeId);
+        if (item && item.accents) {
+            accents = item.accents;
+            break;
+        }
+    }
+
+    // Default to theme's accentColors if scheme not found
+    if (!accents) {
+        const theme = window.THEMES?.[state.theme];
+        accents = theme?.accentColors || ['#156082', '#E97132', '#196B24', '#0F9ED5', '#A02B93', '#4EA72E'];
+    }
+
+    return {
+        accent1: accents[0],
+        accent2: accents[1],
+        accent3: accents[2],
+        accent4: accents[3],
+        accent5: accents[4],
+        accent6: accents[5],
+        light1: '#FFFFFF',
+        dark1: '#000000'
+    };
+}
+
+// Map app themes to SmartArt color schemes (legacy, kept for reference)
+function getSmartArtThemeColors(themeName) {
+    const themeMap = {
+        'soft_peach_cream': { accent1: '#E8998D', accent2: '#F2C4B6', accent3: '#A8DADC', accent4: '#457B9D', accent5: '#1D3557', accent6: '#F4A261' },
+        'executive': { accent1: '#2C3E50', accent2: '#34495E', accent3: '#7F8C8D', accent4: '#95A5A6', accent5: '#BDC3C7', accent6: '#ECF0F1' },
+        'forest_green': { accent1: '#2D5016', accent2: '#4A7C23', accent3: '#6B8E23', accent4: '#8FBC8F', accent5: '#556B2F', accent6: '#9ACD32' },
+        'sunset_orange': { accent1: '#E74C3C', accent2: '#F39C12', accent3: '#E67E22', accent4: '#D35400', accent5: '#C0392B', accent6: '#F1C40F' },
+        'cosmic': { accent1: '#6C5CE7', accent2: '#A29BFE', accent3: '#74B9FF', accent4: '#0984E3', accent5: '#00CEC9', accent6: '#81ECEC' },
+        'azure': { accent1: '#4472C4', accent2: '#5B9BD5', accent3: '#70AD47', accent4: '#FFC000', accent5: '#ED7D31', accent6: '#A5A5A5' },
+    };
+    const colors = themeMap[themeName] || themeMap['azure'];
+    return { ...colors, light1: '#FFFFFF', dark1: '#000000' };
+}
+
+// Expose for JSON export
+window.getSmartArtOOXML = function() {
+    if (smartArtInstance) {
+        return smartArtInstance.toOOXML();
+    }
+    return null;
+};
 
 function renderLayoutContent() {
     let html = '';

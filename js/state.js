@@ -25,6 +25,22 @@ const state = {
     },
     // L2 - Page Type
     pageType: 'content-grid',      // 'cover' | 'divider' | 'content-grid' | 'content-smartart'
+    // Cover state
+    coverLayout: 'cross_rectangles',  // 'cross_rectangles' | 'triangle_stack' | 'checkerboard' | 'dual_circles'
+    coverContent: {
+        year: '2025',
+        title: '年度汇报',
+        highlight: 'XXXX项目',
+        subtitle: '本次演示将围绕项目展开，旨在向您展示年度的重点工作',
+        tag: '工作汇报',
+        brandTag: '人力资源工作总结汇报',
+        footer: {
+            location: '芝士科技大厦',
+            date: '2025.01',
+            contact: '400-123-4567',
+            logo: 'LOGO'
+        }
+    },
     // Divider state
     dividerLayout: 'cards-highlight',
     dividerSectionCount: 4,
@@ -34,10 +50,13 @@ const state = {
     dividerIndex: 0,
     expandedDivider: null,
     // SmartArt state
-    smartartCategory: 'funnel',
-    smartartType: 'funnel-diagram',
+    smartartCategory: 'pyramid',
+    smartartType: 'pyramid',
     smartartPlacement: 'left-desc',
-    expandedSmartartCat: 'funnel',
+    smartartItemCount: 4,
+    smartartColorScheme: 'colorful1',  // see SMARTART_COLOR_SCHEMES in config.js
+    smartartItems: null,  // null = use sample data, array = custom content
+    expandedSmartartCat: 'pyramid',
     // Grid Layout
     gridLayout: 'two-col-equal',
     zoneContents: { A: 'chart', B: 'text' },

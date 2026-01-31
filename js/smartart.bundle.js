@@ -448,92 +448,56 @@
         return { type: 'list', shapes, connectors: [], bounds: { x: 0, y: 0, width, height } };
     }
 
-    // AlternatingHexagons Layout - Cycle matrix with corner text boxes
+    // AlternatingHexagons Layout - Honeycomb pattern
     function hexagonLayout(option, config) {
         const { items, size, theme } = option;
         const { width, height } = size;
         const shapes = [];
-        const connectors = [];
+        const count = Math.min(items.length, 6) || 4;
 
-        const cx = width / 2;
-        const cy = height / 2;
-        const circleR = Math.min(width, height) * 0.38;
+        // Hexagon dimensions
+        const hexW = width * 0.28;
+        const hexH = hexW * 0.866;
+        const overlapX = hexW * 0.25;
+        const overlapY = hexH * 0.25;
 
-        // Corner text box dimensions
-        const boxW = width * 0.22;
-        const boxH = height * 0.15;
-        const margin = width * 0.02;
+        // Honeycomb positions
+        const positions = [];
+        const cols = 2;
+        const rows = Math.ceil(count / cols);
+        const totalW = hexW * 2 - overlapX;
+        const totalH = hexH * rows - overlapY * (rows - 1);
+        const startX = (width - totalW) / 2;
+        const startY = (height - totalH) / 2;
 
-        // 4 corner text boxes
-        const cornerPositions = [
-            { x: margin, y: margin },
-            { x: width - boxW - margin, y: margin },
-            { x: width - boxW - margin, y: height - boxH - margin },
-            { x: margin, y: height - boxH - margin }
-        ];
-
-        for (let i = 0; i < 4; i++) {
-            const item = items[i % items.length] || { text: `Item ${i + 1}` };
-            const pos = cornerPositions[i];
-            shapes.push({
-                id: `corner-${i}`,
-                type: 'roundRect',
-                x: pos.x, y: pos.y,
-                width: boxW, height: boxH,
-                text: '• ' + (item.text || item),
-                fill: theme.light1 || '#FFFFFF',
-                stroke: theme.accent1 || '#156082',
-                strokeWidth: 1.5,
-                textColor: theme.dark1 || '#333333',
-                fontSize: 12,
-                rx: 6, ry: 6
+        for (let i = 0; i < count; i++) {
+            const row = Math.floor(i / cols);
+            const col = i % cols;
+            const rowOffset = (row % 2 === 0) ? hexW * 0.15 : -hexW * 0.15;
+            positions.push({
+                x: startX + col * (hexW - overlapX) + rowOffset,
+                y: startY + row * (hexH - overlapY)
             });
         }
 
-        // 4 pie quadrants forming main circle
-        const quadrantAngles = [
-            { start: 180, end: 270 },
-            { start: 270, end: 360 },
-            { start: 0, end: 90 },
-            { start: 90, end: 180 }
-        ];
-
-        for (let i = 0; i < 4; i++) {
-            const item = items[i % items.length] || { text: `Item ${i + 1}` };
-            const angles = quadrantAngles[i];
+        for (let i = 0; i < count; i++) {
+            const item = items[i] || { text: `Item ${i + 1}` };
+            const pos = positions[i];
             shapes.push({
-                id: `quadrant-${i}`,
-                type: 'pie',
-                cx, cy,
-                innerRadius: 0,
-                outerRadius: circleR,
-                startAngle: angles.start,
-                endAngle: angles.end,
-                fill: theme.accent1 || '#156082',
+                id: `hex-${i}`,
+                type: 'hexagon',
+                x: pos.x, y: pos.y,
+                width: hexW, height: hexH,
+                text: item.text || item,
+                fill: getAccentColor(theme, i),
                 stroke: theme.light1 || '#FFFFFF',
                 strokeWidth: 2,
-                text: item.text || item,
                 textColor: theme.light1 || '#FFFFFF',
-                fontSize: 16
+                fontSize: 14
             });
         }
 
-        // Center cycle arrows
-        const arrowR = circleR * 0.18;
-        connectors.push({
-            type: 'curvedArrow',
-            cx, cy, radius: arrowR,
-            startAngle: -30, endAngle: 150,
-            stroke: theme.light1 || '#FFFFFF'
-        });
-        connectors.push({
-            type: 'curvedArrow',
-            cx, cy, radius: arrowR,
-            startAngle: 150, endAngle: 330,
-            stroke: theme.light1 || '#FFFFFF'
-        });
-
-        return { type: 'list', shapes, connectors, bounds: { x: 0, y: 0, width, height } };
+        return { type: 'list', shapes, connectors: [], bounds: { x: 0, y: 0, width, height } };
     }
 
     // Picture Layout

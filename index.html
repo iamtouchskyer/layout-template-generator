@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/base.css?v=10">
-    <link rel="stylesheet" href="styles/editor.css?v=13">
+    <link rel="stylesheet" href="styles/editor.css?v=16">
     <link rel="stylesheet" href="styles/preview.css?v=9">
     <link rel="stylesheet" href="styles/slide.css?v=17">
     <link rel="stylesheet" href="styles/cards.css?v=9">
@@ -48,6 +48,15 @@
                                     <option value="sunset_orange">Sunset Orange</option>
                                     <option value="cosmic">Cosmic (Dark)</option>
                                     <option value="azure">Azure Blue</option>
+                                </optgroup>
+                                <optgroup label="柔和配色">
+                                    <option value="clear_sky_wheat">晴空麦田</option>
+                                    <option value="cloud_ink_shadow">云墨影</option>
+                                    <option value="cloud_letter">云笺</option>
+                                    <option value="moss_green">苔藓绿</option>
+                                    <option value="rose_wine">玫瑰酒红</option>
+                                    <option value="sakura_muffin">樱花马芬</option>
+                                    <option value="white_tea_joy">白茶悦</option>
                                 </optgroup>
                                 <optgroup label="高端汇报">
                                     <option value="bright_red_blue">亮红蓝配色</option>
@@ -107,6 +116,15 @@
                     <div class="preview-tabs"><button class="preview-tab active" onclick="setPreviewTab('preview')">Preview</button><button class="preview-tab" onclick="setPreviewTab('json')">JSON</button></div>
                 </div>
             </div>
+            <!-- Cover Operation Bar (visible only for cover) -->
+            <div class="cover-operation-bar" id="cover-operation-bar">
+                <div class="grid-op-row">
+                    <div class="grid-op-section">
+                        <div class="grid-op-title">封面布局</div>
+                        <div class="cover-layout-selector" id="cover-layout-selector"></div>
+                    </div>
+                </div>
+            </div>
             <!-- Divider Operation Bar (visible only for divider) -->
             <div class="divider-operation-bar" id="divider-operation-bar">
                 <div class="grid-op-row">
@@ -153,16 +171,25 @@
             </div>
             <!-- SmartArt Operation Bar (visible only for content-smartart) -->
             <div class="smartart-operation-bar" id="smartart-operation-bar">
-                <div class="grid-op-row">
-                    <div class="grid-op-section">
-                        <div class="grid-op-title">SmartArt 类型</div>
+                <div class="smartart-op-row">
+                    <div class="smartart-op-group">
+                        <span class="smartart-op-label">类型</span>
                         <div class="smartart-type-selector" id="smartart-type-selector"></div>
                     </div>
-                </div>
-                <div class="grid-op-row">
-                    <div class="grid-op-section">
-                        <div class="grid-op-title">布局位置</div>
+                    <div class="smartart-op-divider"></div>
+                    <div class="smartart-op-group">
+                        <span class="smartart-op-label">数量</span>
+                        <div class="smartart-count-selector" id="smartart-count-selector"></div>
+                    </div>
+                    <div class="smartart-op-divider"></div>
+                    <div class="smartart-op-group">
+                        <span class="smartart-op-label">布局</span>
                         <div class="smartart-placements" id="smartart-placements"></div>
+                    </div>
+                    <div class="smartart-op-divider"></div>
+                    <div class="smartart-op-group">
+                        <span class="smartart-op-label">配色</span>
+                        <div class="smartart-colors" id="smartart-colors"></div>
                     </div>
                 </div>
             </div>
@@ -175,12 +202,14 @@
         </div>
     </div>
 
-    <script src="js/infographics.bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="js/smartart.bundle.js?v=20260206b"></script>
+    <script src="themes.js?v=2"></script>
     <script src="js/config-loader.js?v=14"></script>
-    <script src="js/config.js?v=9"></script>
+    <script src="js/config.js?v=14"></script>
     <script src="js/state.js?v=15"></script>
-    <script src="js/ui.js?v=19"></script>
-    <script src="js/render.js?v=17"></script>
+    <script src="js/ui.js?v=21"></script>
+    <script src="js/render.js?v=21"></script>
     <script src="js/render-layouts.js?v=9"></script>
     <script src="js/render-cards.js?v=9"></script>
     <script src="js/main.js?v=9"></script>

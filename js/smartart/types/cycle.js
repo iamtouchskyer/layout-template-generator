@@ -46,55 +46,89 @@ export function cycleLayout(option, config = {}) {
             });
         });
     } else {
-        // Chevron/arrow style (cycle4)
-        const itemWidth = radius * 0.6;
-        const itemHeight = radius * 0.35;
+        // Basic cycle (cycle4): center circle + 4 corner boxes + cycle arrows
+        const circleR = Math.min(width, height) * 0.32;
+        const boxW = width * 0.22;
+        const boxH = height * 0.15;
+        const margin = width * 0.02;
 
-        items.forEach((item, idx) => {
-            const angle = (idx * 360 / count) - 90; // Start from top
-            const rad = (angle * Math.PI) / 180;
+        // 4 corner text boxes
+        const cornerPositions = [
+            { x: margin, y: margin },
+            { x: width - boxW - margin, y: margin },
+            { x: width - boxW - margin, y: height - boxH - margin },
+            { x: margin, y: height - boxH - margin }
+        ];
 
-            const x = centerX + Math.cos(rad) * radius - itemWidth / 2;
-            const y = centerY + Math.sin(rad) * radius - itemHeight / 2;
-
-            const colorIdx = idx % 6;
-            const accentKey = `accent${colorIdx + 1}`;
-
+        for (let i = 0; i < 4; i++) {
+            const item = items[i % items.length] || { text: `Item ${i + 1}` };
+            const pos = cornerPositions[i];
             shapes.push({
-                id: `item-${idx}`,
-                type: 'chevron',
-                x,
-                y,
-                width: itemWidth,
-                height: itemHeight,
-                rotation: angle + 90,
-                text: item.text || item,
-                fill: theme[accentKey] || theme.accent1,
-                stroke: theme.light1,
+                id: `corner-${i}`,
+                type: 'roundRect',
+                x: pos.x,
+                y: pos.y,
+                width: boxW,
+                height: boxH,
+                text: '• ' + (item.text || item),
+                fill: theme.light1 || '#FFFFFF',
+                stroke: theme.accent1 || '#156082',
+                strokeWidth: 1.5,
+                textColor: theme.dark1 || '#333333',
+                fontSize: 12,
+                rx: 6,
+                ry: 6
+            });
+        }
+
+        // 4 pie quadrants forming center circle
+        const quadrantAngles = [
+            { start: 180, end: 270 },  // top-left
+            { start: 270, end: 360 },  // top-right
+            { start: 0, end: 90 },     // bottom-right
+            { start: 90, end: 180 }    // bottom-left
+        ];
+
+        for (let i = 0; i < 4; i++) {
+            const item = items[i % items.length] || { text: `Item ${i + 1}` };
+            const angles = quadrantAngles[i];
+            shapes.push({
+                id: `quadrant-${i}`,
+                type: 'pie',
+                cx: centerX,
+                cy: centerY,
+                innerRadius: 0,
+                outerRadius: circleR,
+                startAngle: angles.start,
+                endAngle: angles.end,
+                fill: theme.accent1 || '#156082',
+                stroke: theme.light1 || '#FFFFFF',
                 strokeWidth: 2,
-                textColor: theme.light1,
+                text: item.text || item,
+                textColor: theme.light1 || '#FFFFFF',
                 fontSize: 14
             });
+        }
 
-            // Add connecting arrow to next item
-            if (count > 1) {
-                const nextAngle = ((idx + 1) * 360 / count) - 90;
-                const midAngle = angle + (360 / count) / 2;
-                const midRad = (midAngle * Math.PI) / 180;
-                const arrowRadius = radius * 0.7;
-
-                connectors.push({
-                    id: `arrow-${idx}`,
-                    type: 'curvedArrow',
-                    startAngle: angle,
-                    endAngle: nextAngle,
-                    cx: centerX,
-                    cy: centerY,
-                    radius: arrowRadius,
-                    fill: theme.accent5,
-                    stroke: theme.accent5
-                });
-            }
+        // Center cycle arrows
+        const arrowR = circleR * 0.2;
+        connectors.push({
+            type: 'curvedArrow',
+            cx: centerX,
+            cy: centerY,
+            radius: arrowR,
+            startAngle: -30,
+            endAngle: 150,
+            stroke: theme.light1 || '#FFFFFF'
+        });
+        connectors.push({
+            type: 'curvedArrow',
+            cx: centerX,
+            cy: centerY,
+            radius: arrowR,
+            startAngle: 150,
+            endAngle: 330,
+            stroke: theme.light1 || '#FFFFFF'
         });
     }
 

@@ -25,6 +25,10 @@ function setZoom(value) {
 
 function updateState() {
     state.theme = document.getElementById('theme-select').value;
+    // Re-render SmartArt color picker when theme changes (colors depend on theme)
+    if (state.pageType === 'content-smartart') {
+        renderSmartartColorSelector();
+    }
     render();
 }
 
@@ -104,6 +108,15 @@ function clearLogoImage(phId) {
 function updatePageType(type) {
     state.pageType = type;
 
+    // Show/hide cover operation bar
+    const coverBar = document.getElementById('cover-operation-bar');
+    if (type === 'cover') {
+        coverBar.classList.add('visible');
+        renderCoverLayoutSelector();
+    } else {
+        coverBar.classList.remove('visible');
+    }
+
     // Show/hide divider operation bar
     const dividerBar = document.getElementById('divider-operation-bar');
     if (type === 'divider') {
@@ -132,11 +145,36 @@ function updatePageType(type) {
     if (type === 'content-smartart') {
         smartartBar.classList.add('visible');
         renderSmartartTypeSelector();
+        renderSmartartCountSelector();
         renderSmartartPlacements();
+        renderSmartartColorSelector();
     } else {
         smartartBar.classList.remove('visible');
     }
 
+    render();
+}
+
+// Cover Layout Selector Functions
+function renderCoverLayoutSelector() {
+    const container = document.getElementById('cover-layout-selector');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="cover-layout-row">
+            ${Object.entries(COVER_LAYOUTS).map(([id, layout]) => `
+                <button class="cover-layout-btn ${state.coverLayout === id ? 'active' : ''}"
+                        onclick="selectCoverLayout('${id}')" title="${layout.description}">
+                    ${layout.name}
+                </button>
+            `).join('')}
+        </div>
+    `;
+}
+
+function selectCoverLayout(layoutId) {
+    state.coverLayout = layoutId;
+    renderCoverLayoutSelector();
     render();
 }
 
@@ -386,9 +424,8 @@ function selectDividerIndex(index) {
 // SmartArt UI Functions
 function renderSmartartTypeSelector() {
     const container = document.getElementById('smartart-type-selector');
-    // Render category buttons with type dropdown
     const currentType = SMARTART_TYPES[state.smartartType];
-    const currentCat = currentType?.category || 'funnel';
+    const currentCat = currentType?.category || 'matrix';
 
     // Get types for current category
     const currentCatTypes = Object.entries(SMARTART_TYPES).filter(([_, t]) => t.category === currentCat);
@@ -401,16 +438,19 @@ function renderSmartartTypeSelector() {
                 return `
                     <button class="smartart-cat-btn ${currentCat === catId ? 'active' : ''}"
                             onclick="selectSmartartCategory('${catId}')" title="${cat.desc}">
-                        <span class="cat-icon">${cat.icon}</span>
                         <span class="cat-label">${cat.label}</span>
                     </button>
                 `;
             }).join('')}
         </div>
-        <div class="smartart-subtype-row">
+        <div class="smartart-thumbnail-grid">
             ${currentCatTypes.map(([typeId, typeInfo]) => `
-                <button class="smartart-subtype-btn ${state.smartartType === typeId ? 'active' : ''}"
-                        onclick="selectSmartartType('${typeId}')">${typeInfo.label}</button>
+                <div class="smartart-thumbnail ${state.smartartType === typeId ? 'active' : ''}"
+                     onclick="selectSmartartType('${typeId}')" title="${typeInfo.label}">
+                    <img src="assets/smartart-refs/${typeInfo.ooxmlId}.png"
+                         alt="${typeInfo.label}"
+                         onerror="this.parentElement.innerHTML='<div class=\\'thumb-fallback\\'>${typeInfo.label}</div>'">
+                </div>
             `).join('')}
         </div>
     `;
@@ -447,6 +487,104 @@ function selectSmartartType(typeId) {
 function selectSmartartPlacement(placementId) {
     state.smartartPlacement = placementId;
     renderSmartartPlacements();
+    render();
+}
+
+function renderSmartartCountSelector() {
+    const container = document.getElementById('smartart-count-selector');
+    if (!container) return;
+
+    const counts = [3, 4, 5, 6];
+    container.innerHTML = `<div class="count-btns">
+        ${counts.map(count => `
+            <button class="count-btn ${state.smartartItemCount === count ? 'active' : ''}"
+                    onclick="selectSmartartCount(${count})" title="${count}个元素">
+                <span class="count-num">${count}</span>
+            </button>
+        `).join('')}
+    </div>`;
+}
+
+function selectSmartartCount(count) {
+    state.smartartItemCount = count;
+    renderSmartartCountSelector();
+    render();
+}
+
+function renderSmartartColorSelector() {
+    const container = document.getElementById('smartart-colors');
+    if (!container) return;
+
+    // Get dynamic color schemes based on current theme
+    const colorSchemes = getSmartArtColorSchemes(state.theme);
+
+    // Find current color scheme colors for preview
+    let currentColors = ['#E97132', '#196B24', '#0F9ED5'];
+    for (const group of colorSchemes) {
+        const found = group.items.find(i => i.id === state.smartartColorScheme);
+        if (found) { currentColors = found.colors; break; }
+    }
+
+    container.innerHTML = `
+        <div class="color-picker-trigger" onclick="toggleColorPicker(event)">
+            <div class="color-trigger-preview">
+                <div class="pyr-layer" style="background:${currentColors[0]}"></div>
+                <div class="pyr-layer" style="background:${currentColors[1]}"></div>
+                <div class="pyr-layer" style="background:${currentColors[2]}"></div>
+            </div>
+            <span class="color-trigger-arrow">▼</span>
+        </div>
+        <div class="color-picker-dropdown" id="color-picker-dropdown">
+            ${colorSchemes.map(group => `
+                <div class="color-picker-group">
+                    <div class="color-picker-label">${group.label}</div>
+                    <div class="color-picker-row">
+                        ${group.items.map(item => `
+                            <button class="color-picker-btn ${state.smartartColorScheme === item.id ? 'active' : ''}"
+                                    onclick="selectSmartartColorScheme('${item.id}')"
+                                    title="${group.label}">
+                                <div class="color-picker-preview ${item.outline ? 'outline' : ''}">
+                                    <div class="pyramid-icon">
+                                        <div class="pyr-layer" style="background:${item.colors[0]}"></div>
+                                        <div class="pyr-layer" style="background:${item.colors[1]}"></div>
+                                        <div class="pyr-layer" style="background:${item.colors[2]}"></div>
+                                    </div>
+                                </div>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function toggleColorPicker(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('color-picker-dropdown');
+    dropdown.classList.toggle('open');
+
+    // Close on outside click
+    if (dropdown.classList.contains('open')) {
+        document.addEventListener('click', closeColorPickerOnOutsideClick);
+    }
+}
+
+function closeColorPickerOnOutsideClick(event) {
+    const dropdown = document.getElementById('color-picker-dropdown');
+    const trigger = document.querySelector('.color-picker-trigger');
+    if (dropdown && !dropdown.contains(event.target) && !trigger.contains(event.target)) {
+        dropdown.classList.remove('open');
+        document.removeEventListener('click', closeColorPickerOnOutsideClick);
+    }
+}
+
+function selectSmartartColorScheme(schemeId) {
+    state.smartartColorScheme = schemeId;
+    // Close dropdown
+    const dropdown = document.getElementById('color-picker-dropdown');
+    if (dropdown) dropdown.classList.remove('open');
+    renderSmartartColorSelector();
     render();
 }
 
@@ -558,7 +696,8 @@ function updateNavValues() {
         const zoneTypes = Object.values(state.zoneContents).join('+');
         l2Value = `${gridLayout?.label || state.gridLayout} (${zoneTypes})`;
     } else if (state.pageType === 'cover') {
-        l2Value = '封面';
+        const coverLayout = COVER_LAYOUTS[state.coverLayout];
+        l2Value = `封面 · ${coverLayout?.name || state.coverLayout}`;
     }
     document.getElementById('nav-l2-value').textContent = l2Value;
 }
@@ -583,11 +722,19 @@ function updateJsonOutput() {
                 style: shapeConfig.style || {},
             };
         } else {
+            // Preset-based config (header-badge, header-line, footer-line)
+            const presetConfig = shapeConfig.presets?.[shapeState.preset] || {};
             return {
                 id: shapeState.id,
                 configType: 'presets',
                 preset: shapeState.preset,
                 occupiesSpace: shapeConfig.occupiesSpace,
+                // Include position/size config from preset for python-pptx
+                positionConfig: {
+                    ...presetConfig.position,
+                    ...presetConfig.size,
+                    text: shapeConfig.defaultContent || 'SECTION',
+                },
             };
         }
     });
@@ -657,6 +804,10 @@ function updateJsonOutput() {
             contentAreas: contentAreasWithBounds,
         },
         pageType: state.pageType,
+        ...(state.pageType === 'cover' ? {
+            coverLayout: state.coverLayout,
+            coverContent: state.coverContent
+        } : {}),
         ...(state.pageType === 'divider' ? {
             divider: { layout: state.dividerLayout, sectionCount: state.dividerSectionCount, numberStyle: state.dividerNumberStyle, textLevel: state.dividerTextLevel, bgStyle: state.dividerBgStyle, sectionIndex: state.dividerIndex }
         } : {}),
@@ -665,17 +816,44 @@ function updateJsonOutput() {
                 type: state.smartartType,
                 category: state.smartartCategory,
                 placement: state.smartartPlacement,
-                dataType: SMARTART_TYPES[state.smartartType]?.dataType
+                colorScheme: state.smartartColorScheme,
+                ooxmlId: SMARTART_TYPES[state.smartartType]?.ooxmlId,
+                // Include OOXML data for python-pptx generation
+                ...(typeof getSmartArtOOXML === 'function' ? { ooxml: getSmartArtOOXML() } : {})
             }
         } : {}),
         ...(state.pageType === 'content-grid' ? {
             grid: {
                 layout: state.gridLayout,
-                zones: gridLayout?.zones.map(zone => ({
-                    id: zone.id,
-                    flex: zone.flex,
-                    content: state.zoneContents[zone.id] || 'text'
-                }))
+                zones: gridLayout?.zones.map((zone, idx) => {
+                    const contentType = state.zoneContents[zone.id] || 'text';
+                    const zoneData = {
+                        id: zone.id,
+                        flex: zone.flex,
+                        content: contentType
+                    };
+                    // Include chart data for chart zones (portable format for python-pptx)
+                    if (contentType === 'chart' && typeof CHART_SAMPLES !== 'undefined') {
+                        const zoneIdx = zone.id.charCodeAt(0) - 65; // A=0, B=1, etc.
+                        const chartSample = CHART_SAMPLES[zoneIdx % CHART_SAMPLES.length];
+                        zoneData.chartData = {
+                            title: chartSample.title,
+                            chartType: chartSample.chartType,
+                            categories: chartSample.categories,
+                            series: chartSample.series
+                        };
+                    }
+                    // Include text data for text zones
+                    if (contentType === 'text' && typeof TEXT_SAMPLES !== 'undefined') {
+                        const zoneIdx = zone.id.charCodeAt(0) - 65; // A=0, B=1, etc.
+                        const textSample = TEXT_SAMPLES[zoneIdx % TEXT_SAMPLES.length];
+                        zoneData.textData = {
+                            title: textSample.title,
+                            body: textSample.content
+                        };
+                    }
+                    return zoneData;
+                })
             }
         } : {})
     };

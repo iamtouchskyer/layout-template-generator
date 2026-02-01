@@ -536,6 +536,52 @@ select:focus, input:focus {
     color: white;
 }
 
+/* SmartArt Count Selector - Segmented Control Style */
+.smartart-count-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.count-btns {
+    display: flex;
+    gap: 2px;
+    background: var(--bg-tertiary);
+    padding: 3px;
+    border-radius: 10px;
+}
+
+.count-btn {
+    width: 32px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.count-btn:hover {
+    color: var(--text-primary);
+}
+
+.count-btn.active {
+    background: white;
+    color: var(--accent-l2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.count-btn .count-num {
+    line-height: 1;
+}
+
 /* SmartArt Type Selector (for operation bar) */
 .smartart-type-selector {
     display: flex;
@@ -608,6 +654,146 @@ select:focus, input:focus {
     color: white;
 }
 
+/* SmartArt Color Picker - PowerPoint Style Dropdown */
+#smartart-colors {
+    position: relative;
+}
+
+.color-picker-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.color-picker-trigger:hover {
+    border-color: var(--text-secondary);
+    background: var(--bg-tertiary);
+}
+
+.color-trigger-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    width: 24px;
+    height: 20px;
+}
+
+.color-trigger-preview .pyr-layer {
+    flex: 1;
+    border-radius: 1px;
+}
+
+.color-trigger-arrow {
+    font-size: 8px;
+    color: var(--text-secondary);
+}
+
+.color-picker-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 300px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.color-picker-dropdown.open {
+    display: block;
+}
+
+.color-picker-panel {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    min-width: 220px;
+}
+
+.color-picker-group {
+    margin-bottom: 12px;
+}
+
+.color-picker-group:last-child {
+    margin-bottom: 0;
+}
+
+.color-picker-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    padding-left: 2px;
+}
+
+.color-picker-row {
+    display: flex;
+    gap: 6px;
+}
+
+.color-picker-btn {
+    width: 52px;
+    height: 44px;
+    padding: 4px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+
+.color-picker-btn:hover {
+    border-color: var(--text-secondary);
+    background: var(--bg-tertiary);
+}
+
+.color-picker-btn.active {
+    border-color: var(--accent-l2);
+    background: rgba(var(--accent-l2-rgb), 0.1);
+    box-shadow: 0 0 0 1px var(--accent-l2);
+}
+
+.color-picker-preview {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.color-picker-preview.outline .pyr-layer {
+    background: transparent !important;
+    border: 1px solid var(--text-secondary);
+}
+
+.pyramid-icon {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    height: 100%;
+}
+
+.pyr-layer {
+    flex: 1;
+    border-radius: 1px;
+}
+
 /* Divider Style Selector */
 .divider-style-row,
 .divider-count-row,
@@ -659,7 +845,8 @@ select:focus, input:focus {
 /* Operation Bars */
 .grid-operation-bar,
 .smartart-operation-bar,
-.divider-operation-bar {
+.divider-operation-bar,
+.cover-operation-bar {
     display: none;
     flex-direction: column;
     background: var(--bg-tertiary);
@@ -670,14 +857,124 @@ select:focus, input:focus {
 
 .grid-operation-bar.visible,
 .smartart-operation-bar.visible,
-.divider-operation-bar.visible {
+.divider-operation-bar.visible,
+.cover-operation-bar.visible {
     display: flex;
+}
+
+/* Cover Layout Selector */
+.cover-layout-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.cover-layout-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.cover-layout-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+.cover-layout-btn.active {
+    background: var(--accent-l2);
+    border-color: var(--accent-l2);
+    color: white;
 }
 
 .grid-op-row {
     display: flex;
     align-items: center;
     gap: 20px;
+}
+
+/* SmartArt Operation Bar - Ribbon Style */
+.smartart-op-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+}
+
+.smartart-op-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 16px;
+}
+
+.smartart-op-group:first-child {
+    padding-left: 0;
+}
+
+.smartart-op-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.smartart-op-divider {
+    width: 1px;
+    height: 56px;
+    background: var(--border-color);
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+/* SmartArt Thumbnail Grid (PPT-style selector) */
+.smartart-thumbnail-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.smartart-thumbnail {
+    aspect-ratio: 16/10;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.15s;
+    position: relative;
+}
+
+.smartart-thumbnail:hover {
+    border-color: var(--text-secondary);
+}
+
+.smartart-thumbnail.active {
+    border-color: var(--accent-l3);
+    box-shadow: 0 0 0 1px var(--accent-l3);
+}
+
+.smartart-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.thumb-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 4px;
 }
 
 .grid-op-section {

@@ -39,46 +39,36 @@ const ZONE_TO_CARD_TYPE = {
     'quote': 'text', 'list': 'text', 'summary': 'text', 'card': 'text',
 };
 
-// SmartArt Categories - Based on OOXML SmartArt layout types
+// SmartArt Categories - PPT style (Matrix, Pyramid, Others)
 const SMARTART_CATEGORIES = {
-    'pyramid': { label: '金字塔', icon: '🔺', desc: '层级/金字塔结构' },
-    'process': { label: '流程', icon: '➡️', desc: '流程/步骤展示' },
-    'cycle': { label: '循环', icon: '🔄', desc: '循环关系' },
-    'matrix': { label: '矩阵', icon: '🔲', desc: '2x2或多维矩阵' },
-    'hierarchy': { label: '层级', icon: '🏢', desc: '组织架构/树状' },
-    'relationship': { label: '关系', icon: '🔗', desc: '发散/关系图' },
-    'list': { label: '列表', icon: '📋', desc: '块状列表' },
-    'picture': { label: '图片', icon: '🖼️', desc: '图片类布局' },
+    'matrix': { label: 'Matrix', desc: '矩阵/循环结构' },
+    'pyramid': { label: 'Pyramid', desc: '金字塔/漏斗结构' },
+    'others': { label: 'Others', desc: '其他图形' },
 };
 
-// SmartArt Types - OOXML Compatible (18 types from extracted smartart.pptx)
+// SmartArt Types - organized by PPT categories with thumbnail support
 const SMARTART_TYPES = {
-    // Pyramid types
-    'pyramid': { category: 'pyramid', label: '基础金字塔', ooxmlId: 'pyramid1' },
-    'pyramid-list': { category: 'pyramid', label: '金字塔列表', ooxmlId: 'pyramid2' },
-    'pyramid-inverted': { category: 'pyramid', label: '倒漏斗', ooxmlId: 'pyramid3' },
-    // Matrix types
-    'matrix': { category: 'matrix', label: '基础矩阵', ooxmlId: 'matrix1' },
-    'matrix-titled': { category: 'matrix', label: '标题矩阵', ooxmlId: 'matrix2' },
+    // Matrix (matrix1, matrix2, matrix3, cycle4)
+    'matrix': { category: 'matrix', label: '标题矩阵', ooxmlId: 'matrix1' },
+    'matrix-titled': { category: 'matrix', label: '基础矩阵', ooxmlId: 'matrix2' },
     'matrix-cycle': { category: 'matrix', label: '循环矩阵', ooxmlId: 'matrix3' },
-    // Cycle types
-    'cycle': { category: 'cycle', label: '基础循环', ooxmlId: 'cycle4' },
-    'cycle-segmented': { category: 'cycle', label: '分段循环', ooxmlId: 'cycle8' },
-    // Process types
-    'chevron': { category: 'process', label: '基础流程', ooxmlId: 'chevron1' },
-    'arrow-process': { category: 'process', label: '流程箭头', ooxmlId: 'arrow2' },
-    'descending-process': { category: 'process', label: '下降流程', ooxmlId: 'DescendingProcess' },
-    // Hierarchy types
-    'hierarchy': { category: 'hierarchy', label: '组织架构', ooxmlId: 'chart3' },
-    // Radial/Relationship types
-    'radial': { category: 'relationship', label: '发散图', ooxmlId: 'radial3' },
-    // List types
-    'list': { category: 'list', label: '基础列表', ooxmlId: 'default' },
-    'list-vertical': { category: 'list', label: '垂直列表', ooxmlId: 'vList3' },
-    'hexagon-alternating': { category: 'list', label: '交替六边形', ooxmlId: 'AlternatingHexagons' },
-    // Picture types
-    'picture-accent': { category: 'picture', label: '突出图片', ooxmlId: 'AccentedPicture' },
-    'picture-captioned': { category: 'picture', label: '带标题图片', ooxmlId: 'CaptionedPictures' },
+    'cycle': { category: 'matrix', label: '基础循环', ooxmlId: 'cycle4' },
+    // Pyramid (pyramid1, pyramid2, pyramid3, pyramid-list)
+    'pyramid': { category: 'pyramid', label: '基础金字塔', ooxmlId: 'pyramid1' },
+    'pyramid-inverted': { category: 'pyramid', label: '倒漏斗', ooxmlId: 'pyramid2' },
+    'pyramid-list': { category: 'pyramid', label: '金字塔列表', ooxmlId: 'pyramid3' },
+    // Others
+    'chevron': { category: 'others', label: '基础流程', ooxmlId: 'chevron1' },
+    'arrow-process': { category: 'others', label: '流程箭头', ooxmlId: 'arrow2' },
+    'descending-process': { category: 'others', label: '下降流程', ooxmlId: 'DescendingProcess' },
+    'cycle-segmented': { category: 'others', label: '分段循环', ooxmlId: 'cycle8' },
+    'hierarchy': { category: 'others', label: '组织架构', ooxmlId: 'chart3' },
+    'radial': { category: 'others', label: '发散图', ooxmlId: 'radial3' },
+    'list': { category: 'others', label: '基础列表', ooxmlId: 'default' },
+    'list-vertical': { category: 'others', label: '垂直列表', ooxmlId: 'vList3' },
+    'hexagon-alternating': { category: 'others', label: '交替六边形', ooxmlId: 'AlternatingHexagons' },
+    'picture-accent': { category: 'others', label: '突出图片', ooxmlId: 'AccentedPicture' },
+    'picture-captioned': { category: 'others', label: '带标题图片', ooxmlId: 'CaptionedPictures' },
 };
 
 // SmartArt Placements

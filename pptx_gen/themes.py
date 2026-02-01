@@ -122,8 +122,10 @@ THEME_COLORS = {
 # SmartArt type mappings - New OOXML-based types
 SMARTART_TYPE_MAP = {
     # New types (from frontend SmartArt library)
-    'pyramid': SMARTART_TYPE.BASIC_PYRAMID,
-    'pyramid-inverted': SMARTART_TYPE.SEGMENTED_PYRAMID,  # pyramid3 - actual inverted look
+    'pyramid': SMARTART_TYPE.BASIC_PYRAMID,           # pyramid1
+    'pyramid-list': SMARTART_TYPE.PYRAMID_LIST,       # pyramid2
+    'pyramid-inverted': SMARTART_TYPE.INVERTED_PYRAMID,  # pyramid3
+    'pyramid-segmented': SMARTART_TYPE.SEGMENTED_PYRAMID,  # pyramid4
     'matrix': SMARTART_TYPE.BASIC_MATRIX,
     'matrix-titled': SMARTART_TYPE.TITLED_MATRIX,
     'matrix-cycle': SMARTART_TYPE.TITLED_MATRIX,

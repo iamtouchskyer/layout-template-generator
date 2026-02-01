@@ -13,8 +13,19 @@ function render() {
         pageClass = `page-type-smartart placement-${state.smartartPlacement}`;
     }
     slide.className = `slide-container ${pageClass}`;
+
+    // Hide content during update to prevent flash
+    contentLayer.style.visibility = 'hidden';
     masterLayer.innerHTML = renderMasterLayer();
     contentLayer.innerHTML = renderContentLayer();
+
+    // Show content after async renders complete (double rAF to ensure SmartArt is rendered)
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            contentLayer.style.visibility = '';
+        });
+    });
+
     updateNavValues();
     if (state.previewTab === 'json') updateJsonOutput();
 
@@ -1162,19 +1173,7 @@ function renderSmartartPage() {
     const typeInfo = SMARTART_TYPES[state.smartartType];
     const ooxmlId = typeInfo?.ooxmlId || state.smartartType;
 
-    // PPT reference thumbnail (supports both .png and .svg)
-    const refThumbnail = `
-        <div class="smartart-ref-thumbnail" id="smartart-ref-thumb">
-            <img src="assets/smartart-refs/${ooxmlId}.png"
-                 onerror="this.src='assets/smartart-refs/${ooxmlId}.svg'; this.onerror=()=>this.parentElement.classList.add('hidden')"
-                 alt="PPT Reference" />
-            <div class="ref-header">
-                <span class="ref-label">PPT 参考</span>
-                <span class="ref-close" onclick="this.closest('.smartart-ref-thumbnail').classList.add('hidden')">✕</span>
-            </div>
-        </div>`;
-
-    const smartartContainer = `<div class="smartart-main">${refThumbnail}<div id="smartart-render-target"></div></div>`;
+    const smartartContainer = `<div class="smartart-main"><div id="smartart-render-target"></div></div>`;
 
     const descBlock = `
         <div class="smartart-desc-block">
@@ -1203,8 +1202,8 @@ function renderSmartartPage() {
         html = smartartContainer;
     }
 
-    // Schedule SmartArt rendering after DOM update
-    setTimeout(() => renderSmartArtChart(), 0);
+    // Schedule SmartArt rendering after DOM update (use requestAnimationFrame for smoother render)
+    requestAnimationFrame(() => renderSmartArtChart());
     return html;
 }
 

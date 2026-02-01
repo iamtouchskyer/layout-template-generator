@@ -912,6 +912,7 @@ select:focus, input:focus {
 
 .smartart-op-group:first-child {
     padding-left: 0;
+    min-width: 320px; /* Fixed width to prevent layout shift when thumbnails load */
 }
 
 .smartart-op-label {
@@ -933,15 +934,16 @@ select:focus, input:focus {
 /* SmartArt Thumbnail Grid (PPT-style selector) */
 .smartart-thumbnail-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(4, 64px);
+    gap: 6px;
     margin-top: 8px;
 }
 
 .smartart-thumbnail {
-    aspect-ratio: 16/10;
-    border: 2px solid var(--border-color);
-    border-radius: 6px;
+    width: 64px;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
     background: var(--bg-primary);
     cursor: pointer;
     overflow: hidden;

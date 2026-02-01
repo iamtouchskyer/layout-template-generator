@@ -53,10 +53,11 @@ const SMARTART_TYPES = {
     'matrix-titled': { category: 'matrix', label: '基础矩阵', ooxmlId: 'matrix2' },
     'matrix-cycle': { category: 'matrix', label: '循环矩阵', ooxmlId: 'matrix3' },
     'cycle': { category: 'matrix', label: '基础循环', ooxmlId: 'cycle4' },
-    // Pyramid (pyramid1, pyramid2, pyramid3, pyramid-list)
+    // Pyramid (pyramid1, pyramid2, pyramid3, pyramid4)
     'pyramid': { category: 'pyramid', label: '基础金字塔', ooxmlId: 'pyramid1' },
-    'pyramid-inverted': { category: 'pyramid', label: '倒漏斗', ooxmlId: 'pyramid2' },
-    'pyramid-list': { category: 'pyramid', label: '金字塔列表', ooxmlId: 'pyramid3' },
+    'pyramid-list': { category: 'pyramid', label: '金字塔列表', ooxmlId: 'pyramid2' },
+    'pyramid-inverted': { category: 'pyramid', label: '倒漏斗', ooxmlId: 'pyramid3' },
+    'pyramid-segmented': { category: 'pyramid', label: '分段金字塔', ooxmlId: 'pyramid4' },
     // Others
     'chevron': { category: 'others', label: '基础流程', ooxmlId: 'chevron1' },
     'arrow-process': { category: 'others', label: '流程箭头', ooxmlId: 'arrow2' },

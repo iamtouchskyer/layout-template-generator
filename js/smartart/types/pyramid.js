@@ -5,12 +5,17 @@
 
 export function pyramidLayout(option, config = {}) {
     const { items, size, theme } = option;
-    const { inverted = false, listStyle = false } = config;
+    const { inverted = false, listStyle = false, segmented = false } = config;
     const { width, height } = size;
 
     // Pyramid with list on the right (pyramid2 style)
     if (listStyle) {
         return pyramidListLayout(option, config);
+    }
+
+    // Segmented pyramid - triangular grid (pyramid4 style)
+    if (segmented) {
+        return pyramidSegmentedLayout(option, config);
     }
 
     const count = items.length || 1;
@@ -139,6 +144,84 @@ function pyramidListLayout(option, config) {
             ry: 8
         });
     });
+
+    return {
+        type: 'pyramid',
+        shapes,
+        connectors: [],
+        bounds: { x: 0, y: 0, width, height }
+    };
+}
+
+/**
+ * Segmented Pyramid Layout (pyramid4 / OOXML pyramid4)
+ *
+ * Creates interlocking triangular grid forming a solid pyramid shape.
+ *
+ * Layout pattern:
+ *   Row 0:     1 triangle  (up)
+ *   Row 1:     3 triangles (up, down, up)
+ *   Row 2:     5 triangles (up, down, up, down, up)
+ *   Row n: (2n+1) triangles alternating up/down
+ *
+ * Capacity: n rows can hold up to n² items (1, 4, 9, 16...)
+ *
+ * Interlocking geometry:
+ *   - halfBase = width / (2 * rows) is the positioning unit
+ *   - Triangle width = 2 * halfBase (triangles overlap by halfBase)
+ *   - Adjacent triangles offset by halfBase horizontally
+ *   - Inverted triangles (odd columns) fill gaps between upward triangles
+ *   - All triangles share edges, forming a solid pyramid with no gaps
+ */
+function pyramidSegmentedLayout(option, config) {
+    const { items, size, theme } = option;
+    const { width, height } = size;
+
+    const shapes = [];
+    const count = items.length || 5;
+
+    // Rows needed: n² capacity per n rows
+    let rows = Math.ceil(Math.sqrt(count));
+    if (rows < 1) rows = 1;
+
+    // Interlocking grid unit
+    const halfBase = width / (2 * rows);
+    const triW = halfBase * 2;
+    const triH = height / rows;
+
+    let itemIdx = 0;
+
+    for (let row = 0; row < rows && itemIdx < count; row++) {
+        const trisInRow = 2 * row + 1;
+        const rowStartX = (rows - row - 1) * halfBase;
+        const y = row * triH;
+
+        for (let col = 0; col < trisInRow && itemIdx < count; col++) {
+            const x = rowStartX + col * halfBase;
+            const item = items[itemIdx];
+            const isInverted = col % 2 === 1;
+
+            const colorIdx = itemIdx % 6;
+            const accentKey = `accent${colorIdx + 1}`;
+
+            shapes.push({
+                id: `seg-${itemIdx}`,
+                type: 'triangle',
+                x,
+                y,
+                width: triW,
+                height: triH,
+                inverted: isInverted,
+                text: item.text || item,
+                fill: theme[accentKey] || theme.accent1,
+                stroke: theme.light1 || '#FFFFFF',
+                strokeWidth: 2,
+                textColor: theme.light1 || '#FFFFFF',
+                fontSize: Math.min(16, Math.min(triW, triH) * 0.25)
+            });
+            itemIdx++;
+        }
+    }
 
     return {
         type: 'pyramid',

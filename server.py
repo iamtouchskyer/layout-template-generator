@@ -13,11 +13,8 @@ import sys
 import urllib.parse
 from pathlib import Path
 
-# Add python-pptx to path
-sys.path.insert(0, '/Users/touichskyer/Code/python-pptx/src')
-
-# Import generator
-from pptx_generator import generate_pptx
+# Import generator from new modular package
+from pptx_gen import generate_pptx
 
 PORT = 8765
 STATIC_DIR = Path(__file__).parent
@@ -70,8 +67,12 @@ class PPTXHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
 
+class ReusableTCPServer(socketserver.TCPServer):
+    allow_reuse_address = True
+
+
 def main():
-    with socketserver.TCPServer(("", PORT), PPTXHandler) as httpd:
+    with ReusableTCPServer(("", PORT), PPTXHandler) as httpd:
         print(f"Server running at http://localhost:{PORT}")
         print(f"Open http://localhost:{PORT}/index.html in your browser")
         print("Press Ctrl+C to stop")

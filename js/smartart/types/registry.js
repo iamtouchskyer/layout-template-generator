@@ -37,6 +37,14 @@ export const SMARTART_TYPES = {
         layout: (opt) => pyramidLayout(opt, { inverted: true }),
         shapeType: 'trapezoid'
     },
+    'pyramid-segmented': {
+        id: 'pyramid4',
+        name: '分段金字塔',
+        nameEn: 'Segmented Pyramid',
+        category: 'pyramid',
+        layout: (opt) => pyramidLayout(opt, { segmented: true }),
+        shapeType: 'triangle'
+    },
 
     // Matrix types
     'matrix': {

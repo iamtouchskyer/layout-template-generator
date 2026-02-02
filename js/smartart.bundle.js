@@ -212,41 +212,155 @@
         return { type: 'pyramid', shapes, connectors: [], bounds: { x: 0, y: 0, width, height } };
     }
 
+    /**
+     * Basic Matrix (matrix1) - 2x2 cells with center node overlay
+     * Data: items[0] = center parent, items[1-4] = quadrant children
+     */
     function matrixLayout(option, config = {}) {
         const { items, size, theme } = option;
         const { titled = false, cycle = false } = config;
         const { width, height } = size;
-        const cols = 2, rows = Math.ceil(Math.min(items.length, 4) / cols);
-        const gap = Math.min(width, height) * 0.03;
-        const titleHeight = titled ? height * 0.15 : 0;
-        const gridHeight = height - titleHeight;
-        const cellWidth = (width - gap * (cols + 1)) / cols;
-        const cellHeight = (gridHeight - gap * (rows + 1)) / rows;
+
+        if (titled) return matrixTitledLayout(option);
+        if (cycle) return matrixCycleLayout(option);
 
         const shapes = [];
-        const colors = [theme.accent1, theme.accent2, theme.accent3, theme.accent4];
+        const gap = 4;
+        const cellW = (width - gap) / 2;
+        const cellH = (height - gap) / 2;
 
-        items.slice(0, 4).forEach((item, idx) => {
-            const row = Math.floor(idx / cols);
-            const col = idx % cols;
+        // 4 quadrant cells (items[1-4])
+        for (let i = 0; i < 4; i++) {
+            const row = Math.floor(i / 2);
+            const col = i % 2;
+            const item = items[i + 1]; // items[1-4] are quadrants
             shapes.push({
-                id: `cell-${idx}`,
-                type: 'rect',
-                x: gap + col * (cellWidth + gap),
-                y: titleHeight + gap + row * (cellHeight + gap),
-                width: cellWidth,
-                height: cellHeight,
-                text: item.text || item,
-                fill: colors[idx % 4],
+                id: `cell-${i}`,
+                type: 'roundRect',
+                x: col * (cellW + gap),
+                y: row * (cellH + gap),
+                width: cellW, height: cellH,
+                text: item?.text || item || '',
+                fill: theme.accent1,
                 stroke: theme.light1,
                 strokeWidth: 2,
                 textColor: theme.light1,
-                fontSize: Math.min(20, cellHeight * 0.15),
-                rx: 4, ry: 4
+                fontSize: Math.min(24, cellH * 0.2),
+                rx: i === 0 ? 16 : (i === 1 ? 16 : (i === 2 ? 16 : 16)),
+                ry: 16
             });
+        }
+
+        // Center node (items[0]) - overlays quadrants
+        const centerW = width * 0.28;
+        const centerH = height * 0.22;
+        shapes.push({
+            id: 'center',
+            type: 'roundRect',
+            x: (width - centerW) / 2,
+            y: (height - centerH) / 2,
+            width: centerW, height: centerH,
+            fill: theme.light1,
+            stroke: theme.accent1,
+            strokeWidth: 2,
+            text: items[0]?.text || items[0] || '',
+            textColor: theme.dark1,
+            fontSize: Math.min(20, centerH * 0.35),
+            rx: 8, ry: 8
         });
 
         return { type: 'matrix', shapes, connectors: [], bounds: { x: 0, y: 0, width, height } };
+    }
+
+    function matrixTitledLayout(option) {
+        const { items, size, theme } = option;
+        const { width, height } = size;
+        const shapes = [];
+        const titleHeight = height * 0.15;
+        const gap = 8;
+
+        shapes.push({
+            id: 'title',
+            type: 'rect',
+            x: 0, y: 0,
+            width, height: titleHeight - gap,
+            text: items[0]?.text || items[0] || 'Title',
+            fill: theme.accent1,
+            stroke: 'none',
+            textColor: theme.light1,
+            fontSize: 18
+        });
+
+        const cellW = (width - gap) / 2;
+        const cellH = (height - titleHeight - gap) / 2;
+
+        for (let i = 0; i < 4; i++) {
+            const row = Math.floor(i / 2);
+            const col = i % 2;
+            const item = items[i + 1];
+            shapes.push({
+                id: `cell-${i}`,
+                type: 'rect',
+                x: col * (cellW + gap),
+                y: titleHeight + row * (cellH + gap),
+                width: cellW, height: cellH,
+                text: item?.text || item || '',
+                fill: theme[`accent${(i % 4) + 1}`],
+                stroke: 'none',
+                textColor: theme.light1,
+                fontSize: Math.min(18, cellH * 0.15)
+            });
+        }
+
+        return { type: 'matrix', shapes, connectors: [], bounds: { x: 0, y: 0, width, height } };
+    }
+
+    function matrixCycleLayout(option) {
+        const { items, size, theme } = option;
+        const { width, height } = size;
+        const shapes = [];
+        const gap = 12;
+        const cellW = (width - gap) / 2;
+        const cellH = (height - gap) / 2;
+
+        for (let i = 0; i < 4; i++) {
+            const row = Math.floor(i / 2);
+            const col = i % 2;
+            const item = items[i];
+            shapes.push({
+                id: `cell-${i}`,
+                type: 'rect',
+                x: col * (cellW + gap),
+                y: row * (cellH + gap),
+                width: cellW, height: cellH,
+                text: item?.text || item || '',
+                fill: theme[`accent${(i % 4) + 1}`],
+                stroke: 'none',
+                textColor: theme.light1,
+                fontSize: Math.min(18, cellH * 0.15),
+                rx: 4, ry: 4
+            });
+        }
+
+        const connectors = [];
+        const centerX = width / 2, centerY = height / 2;
+        const arrowSize = Math.min(cellW, cellH) * 0.12;
+        const r = gap * 1.5;
+
+        [45, 135, 225, 315].forEach((angle, idx) => {
+            const rad = (angle * Math.PI) / 180;
+            connectors.push({
+                id: `arrow-${idx}`,
+                type: 'arrow',
+                x: centerX + Math.cos(rad) * r - arrowSize / 2,
+                y: centerY + Math.sin(rad) * r - arrowSize / 2,
+                rotation: angle + 90,
+                size: arrowSize,
+                fill: theme.accent5
+            });
+        });
+
+        return { type: 'matrix', shapes, connectors, bounds: { x: 0, y: 0, width, height } };
     }
 
     function cycleLayout(option, config = {}) {
@@ -866,11 +980,13 @@
             case 'pie': shapeEl = renderPie(shape); break;
             case 'hexagon': shapeEl = renderHexagon(shape); break;
             case 'triangle': shapeEl = renderTriangle(shape); break;
+            case 'line': shapeEl = renderLine(shape); break;
+            case 'text': break; // text-only shape, no geometry
             default: shapeEl = renderRect(shape);
         }
 
         if (shapeEl) g.appendChild(shapeEl);
-        if (shape.text) {
+        if (shape.text || shape.type === 'text') {
             const textEl = renderText(shape);
             if (textEl) g.appendChild(textEl);
         }
@@ -962,12 +1078,15 @@
 
     function renderText(shape) {
         // Use foreignObject for auto-fit text on shapes with dimensions
-        if (shape.width && shape.height && shape.type !== 'ellipse' && shape.type !== 'pie') {
+        if (shape.width && shape.height && shape.type !== 'ellipse' && shape.type !== 'pie' && shape.type !== 'text') {
             return renderAutoFitText(shape);
         }
 
         let x, y;
-        if (shape.type === 'ellipse') { x = shape.cx; y = shape.cy; }
+        if (shape.type === 'text') {
+            // Text-only shape with direct x, y coordinates
+            x = shape.x; y = shape.y;
+        } else if (shape.type === 'ellipse') { x = shape.cx; y = shape.cy; }
         else if (shape.type === 'pie') {
             const midAngle = ((shape.startAngle + shape.endAngle) / 2) * Math.PI / 180;
             const midRadius = (shape.innerRadius + shape.outerRadius) / 2;
@@ -977,10 +1096,19 @@
 
         const text = createSVGElement('text', {
             x, y, fill: shape.textColor || '#FFFFFF', 'font-size': shape.fontSize || 14,
-            'font-family': 'Inter, sans-serif', 'text-anchor': 'middle', 'dominant-baseline': 'central'
+            'font-family': 'Inter, sans-serif',
+            'text-anchor': shape.textAnchor || 'middle',
+            'dominant-baseline': shape.dominantBaseline || 'central'
         });
         text.textContent = shape.text;
         return text;
+    }
+
+    function renderLine(shape) {
+        return createSVGElement('line', {
+            x1: shape.x1, y1: shape.y1, x2: shape.x2, y2: shape.y2,
+            stroke: shape.stroke || '#FFFFFF', 'stroke-width': shape.strokeWidth || 1
+        });
     }
 
     function renderAutoFitText(shape) {

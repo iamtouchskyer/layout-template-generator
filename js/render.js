@@ -1211,7 +1211,8 @@ function renderSmartartPage() {
 // More items than needed, will be sliced by smartartItemCount
 const SMARTART_SAMPLE_DATA = {
     pyramid: ['战略愿景', '经营目标', '执行计划', '日常任务', '基础支撑', '资源保障'],
-    matrix: ['高影响/低成本', '高影响/高成本', '低影响/低成本', '低影响/高成本'],
+    // matrix: center node first, then 4 quadrants (top-left, top-right, bottom-left, bottom-right)
+    matrix: ['战略矩阵', '高影响/低成本', '高影响/高成本', '低影响/低成本', '低影响/高成本'],
     cycle: ['计划', '执行', '检查', '改进', '总结', '优化'],
     process: ['需求分析', '方案设计', '开发实现', '测试验收', '上线运营', '迭代优化'],
     hierarchy: [

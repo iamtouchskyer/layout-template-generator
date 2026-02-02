@@ -5,7 +5,7 @@ const state = {
     previewTab: 'preview',
     zoom: 100,
     // L1 - Slide Master
-    theme: 'soft_peach_cream',
+    theme: 'forest_green',
     // masterShapes: two formats supported:
     // Old preset-based: { id, preset } (for header-badge, header-line, footer-line)
     // New thickness-positions: { id, thickness, positions: [] } (for side-bar, corner, corner-dots, etc.)

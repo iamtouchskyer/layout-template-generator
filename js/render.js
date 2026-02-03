@@ -1242,14 +1242,15 @@ function renderSmartArtChart() {
     const category = typeInfo.category;
     const count = state.smartartItemCount || 4;
     let sampleData = SMARTART_SAMPLE_DATA[category] || SMARTART_SAMPLE_DATA.list;
-    // Slice to requested count (hierarchy is special - it's a tree)
-    if (category !== 'hierarchy') {
+    // Slice to requested count (hierarchy/matrix are special - fixed structure)
+    if (category !== 'hierarchy' && category !== 'matrix') {
         sampleData = sampleData.slice(0, count);
     }
 
     // Use custom items if available, otherwise use sample data
     // Initialize smartartItems if count changed or not set
-    if (!state.smartartItems || state.smartartItems.length !== count) {
+    const expectedCount = (category === 'hierarchy' || category === 'matrix') ? sampleData.length : count;
+    if (!state.smartartItems || state.smartartItems.length !== expectedCount) {
         state.smartartItems = sampleData.map(item =>
             typeof item === 'string' ? item : (item.text || item)
         );

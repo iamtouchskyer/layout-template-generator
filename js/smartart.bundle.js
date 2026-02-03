@@ -229,11 +229,12 @@
         const cellW = (width - gap) / 2;
         const cellH = (height - gap) / 2;
 
-        // 4 quadrant cells (items[1-4])
+        // 4 quadrant cells (items[1-4]) with different accent colors
         for (let i = 0; i < 4; i++) {
             const row = Math.floor(i / 2);
             const col = i % 2;
             const item = items[i + 1]; // items[1-4] are quadrants
+            const accentKey = `accent${(i % 4) + 1}`;
             shapes.push({
                 id: `cell-${i}`,
                 type: 'roundRect',
@@ -241,12 +242,12 @@
                 y: row * (cellH + gap),
                 width: cellW, height: cellH,
                 text: item?.text || item || '',
-                fill: theme.accent1,
+                fill: theme[accentKey] || theme.accent1,
                 stroke: theme.light1,
                 strokeWidth: 2,
                 textColor: theme.light1,
                 fontSize: Math.min(24, cellH * 0.2),
-                rx: i === 0 ? 16 : (i === 1 ? 16 : (i === 2 ? 16 : 16)),
+                rx: 16,
                 ry: 16
             });
         }

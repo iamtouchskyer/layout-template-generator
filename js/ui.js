@@ -511,6 +511,88 @@ function selectSmartartCount(count) {
     render();
 }
 
+/**
+ * Generate mini SVG thumbnail for color scheme picker based on SmartArt category
+ */
+function generateColorSchemeThumbnail(category, colors, outline = false) {
+    const w = 44, h = 28;
+    const c = colors || ['#888', '#AAA', '#CCC', '#DDD'];
+    const stroke = outline ? `stroke="#999" stroke-width="1"` : '';
+    const fill = (i) => outline ? '#FFF' : (c[i % c.length] || '#888');
+
+    switch (category) {
+        case 'matrix':
+            // 2x2 grid with center node
+            return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+                <rect x="1" y="1" width="20" height="12" rx="2" fill="${fill(0)}" ${stroke}/>
+                <rect x="23" y="1" width="20" height="12" rx="2" fill="${fill(1)}" ${stroke}/>
+                <rect x="1" y="15" width="20" height="12" rx="2" fill="${fill(2)}" ${stroke}/>
+                <rect x="23" y="15" width="20" height="12" rx="2" fill="${fill(3)}" ${stroke}/>
+                <rect x="15" y="9" width="14" height="10" rx="2" fill="#FFF" stroke="${c[0] || '#888'}" stroke-width="1"/>
+            </svg>`;
+
+        case 'cycle':
+            // Circular segments
+            const cx = w/2, cy = h/2, r = 11;
+            return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+                <path d="M${cx},${cy} L${cx},${cy-r} A${r},${r} 0 0,1 ${cx+r},${cy} Z" fill="${fill(0)}" ${stroke}/>
+                <path d="M${cx},${cy} L${cx+r},${cy} A${r},${r} 0 0,1 ${cx},${cy+r} Z" fill="${fill(1)}" ${stroke}/>
+                <path d="M${cx},${cy} L${cx},${cy+r} A${r},${r} 0 0,1 ${cx-r},${cy} Z" fill="${fill(2)}" ${stroke}/>
+                <path d="M${cx},${cy} L${cx-r},${cy} A${r},${r} 0 0,1 ${cx},${cy-r} Z" fill="${fill(3)}" ${stroke}/>
+            </svg>`;
+
+        case 'process':
+            // Horizontal chevrons
+            return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+                <polygon points="1,4 10,4 14,14 10,24 1,24 5,14" fill="${fill(0)}" ${stroke}/>
+                <polygon points="15,4 24,4 28,14 24,24 15,24 19,14" fill="${fill(1)}" ${stroke}/>
+                <polygon points="29,4 38,4 42,14 38,24 29,24 33,14" fill="${fill(2)}" ${stroke}/>
+            </svg>`;
+
+        case 'hierarchy':
+            // Tree structure
+            return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+                <rect x="15" y="1" width="14" height="8" rx="1" fill="${fill(0)}" ${stroke}/>
+                <rect x="1" y="19" width="12" height="8" rx="1" fill="${fill(1)}" ${stroke}/>
+                <rect x="16" y="19" width="12" height="8" rx="1" fill="${fill(2)}" ${stroke}/>
+                <rect x="31" y="19" width="12" height="8" rx="1" fill="${fill(3)}" ${stroke}/>
+                <line x1="22" y1="9" x2="22" y2="14" stroke="#999" stroke-width="1"/>
+                <line x1="7" y1="14" x2="37" y2="14" stroke="#999" stroke-width="1"/>
+                <line x1="7" y1="14" x2="7" y2="19" stroke="#999" stroke-width="1"/>
+                <line x1="22" y1="14" x2="22" y2="19" stroke="#999" stroke-width="1"/>
+                <line x1="37" y1="14" x2="37" y2="19" stroke="#999" stroke-width="1"/>
+            </svg>`;
+
+        case 'relationship':
+            // Radial circles
+            return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+                <circle cx="22" cy="14" r="6" fill="${fill(0)}" ${stroke}/>
+                <circle cx="8" cy="8" r="5" fill="${fill(1)}" ${stroke}/>
+                <circle cx="36" cy="8" r="5" fill="${fill(2)}" ${stroke}/>
+                <circle cx="8" cy="20" r="5" fill="${fill(3)}" ${stroke}/>
+                <circle cx="36" cy="20" r="5" fill="${fill(4)}" ${stroke}/>
+            </svg>`;
+
+        case 'list':
+        case 'picture':
+            // Vertical blocks
+            return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+                <rect x="1" y="1" width="42" height="8" rx="1" fill="${fill(0)}" ${stroke}/>
+                <rect x="1" y="10" width="42" height="8" rx="1" fill="${fill(1)}" ${stroke}/>
+                <rect x="1" y="19" width="42" height="8" rx="1" fill="${fill(2)}" ${stroke}/>
+            </svg>`;
+
+        case 'pyramid':
+        default:
+            // Stacked bars (pyramid style)
+            return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+                <rect x="11" y="1" width="22" height="8" rx="1" fill="${fill(0)}" ${stroke}/>
+                <rect x="6" y="10" width="32" height="8" rx="1" fill="${fill(1)}" ${stroke}/>
+                <rect x="1" y="19" width="42" height="8" rx="1" fill="${fill(2)}" ${stroke}/>
+            </svg>`;
+    }
+}
+
 function renderSmartartColorSelector() {
     const container = document.getElementById('smartart-colors');
     if (!container) return;
@@ -525,12 +607,12 @@ function renderSmartartColorSelector() {
         if (found) { currentColors = found.colors; break; }
     }
 
+    const category = state.smartartCategory || 'pyramid';
+
     container.innerHTML = `
         <div class="color-picker-trigger" onclick="toggleColorPicker(event)">
             <div class="color-trigger-preview">
-                <div class="pyr-layer" style="background:${currentColors[0]}"></div>
-                <div class="pyr-layer" style="background:${currentColors[1]}"></div>
-                <div class="pyr-layer" style="background:${currentColors[2]}"></div>
+                ${generateColorSchemeThumbnail(category, currentColors)}
             </div>
             <span class="color-trigger-arrow">▼</span>
         </div>
@@ -544,11 +626,7 @@ function renderSmartartColorSelector() {
                                     onclick="selectSmartartColorScheme('${item.id}')"
                                     title="${group.label}">
                                 <div class="color-picker-preview ${item.outline ? 'outline' : ''}">
-                                    <div class="pyramid-icon">
-                                        <div class="pyr-layer" style="background:${item.colors[0]}"></div>
-                                        <div class="pyr-layer" style="background:${item.colors[1]}"></div>
-                                        <div class="pyr-layer" style="background:${item.colors[2]}"></div>
-                                    </div>
+                                    ${generateColorSchemeThumbnail(category, item.accents, item.outline)}
                                 </div>
                             </button>
                         `).join('')}

@@ -115,7 +115,7 @@ class TestSmartArtAPI:
         from pptx.smartart import SmartArtData
 
         prs = Presentation.create()
-        slide = prs.slides.add_slide(prs.slide_layouts[5])  # Blank layout
+        slide = prs.slides.add_slide(prs.slide_layouts[6])  # Blank layout
 
         data = SmartArtData()
         data.add_node('Item 1')
@@ -140,7 +140,7 @@ class TestSmartArtAPI:
         from pptx.smartart import SmartArtData
 
         prs = Presentation.create()
-        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
 
         # Test different color schemes
         schemes = [

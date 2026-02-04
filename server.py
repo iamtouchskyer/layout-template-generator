@@ -8,10 +8,14 @@ Then open http://localhost:8765 in browser
 import http.server
 import socketserver
 import json
+import logging
 import os
 import sys
+import traceback
 import urllib.parse
 from pathlib import Path
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Import generator from new modular package
 from pptx_gen import generate_pptx
@@ -40,13 +44,24 @@ class PPTXHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 response = {'success': True, 'file': 'generated.pptx'}
                 self.wfile.write(json.dumps(response).encode())
+            except json.JSONDecodeError as e:
+                logging.error(f"Invalid JSON in request: {e}")
+                self._send_error_response(400, "Invalid JSON format")
+            except (KeyError, ValueError, TypeError) as e:
+                logging.error(f"Configuration error: {e}\n{traceback.format_exc()}")
+                self._send_error_response(400, "Invalid configuration")
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                response = {'success': False, 'error': str(e)}
-                self.wfile.write(json.dumps(response).encode())
+                logging.error(f"PPTX generation failed: {e}\n{traceback.format_exc()}")
+                self._send_error_response(500, "Internal server error")
+
+    def _send_error_response(self, status_code: int, message: str):
+        """Send error response without exposing internal details."""
+        self.send_response(status_code)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        response = {'success': False, 'error': message}
+        self.wfile.write(json.dumps(response).encode())
         else:
             self.send_response(404)
             self.end_headers()

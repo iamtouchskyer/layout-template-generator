@@ -129,13 +129,23 @@ def _add_logo_placeholder(master, ph_config, pos_config, accent_color, muted_col
         x, y = 0.4, 0.25
 
     image_url = ph_config.get('imageUrl')
-    if image_url and image_url.startswith('data:image'):
+    if image_url and isinstance(image_url, str) and image_url.startswith('data:image'):
+        # Validate data URI format: data:image/png;base64,<data>
+        MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB limit
         try:
+            if ',' not in image_url:
+                raise ValueError("Invalid data URI format: missing comma separator")
             header, encoded = image_url.split(',', 1)
-            image_data = base64.b64decode(encoded)
+            if not header.startswith('data:image/'):
+                raise ValueError(f"Invalid image type: {header}")
+            if len(encoded) > MAX_IMAGE_SIZE:
+                raise ValueError(f"Image data exceeds {MAX_IMAGE_SIZE} bytes limit")
+            image_data = base64.b64decode(encoded, validate=True)
             image_stream = io.BytesIO(image_data)
             master.shapes.add_picture(image_stream, Inches(x), Inches(y), Inches(width), Inches(height))
-        except Exception:
+        except (ValueError, base64.binascii.Error) as e:
+            import logging
+            logging.warning(f"Logo image decode failed: {e}")
             _add_logo_text_placeholder(master, x, y, width, height, muted_color)
     else:
         _add_logo_shape_placeholder(master, x, y, width, height, accent_color)

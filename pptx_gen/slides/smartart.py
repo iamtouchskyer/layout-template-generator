@@ -53,7 +53,9 @@ def generate_smartart_slide(prs, config, theme):
 
     try:
         slide.shapes.add_smartart(pptx_type, x, y, cx, cy, smartart_data, color_scheme=color_scheme)
-    except Exception:
+    except (KeyError, ValueError, AttributeError, TypeError) as e:
+        import logging
+        logging.warning(f"SmartArt creation failed for type '{smartart_type_id}': {e}")
         _add_fallback_placeholder(slide, x, y, cx, cy, theme)
 
     return slide

@@ -24,9 +24,8 @@ def render_zone_content(slide, content_type: str, zone_id: str, x: float, y: flo
         zone_data: Full zone data including chartData, textData, etc.
     """
     zone_data = zone_data or {}
-    accent_color = hex_to_rgb(theme['accent'])
-    text_color = hex_to_rgb(theme['text'])
-    # Card background should be white for content cards
+    accent_color = hex_to_rgb(theme.get('accent', '#1C58A0'))
+    text_color = hex_to_rgb(theme.get('text', '#333333'))
     card_bg = hex_to_rgb('#FFFFFF')
     card_border = hex_to_rgb(theme.get('card_border', '#E8E8E8'))
     muted_color = hex_to_rgb(theme.get('text_muted', '#888888'))

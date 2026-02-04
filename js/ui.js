@@ -464,6 +464,7 @@ function selectSmartartCategory(catId) {
         state.smartartType = types[0][0];
     }
     renderSmartartTypeSelector();
+    renderSmartartColorSelector();  // Refresh color picker thumbnails for new type
     render();
 }
 
@@ -481,6 +482,7 @@ function selectSmartartType(typeId) {
     state.smartartType = typeId;
     state.smartartCategory = SMARTART_TYPES[typeId].category;
     renderSmartartTypeSelector();
+    renderSmartartColorSelector();  // Refresh color picker thumbnails for new type
     render();
 }
 

@@ -1306,7 +1306,8 @@ function handleSmartartTextChange(e) {
     }
 }
 
-// Convert color scheme ID to SmartArt accent colors (uses current theme's accentColors)
+// Convert color scheme ID to SmartArt theme colors
+// Returns semantic colors: parentColor, childColors[], plus legacy accent1-6
 function getSmartArtColorsFromScheme(schemeId) {
     // Get dynamic color schemes based on current theme
     const colorSchemes = getSmartArtColorSchemes(state.theme);
@@ -1327,15 +1328,21 @@ function getSmartArtColorsFromScheme(schemeId) {
         accents = theme?.accentColors || ['#156082', '#E97132', '#196B24', '#0F9ED5', '#A02B93', '#4EA72E'];
     }
 
+    // OOXML colorful: node0 (parent) = accent1, node1 (children) = accent2-6 cycle
     return {
+        // Semantic colors - layouts should use these
+        parentColor: accents[0],           // For root/parent nodes
+        childColors: accents.slice(1),     // For child nodes (cycles through)
+        // Utility
+        light1: '#FFFFFF',
+        dark1: '#000000',
+        // Legacy accent1-6 for backward compatibility
         accent1: accents[0],
         accent2: accents[1],
         accent3: accents[2],
         accent4: accents[3],
         accent5: accents[4],
-        accent6: accents[5],
-        light1: '#FFFFFF',
-        dark1: '#000000'
+        accent6: accents[5]
     };
 }
 

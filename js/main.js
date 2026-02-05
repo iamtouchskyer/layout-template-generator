@@ -4,7 +4,10 @@
  * Initialize the application after config is loaded
  */
 function init() {
+    initAspectRatioSelector();
+    renderPlaceholderList();
     renderShapesList();
+    renderContentAreasConfig();  // L1 content areas (title/footer config)
     setZoom(state.zoom);
 
     // Initialize grid operation bar if content-grid is selected
@@ -26,16 +29,17 @@ async function startApp() {
 
         // Make derived configs globally available
         window.SLIDE_CONFIG = SLIDE_CONFIG;
+        window.ASPECT_RATIOS = ASPECT_RATIOS;
+        window.CURRENT_ASPECT_RATIO = CURRENT_ASPECT_RATIO;
         window.SHAPE_PRESETS = SHAPE_PRESETS;
         window.GRID_LAYOUTS = GRID_LAYOUTS;
         window.ZONE_CONTENT_TYPES = ZONE_CONTENT_TYPES;
         window.PLACEHOLDERS_CONFIG = PLACEHOLDERS_CONFIG;
+        window.CONTENT_AREAS = CONTENT_AREAS;
         window.CONFIG = CONFIG;
 
         // Initialize the app
         init();
-
-        console.log('App initialized successfully');
     } catch (error) {
         console.error('Failed to start app:', error);
         document.body.innerHTML = `<div style="color: red; padding: 20px;">

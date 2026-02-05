@@ -15,6 +15,7 @@ export function cycleLayout(option, config = {}) {
 
     const shapes = [];
     const connectors = [];
+    const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
 
     if (segmented) {
         // Pie/segment style (cycle8)
@@ -24,9 +25,6 @@ export function cycleLayout(option, config = {}) {
         items.forEach((item, idx) => {
             const startAngle = idx * anglePerItem - 90; // Start from top
             const endAngle = startAngle + anglePerItem;
-
-            const colorIdx = idx % 6;
-            const accentKey = `accent${colorIdx + 1}`;
 
             shapes.push({
                 id: `segment-${idx}`,
@@ -38,7 +36,7 @@ export function cycleLayout(option, config = {}) {
                 startAngle,
                 endAngle,
                 text: item.text || item,
-                fill: theme[accentKey] || theme.accent1,
+                fill: childColors[idx % childColors.length],
                 stroke: theme.light1,
                 strokeWidth: 2,
                 textColor: theme.dark1,
@@ -46,23 +44,40 @@ export function cycleLayout(option, config = {}) {
             });
         });
     } else {
-        // Basic cycle (cycle4): center circle + 4 corner boxes + cycle arrows
-        const circleR = Math.min(width, height) * 0.32;
-        const boxW = width * 0.22;
-        const boxH = height * 0.15;
-        const margin = width * 0.02;
+        // Basic cycle (cycle4) - OOXML constraints from layout4.xml
+        const quadrantSize = Math.min(width, height) * 0.433;
+        const boxW = width * 0.38;
+        const boxH = height * 0.22;  // shorter
+        const gap = Math.min(width, height) * 0.01;
+        const innerOffset = quadrantSize * 0.3;  // fixed inner corner offset
 
-        // 4 corner text boxes
+        // Fixed inner corner positions (independent of box size)
+        const innerY = { top: centerY - quadrantSize + innerOffset, bottom: centerY + quadrantSize - innerOffset };
+        const innerX = { left: centerX - quadrantSize + innerOffset, right: centerX + quadrantSize - innerOffset };
+
+        // Position boxes so inner corners stay at fixed positions
         const cornerPositions = [
-            { x: margin, y: margin },
-            { x: width - boxW - margin, y: margin },
-            { x: width - boxW - margin, y: height - boxH - margin },
-            { x: margin, y: height - boxH - margin }
+            { x: innerX.left - boxW, y: innerY.top - boxH },   // top-left
+            { x: innerX.right, y: innerY.top - boxH },         // top-right
+            { x: innerX.right, y: innerY.bottom },             // bottom-right
+            { x: innerX.left - boxW, y: innerY.bottom }        // bottom-left
         ];
 
+        // Quadrant angles: top-left, top-right, bottom-right, bottom-left
+        const quadrantAngles = [
+            { start: 180, end: 270 },
+            { start: 270, end: 360 },
+            { start: 0, end: 90 },
+            { start: 90, end: 180 }
+        ];
+
+        // First pass: draw corner boxes (lower z-order)
         for (let i = 0; i < 4; i++) {
             const item = items[i % items.length] || { text: `Item ${i + 1}` };
+            const quadrantColor = childColors[i % childColors.length];
             const pos = cornerPositions[i];
+
+            const childItem = item.children?.[0] || { text: item.text || item };
             shapes.push({
                 id: `corner-${i}`,
                 type: 'roundRect',
@@ -70,48 +85,43 @@ export function cycleLayout(option, config = {}) {
                 y: pos.y,
                 width: boxW,
                 height: boxH,
-                text: '• ' + (item.text || item),
+                text: '• ' + (childItem.text || childItem),
                 fill: theme.light1 || '#FFFFFF',
-                stroke: theme.accent1 || '#156082',
+                stroke: quadrantColor,
                 strokeWidth: 1.5,
                 textColor: theme.dark1 || '#333333',
-                fontSize: 12,
-                rx: 6,
-                ry: 6
+                fontSize: 14,
+                rx: 8,
+                ry: 8
             });
         }
 
-        // 4 pie quadrants forming center circle
-        const quadrantAngles = [
-            { start: 180, end: 270 },  // top-left
-            { start: 270, end: 360 },  // top-right
-            { start: 0, end: 90 },     // bottom-right
-            { start: 90, end: 180 }    // bottom-left
-        ];
-
+        // Second pass: draw quadrants (higher z-order, overlay corner boxes)
         for (let i = 0; i < 4; i++) {
             const item = items[i % items.length] || { text: `Item ${i + 1}` };
             const angles = quadrantAngles[i];
+            const quadrantColor = childColors[i % childColors.length];
+
             shapes.push({
                 id: `quadrant-${i}`,
                 type: 'pie',
                 cx: centerX,
                 cy: centerY,
                 innerRadius: 0,
-                outerRadius: circleR,
+                outerRadius: quadrantSize,
                 startAngle: angles.start,
                 endAngle: angles.end,
-                fill: theme.accent1 || '#156082',
+                fill: quadrantColor,
                 stroke: theme.light1 || '#FFFFFF',
-                strokeWidth: 2,
+                strokeWidth: gap * 2,
                 text: item.text || item,
                 textColor: theme.light1 || '#FFFFFF',
-                fontSize: 14
+                fontSize: 16
             });
         }
 
-        // Center cycle arrows
-        const arrowR = circleR * 0.2;
+        // Center cycle arrows (OOXML: w=0.115, h=0.1)
+        const arrowR = Math.min(width, height) * 0.05;
         connectors.push({
             type: 'curvedArrow',
             cx: centerX,

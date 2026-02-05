@@ -97,21 +97,21 @@
         const itemHeightRatio = (availableHeight - gapRatio * (count - 1)) / count;
         const stepRatio = itemHeightRatio + gapRatio;
 
-        // Triangle background
+        // Triangle background - uses parentColor
         shapes.push({
             id: 'pyramid-bg',
             type: 'triangle',
             x: triX, y: 0,
             width: triW,
             height: height,
-            fill: theme.accent1 || '#156082',
+            fill: theme.parentColor || theme.accent1 || '#156082',
             stroke: 'none',
             strokeWidth: 0,
             text: '',
             textColor: 'transparent'
         });
 
-        // List items
+        // List items - use parentColor for border accent
         items.forEach((item, idx) => {
             const y = height * (startYRatio + idx * stepRatio);
             const itemH = height * itemHeightRatio;
@@ -123,7 +123,7 @@
                 height: itemH,
                 text: item.text || item,
                 fill: theme.light1 || '#FFFFFF',
-                stroke: theme.accent1 || '#CCCCCC',
+                stroke: theme.parentColor || theme.accent1 || '#CCCCCC',
                 strokeWidth: 1.5,
                 textColor: theme.dark1 || '#333333',
                 fontSize: Math.min(18, itemH * 0.35),
@@ -229,12 +229,12 @@
         const cellW = (width - gap) / 2;
         const cellH = (height - gap) / 2;
 
-        // 4 quadrant cells (items[1-4]) with different accent colors
+        // 4 quadrant cells (items[1-4]) - use childColors from scheme
+        const childColors = theme.childColors || [theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
         for (let i = 0; i < 4; i++) {
             const row = Math.floor(i / 2);
             const col = i % 2;
             const item = items[i + 1]; // items[1-4] are quadrants
-            const accentKey = `accent${(i % 4) + 1}`;
             shapes.push({
                 id: `cell-${i}`,
                 type: 'roundRect',
@@ -242,7 +242,7 @@
                 y: row * (cellH + gap),
                 width: cellW, height: cellH,
                 text: item?.text || item || '',
-                fill: theme[accentKey] || theme.accent1,
+                fill: childColors[i % childColors.length],
                 stroke: theme.light1,
                 strokeWidth: 2,
                 textColor: theme.light1,
@@ -252,17 +252,18 @@
             });
         }
 
-        // Center node (items[0]) - overlays quadrants
+        // Center node (items[0]) - tinted version of first child color (top-left quadrant)
         const centerW = width * 0.28;
         const centerH = height * 0.22;
+        const centerFill = tintColor(childColors[0], 0.6); // 60% lighter
         shapes.push({
             id: 'center',
             type: 'roundRect',
             x: (width - centerW) / 2,
             y: (height - centerH) / 2,
             width: centerW, height: centerH,
-            fill: theme.light1,
-            stroke: theme.accent1,
+            fill: centerFill,
+            stroke: theme.light1,
             strokeWidth: 2,
             text: items[0]?.text || items[0] || '',
             textColor: theme.dark1,
@@ -280,13 +281,14 @@
         const titleHeight = height * 0.15;
         const gap = 8;
 
+        // Title bar uses parentColor from scheme
         shapes.push({
             id: 'title',
             type: 'rect',
             x: 0, y: 0,
             width, height: titleHeight - gap,
             text: items[0]?.text || items[0] || 'Title',
-            fill: theme.accent1,
+            fill: theme.parentColor || theme.accent1,
             stroke: 'none',
             textColor: theme.light1,
             fontSize: 18
@@ -295,6 +297,8 @@
         const cellW = (width - gap) / 2;
         const cellH = (height - titleHeight - gap) / 2;
 
+        // Use childColors from scheme for grid cells
+        const childColors = theme.childColors || [theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
         for (let i = 0; i < 4; i++) {
             const row = Math.floor(i / 2);
             const col = i % 2;
@@ -306,7 +310,7 @@
                 y: titleHeight + row * (cellH + gap),
                 width: cellW, height: cellH,
                 text: item?.text || item || '',
-                fill: theme[`accent${(i % 4) + 1}`],
+                fill: childColors[i % childColors.length],
                 stroke: 'none',
                 textColor: theme.light1,
                 fontSize: Math.min(18, cellH * 0.15)
@@ -324,6 +328,8 @@
         const cellW = (width - gap) / 2;
         const cellH = (height - gap) / 2;
 
+        // Use childColors from scheme for cycle cells
+        const childColors = theme.childColors || [theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
         for (let i = 0; i < 4; i++) {
             const row = Math.floor(i / 2);
             const col = i % 2;
@@ -335,7 +341,7 @@
                 y: row * (cellH + gap),
                 width: cellW, height: cellH,
                 text: item?.text || item || '',
-                fill: theme[`accent${(i % 4) + 1}`],
+                fill: childColors[i % childColors.length],
                 stroke: 'none',
                 textColor: theme.light1,
                 fontSize: Math.min(18, cellH * 0.15),
@@ -348,6 +354,7 @@
         const arrowSize = Math.min(cellW, cellH) * 0.12;
         const r = gap * 1.5;
 
+        // Cycle arrows use parentColor
         [45, 135, 225, 315].forEach((angle, idx) => {
             const rad = (angle * Math.PI) / 180;
             connectors.push({
@@ -357,7 +364,7 @@
                 y: centerY + Math.sin(rad) * r - arrowSize / 2,
                 rotation: angle + 90,
                 size: arrowSize,
-                fill: theme.accent5
+                fill: theme.parentColor || theme.accent1
             });
         });
 
@@ -397,68 +404,82 @@
                 });
             });
         } else {
-            // Basic cycle (cycle4): center circle + 4 corner boxes + cycle arrows
-            const circleR = Math.min(width, height) * 0.32;
-            const boxW = width * 0.22;
-            const boxH = height * 0.15;
-            const margin = width * 0.02;
+            // Basic cycle (cycle4) - OOXML constraints from layout4.xml
+            const quadrantSize = Math.min(width, height) * 0.433;
+            const boxW = width * 0.38;
+            const boxH = height * 0.22;  // shorter
+            const gap = Math.min(width, height) * 0.01;
+            const innerOffset = quadrantSize * 0.3;  // fixed inner corner offset
 
-            // 4 corner text boxes
+            const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
+
+            // Fixed inner corner positions (independent of box size)
+            const innerY = { top: cy - quadrantSize + innerOffset, bottom: cy + quadrantSize - innerOffset };
+            const innerX = { left: cx - quadrantSize + innerOffset, right: cx + quadrantSize - innerOffset };
+
+            // Position boxes so inner corners stay at fixed positions
             const cornerPositions = [
-                { x: margin, y: margin },
-                { x: width - boxW - margin, y: margin },
-                { x: width - boxW - margin, y: height - boxH - margin },
-                { x: margin, y: height - boxH - margin }
+                { x: innerX.left - boxW, y: innerY.top - boxH },   // top-left
+                { x: innerX.right, y: innerY.top - boxH },         // top-right
+                { x: innerX.right, y: innerY.bottom },             // bottom-right
+                { x: innerX.left - boxW, y: innerY.bottom }        // bottom-left
             ];
 
+            // Quadrant angles: top-left, top-right, bottom-right, bottom-left
+            const quadrantAngles = [
+                { start: 180, end: 270 },
+                { start: 270, end: 360 },
+                { start: 0, end: 90 },
+                { start: 90, end: 180 }
+            ];
+
+            // First pass: draw corner boxes (lower z-order)
             for (let i = 0; i < 4; i++) {
                 const item = items[i % items.length] || { text: `Item ${i + 1}` };
+                const quadrantColor = childColors[i % childColors.length];
                 const pos = cornerPositions[i];
+
+                const childItem = item.children?.[0] || { text: item.text || item };
                 shapes.push({
                     id: `corner-${i}`,
                     type: 'roundRect',
                     x: pos.x, y: pos.y,
                     width: boxW, height: boxH,
-                    text: '• ' + (item.text || item),
+                    text: '• ' + (childItem.text || childItem),
                     fill: theme.light1 || '#FFFFFF',
-                    stroke: theme.accent1 || '#156082',
+                    stroke: quadrantColor,
                     strokeWidth: 1.5,
                     textColor: theme.dark1 || '#333333',
-                    fontSize: 12,
-                    rx: 6, ry: 6
+                    fontSize: 14,
+                    rx: 8, ry: 8
                 });
             }
 
-            // 4 pie quadrants forming center circle
-            const quadrantAngles = [
-                { start: 180, end: 270 },  // top-left
-                { start: 270, end: 360 },  // top-right
-                { start: 0, end: 90 },     // bottom-right
-                { start: 90, end: 180 }    // bottom-left
-            ];
-
+            // Second pass: draw quadrants (higher z-order, overlay corner boxes)
             for (let i = 0; i < 4; i++) {
                 const item = items[i % items.length] || { text: `Item ${i + 1}` };
                 const angles = quadrantAngles[i];
+                const quadrantColor = childColors[i % childColors.length];
+
                 shapes.push({
                     id: `quadrant-${i}`,
                     type: 'pie',
                     cx, cy,
                     innerRadius: 0,
-                    outerRadius: circleR,
+                    outerRadius: quadrantSize,
                     startAngle: angles.start,
                     endAngle: angles.end,
-                    fill: theme.accent1 || '#156082',
+                    fill: quadrantColor,
                     stroke: theme.light1 || '#FFFFFF',
-                    strokeWidth: 2,
+                    strokeWidth: gap * 2,
                     text: item.text || item,
                     textColor: theme.light1 || '#FFFFFF',
-                    fontSize: 14
+                    fontSize: 16
                 });
             }
 
-            // Center cycle arrows
-            const arrowR = circleR * 0.2;
+            // Center cycle arrows (OOXML: w=0.115, h=0.1)
+            const arrowR = Math.min(width, height) * 0.05;
             connectors.push({
                 type: 'curvedArrow',
                 cx, cy, radius: arrowR,
@@ -542,6 +563,9 @@
         const levelGap = (height - nodeHeight * levels.length) / (levels.length + 1);
         const nodeGap = 20;
 
+        // Level 0 (root) uses parentColor, levels 1+ use childColors
+        const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
+
         levels.forEach((level, levelIdx) => {
             const levelY = levelGap + levelIdx * (nodeHeight + levelGap);
             const totalWidth = level.length * nodeWidth + (level.length - 1) * nodeGap;
@@ -552,13 +576,18 @@
                 node._x = x + nodeWidth / 2;
                 node._y = levelY + nodeHeight / 2;
 
+                // Root level uses parentColor, child levels use childColors
+                const fillColor = levelIdx === 0
+                    ? (theme.parentColor || theme.accent1)
+                    : childColors[(levelIdx - 1) % childColors.length];
+
                 shapes.push({
                     id: node.id || `node-${levelIdx}-${nodeIdx}`,
                     type: 'rect',
                     x, y: levelY,
                     width: nodeWidth, height: nodeHeight,
                     text: node.text || node,
-                    fill: getAccentColor(theme, levelIdx),
+                    fill: fillColor,
                     stroke: theme.light1,
                     strokeWidth: 2,
                     textColor: theme.light1,
@@ -594,13 +623,14 @@
         const centerItem = items[0] || { text: 'Center' };
         const centerSize = radius * 0.6;
 
+        // Center uses parentColor
         shapes.push({
             id: 'center',
             type: 'ellipse',
             cx: centerX, cy: centerY,
             rx: centerSize / 2, ry: centerSize / 2,
             text: centerItem.text || centerItem,
-            fill: theme.accent1,
+            fill: theme.parentColor || theme.accent1,
             stroke: theme.light1,
             strokeWidth: 2,
             textColor: theme.light1,
@@ -610,6 +640,7 @@
         const satellites = items.slice(1);
         const count = satellites.length || 4;
         const satelliteSize = radius * 0.4;
+        const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
 
         satellites.forEach((item, idx) => {
             const angle = (idx * 360 / count) - 90;
@@ -617,6 +648,7 @@
             const x = centerX + Math.cos(rad) * radius;
             const y = centerY + Math.sin(rad) * radius;
 
+            // Satellites use childColors
             shapes.push({
                 id: `satellite-${idx}`,
                 type: 'rect',
@@ -625,7 +657,7 @@
                 width: satelliteSize,
                 height: satelliteSize * 0.6,
                 text: item.text || item,
-                fill: getAccentColor(theme, idx + 1),
+                fill: childColors[idx % childColors.length],
                 stroke: theme.light1,
                 strokeWidth: 2,
                 textColor: theme.light1,
@@ -633,6 +665,7 @@
                 rx: 4, ry: 4
             });
 
+            // Connectors use parentColor
             connectors.push({
                 id: `conn-${idx}`,
                 type: 'line',
@@ -640,7 +673,7 @@
                 y1: centerY + Math.sin(rad) * (centerSize / 2),
                 x2: x - Math.cos(rad) * (satelliteSize / 2),
                 y2: y - Math.sin(rad) * (satelliteSize * 0.3),
-                stroke: theme.accent1,
+                stroke: theme.parentColor || theme.accent1,
                 strokeWidth: 2
             });
         });
@@ -838,9 +871,23 @@
 
     // ==================== Helper Functions ====================
 
+    // Get color for indexed items (lists, pyramids, etc.) - uses childColors from scheme
     function getAccentColor(theme, idx) {
-        const colors = [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
+        const colors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
         return colors[idx % colors.length];
+    }
+
+    // Lighten a hex color by mixing with white
+    function tintColor(hex, amount) {
+        if (!hex || hex === 'transparent') return hex;
+        const c = hex.replace('#', '');
+        const r = parseInt(c.substring(0, 2), 16);
+        const g = parseInt(c.substring(2, 4), 16);
+        const b = parseInt(c.substring(4, 6), 16);
+        const tr = Math.round(r + (255 - r) * amount);
+        const tg = Math.round(g + (255 - g) * amount);
+        const tb = Math.round(b + (255 - b) * amount);
+        return `#${tr.toString(16).padStart(2, '0')}${tg.toString(16).padStart(2, '0')}${tb.toString(16).padStart(2, '0')}`;
     }
 
     function buildTree(items) {
@@ -1248,7 +1295,10 @@
                 text: shape.text || '',
                 fill: shape.fill
             })),
-            theme: { accent1: theme.accent1, accent2: theme.accent2 }
+            theme: {
+                parentColor: theme.parentColor || theme.accent1,
+                childColors: theme.childColors || [theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6]
+            }
         };
     }
 

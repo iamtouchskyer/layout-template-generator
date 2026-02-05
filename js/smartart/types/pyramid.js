@@ -23,6 +23,9 @@ export function pyramidLayout(option, config = {}) {
     const totalHeight = height;
     const itemHeight = totalHeight / count;
 
+    // Use childColors from scheme
+    const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
+
     // Calculate shapes - each level gets wider (or narrower if inverted)
     const shapes = items.map((item, idx) => {
         const level = inverted ? count - 1 - idx : idx;
@@ -35,10 +38,6 @@ export function pyramidLayout(option, config = {}) {
         const x = (width - levelWidth) / 2;
         const y = inverted ? idx * itemHeight : (count - 1 - idx) * itemHeight;
 
-        // Color gradient - use accent colors with offset
-        const colorIdx = idx % 6;
-        const accentKey = `accent${colorIdx + 1}`;
-
         return {
             id: `shape-${idx}`,
             type: 'trapezoid',
@@ -47,7 +46,7 @@ export function pyramidLayout(option, config = {}) {
             width: levelWidth,
             height: itemHeight,
             text: item.text || item,
-            fill: theme[accentKey] || theme.accent1,
+            fill: childColors[idx % childColors.length],
             stroke: theme.light1,
             strokeWidth: 2,
             // Trapezoid specific - top width ratio
@@ -107,7 +106,7 @@ function pyramidListLayout(option, config) {
     const itemHeightRatio = (availableHeight - gapRatio * (count - 1)) / count;
     const stepRatio = itemHeightRatio + gapRatio;
 
-    // Add pyramid background (normal triangle: apex at top)
+    // Add pyramid background - uses parentColor
     shapes.push({
         id: 'pyramid-bg',
         type: 'triangle',
@@ -115,14 +114,14 @@ function pyramidListLayout(option, config) {
         y: 0,
         width: triW,
         height: height,
-        fill: theme.accent1 || '#156082',
+        fill: theme.parentColor || theme.accent1 || '#156082',
         stroke: 'none',
         strokeWidth: 0,
         text: '',
         textColor: 'transparent'
     });
 
-    // Add list items - all left-aligned at 45%
+    // Add list items - use parentColor for border
     items.forEach((item, idx) => {
         const y = height * (startYRatio + idx * stepRatio);
         const itemH = height * itemHeightRatio;
@@ -136,7 +135,7 @@ function pyramidListLayout(option, config) {
             height: itemH,
             text: item.text || item,
             fill: theme.light1 || '#FFFFFF',
-            stroke: theme.accent1 || '#CCCCCC',
+            stroke: theme.parentColor || theme.accent1 || '#CCCCCC',
             strokeWidth: 1.5,
             textColor: theme.dark1 || '#333333',
             fontSize: Math.min(18, itemH * 0.35),
@@ -189,6 +188,8 @@ function pyramidSegmentedLayout(option, config) {
     const triW = halfBase * 2;
     const triH = height / rows;
 
+    // Use childColors from scheme
+    const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
     let itemIdx = 0;
 
     for (let row = 0; row < rows && itemIdx < count; row++) {
@@ -201,9 +202,6 @@ function pyramidSegmentedLayout(option, config) {
             const item = items[itemIdx];
             const isInverted = col % 2 === 1;
 
-            const colorIdx = itemIdx % 6;
-            const accentKey = `accent${colorIdx + 1}`;
-
             shapes.push({
                 id: `seg-${itemIdx}`,
                 type: 'triangle',
@@ -213,7 +211,7 @@ function pyramidSegmentedLayout(option, config) {
                 height: triH,
                 inverted: isInverted,
                 text: item.text || item,
-                fill: theme[accentKey] || theme.accent1,
+                fill: childColors[itemIdx % childColors.length],
                 stroke: theme.light1 || '#FFFFFF',
                 strokeWidth: 2,
                 textColor: theme.light1 || '#FFFFFF',

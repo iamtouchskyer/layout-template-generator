@@ -14,7 +14,7 @@ export function radialLayout(option, config = {}) {
     const centerY = height / 2;
     const radius = Math.min(width, height) * 0.35;
 
-    // Center node (first item or generated)
+    // Center node (first item or generated) - uses parentColor
     const centerItem = items[0] || { text: 'Center' };
     const centerSize = radius * 0.6;
 
@@ -26,17 +26,18 @@ export function radialLayout(option, config = {}) {
         rx: centerSize / 2,
         ry: centerSize / 2,
         text: centerItem.text || centerItem,
-        fill: theme.accent1,
+        fill: theme.parentColor || theme.accent1,
         stroke: theme.light1,
         strokeWidth: 2,
         textColor: theme.light1,
         fontSize: 16
     });
 
-    // Satellite nodes
+    // Satellite nodes - use childColors
     const satellites = items.slice(1);
     const count = satellites.length || 4;
     const satelliteSize = radius * 0.4;
+    const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
 
     satellites.forEach((item, idx) => {
         const angle = (idx * 360 / count) - 90; // Start from top
@@ -44,9 +45,6 @@ export function radialLayout(option, config = {}) {
 
         const x = centerX + Math.cos(rad) * radius;
         const y = centerY + Math.sin(rad) * radius;
-
-        const colorIdx = (idx + 1) % 6;
-        const accentKey = `accent${colorIdx + 1}`;
 
         shapes.push({
             id: `satellite-${idx}`,
@@ -56,7 +54,7 @@ export function radialLayout(option, config = {}) {
             width: satelliteSize,
             height: satelliteSize * 0.6,
             text: item.text || item,
-            fill: theme[accentKey] || theme.accent2,
+            fill: childColors[idx % childColors.length],
             stroke: theme.light1,
             strokeWidth: 2,
             textColor: theme.light1,
@@ -65,7 +63,7 @@ export function radialLayout(option, config = {}) {
             ry: 4
         });
 
-        // Connector line from center to satellite
+        // Connector line from center to satellite - uses parentColor
         connectors.push({
             id: `conn-${idx}`,
             type: 'line',
@@ -73,7 +71,7 @@ export function radialLayout(option, config = {}) {
             y1: centerY + Math.sin(rad) * (centerSize / 2),
             x2: x - Math.cos(rad) * (satelliteSize / 2),
             y2: y - Math.sin(rad) * (satelliteSize * 0.3),
-            stroke: theme.accent1,
+            stroke: theme.parentColor || theme.accent1,
             strokeWidth: 2
         });
     });

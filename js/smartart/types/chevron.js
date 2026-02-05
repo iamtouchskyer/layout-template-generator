@@ -11,6 +11,7 @@ export function chevronLayout(option, config = {}) {
     const count = items.length || 3;
     const shapes = [];
     const connectors = [];
+    const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
 
     if (style === 'descending') {
         // Descending stairs pattern
@@ -23,9 +24,6 @@ export function chevronLayout(option, config = {}) {
             const w = width - idx * stepWidth;
             const h = stepHeight;
 
-            const colorIdx = idx % 6;
-            const accentKey = `accent${colorIdx + 1}`;
-
             shapes.push({
                 id: `step-${idx}`,
                 type: 'rect',
@@ -34,7 +32,7 @@ export function chevronLayout(option, config = {}) {
                 width: w,
                 height: h,
                 text: item.text || item,
-                fill: theme[accentKey] || theme.accent1,
+                fill: childColors[idx % childColors.length],
                 stroke: theme.light1,
                 strokeWidth: 2,
                 textColor: theme.light1,
@@ -54,9 +52,6 @@ export function chevronLayout(option, config = {}) {
         items.forEach((item, idx) => {
             const x = idx * (itemWidth - overlap);
 
-            const colorIdx = idx % 6;
-            const accentKey = `accent${colorIdx + 1}`;
-
             shapes.push({
                 id: `item-${idx}`,
                 type: style === 'arrow' ? 'arrow-right' : 'chevron',
@@ -65,7 +60,7 @@ export function chevronLayout(option, config = {}) {
                 width: itemWidth,
                 height: itemHeight,
                 text: item.text || item,
-                fill: theme[accentKey] || theme.accent1,
+                fill: childColors[idx % childColors.length],
                 stroke: theme.light1,
                 strokeWidth: 2,
                 textColor: theme.light1,

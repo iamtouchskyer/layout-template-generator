@@ -11,6 +11,7 @@ export function listLayout(option, config = {}) {
     const count = items.length || 3;
     const shapes = [];
     const gap = Math.min(width, height) * 0.02;
+    const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
 
     if (style === 'hexagon') {
         // Alternating hexagons
@@ -36,9 +37,6 @@ export function listLayout(option, config = {}) {
             const x = gap;
             const y = gap + idx * (itemHeight + gap);
 
-            const colorIdx = idx % 6;
-            const accentKey = `accent${colorIdx + 1}`;
-
             shapes.push({
                 id: `item-${idx}`,
                 type: 'rect',
@@ -47,7 +45,7 @@ export function listLayout(option, config = {}) {
                 width: itemWidth,
                 height: itemHeight,
                 text: item.text || item,
-                fill: theme[accentKey] || theme.accent1,
+                fill: childColors[idx % childColors.length],
                 stroke: theme.light1,
                 strokeWidth: 2,
                 textColor: theme.light1,
@@ -65,9 +63,6 @@ export function listLayout(option, config = {}) {
             const x = gap + idx * (itemWidth + gap);
             const y = gap;
 
-            const colorIdx = idx % 6;
-            const accentKey = `accent${colorIdx + 1}`;
-
             shapes.push({
                 id: `item-${idx}`,
                 type: 'rect',
@@ -76,7 +71,7 @@ export function listLayout(option, config = {}) {
                 width: itemWidth,
                 height: itemHeight,
                 text: item.text || item,
-                fill: theme[accentKey] || theme.accent1,
+                fill: childColors[idx % childColors.length],
                 stroke: theme.light1,
                 strokeWidth: 2,
                 textColor: theme.light1,
@@ -108,6 +103,7 @@ function hexagonLayout(option, config) {
 
     const shapes = [];
     const count = Math.min(items.length, 6) || 4;
+    const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
 
     // Hexagon dimensions - fit nicely in container
     const hexW = width * 0.28;
@@ -141,8 +137,6 @@ function hexagonLayout(option, config) {
     for (let i = 0; i < count; i++) {
         const item = items[i] || { text: `Item ${i + 1}` };
         const pos = positions[i];
-        const colorIdx = i % 6;
-        const accentKey = `accent${colorIdx + 1}`;
 
         shapes.push({
             id: `hex-${i}`,
@@ -152,7 +146,7 @@ function hexagonLayout(option, config) {
             width: hexW,
             height: hexH,
             text: item.text || item,
-            fill: theme[accentKey] || theme.accent1,
+            fill: childColors[i % childColors.length],
             stroke: theme.light1 || '#FFFFFF',
             strokeWidth: 2,
             textColor: theme.light1 || '#FFFFFF',
@@ -175,6 +169,7 @@ function pictureLayout(option, config) {
     const count = items.length || 3;
     const shapes = [];
     const gap = width * 0.02;
+    const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
 
     const itemWidth = (width - gap * (count + 1)) / count;
     const picHeight = height * 0.6;
@@ -182,9 +177,6 @@ function pictureLayout(option, config) {
 
     items.forEach((item, idx) => {
         const x = gap + idx * (itemWidth + gap);
-
-        const colorIdx = idx % 6;
-        const accentKey = `accent${colorIdx + 1}`;
 
         // Picture placeholder (circle)
         shapes.push({
@@ -195,7 +187,7 @@ function pictureLayout(option, config) {
             rx: Math.min(itemWidth, picHeight) / 2 - gap,
             ry: Math.min(itemWidth, picHeight) / 2 - gap,
             text: '',
-            fill: theme[accentKey] || theme.accent1,
+            fill: childColors[idx % childColors.length],
             stroke: theme.light1,
             strokeWidth: 2,
             isPlaceholder: true
@@ -236,6 +228,7 @@ function captionedPicturesLayout(option, config) {
     const count = items.length || 3;
     const shapes = [];
     const gap = width * 0.03;
+    const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
 
     const itemWidth = (width - gap * (count + 1)) / count;
     const picHeight = height * 0.55;
@@ -244,8 +237,6 @@ function captionedPicturesLayout(option, config) {
 
     items.forEach((item, idx) => {
         const x = gap + idx * (itemWidth + gap);
-        const colorIdx = idx % 6;
-        const accentKey = `accent${colorIdx + 1}`;
 
         // Picture placeholder (rectangle)
         shapes.push({
@@ -256,7 +247,7 @@ function captionedPicturesLayout(option, config) {
             width: itemWidth,
             height: picHeight,
             text: '',
-            fill: theme[accentKey] || theme.accent1,
+            fill: childColors[idx % childColors.length],
             stroke: theme.light1,
             strokeWidth: 2,
             rx: 4,

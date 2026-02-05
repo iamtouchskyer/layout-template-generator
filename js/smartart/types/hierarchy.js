@@ -21,6 +21,9 @@ export function hierarchyLayout(option, config = {}) {
     const levelGap = (height - nodeHeight * levels.length) / (levels.length + 1);
     const nodeGap = 20;
 
+    // Level 0 (root) uses parentColor, levels 1+ use childColors
+    const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
+
     // Position nodes level by level
     levels.forEach((level, levelIdx) => {
         const levelY = levelGap + levelIdx * (nodeHeight + levelGap);
@@ -34,8 +37,10 @@ export function hierarchyLayout(option, config = {}) {
             node._x = x + nodeWidth / 2;
             node._y = y + nodeHeight / 2;
 
-            const colorIdx = levelIdx % 6;
-            const accentKey = `accent${colorIdx + 1}`;
+            // Root level uses parentColor, child levels use childColors
+            const fillColor = levelIdx === 0
+                ? (theme.parentColor || theme.accent1)
+                : childColors[(levelIdx - 1) % childColors.length];
 
             shapes.push({
                 id: node.id || `node-${levelIdx}-${nodeIdx}`,
@@ -45,7 +50,7 @@ export function hierarchyLayout(option, config = {}) {
                 width: nodeWidth,
                 height: nodeHeight,
                 text: node.text || node,
-                fill: theme[accentKey] || theme.accent1,
+                fill: fillColor,
                 stroke: theme.light1,
                 strokeWidth: 2,
                 textColor: theme.light1,

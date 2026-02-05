@@ -9,6 +9,19 @@
  * - Always shows 4 quadrants, empty text if fewer items
  */
 
+// Lighten a hex color by mixing with white
+function tintColor(hex, amount) {
+    if (!hex || hex === 'transparent') return hex;
+    const c = hex.replace('#', '');
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    const tr = Math.round(r + (255 - r) * amount);
+    const tg = Math.round(g + (255 - g) * amount);
+    const tb = Math.round(b + (255 - b) * amount);
+    return `#${tr.toString(16).padStart(2, '0')}${tg.toString(16).padStart(2, '0')}${tb.toString(16).padStart(2, '0')}`;
+}
+
 export function matrixLayout(option, config = {}) {
     const { items, size, theme } = option;
     const { titled = false, cycle = false } = config;
@@ -39,12 +52,12 @@ function matrixBasicLayout(option) {
     const cellW = (width - gap) / 2;
     const cellH = (height - gap) / 2;
 
-    // 4 quadrant cells (items[1-4]) with different accent colors
+    // 4 quadrant cells (items[1-4]) - use childColors from scheme
+    const childColors = theme.childColors || [theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
     for (let i = 0; i < 4; i++) {
         const row = Math.floor(i / 2);
         const col = i % 2;
         const item = items[i + 1]; // items[1-4] are quadrants
-        const accentKey = `accent${(i % 4) + 1}`;
         shapes.push({
             id: `cell-${i}`,
             type: 'roundRect',
@@ -53,7 +66,7 @@ function matrixBasicLayout(option) {
             width: cellW,
             height: cellH,
             text: item?.text || item || '',
-            fill: theme[accentKey] || theme.accent1,
+            fill: childColors[i % childColors.length],
             stroke: theme.light1,
             strokeWidth: 2,
             textColor: theme.light1,
@@ -63,9 +76,10 @@ function matrixBasicLayout(option) {
         });
     }
 
-    // Center node (items[0]) - overlays quadrants
+    // Center node (items[0]) - tinted version of first child color (top-left quadrant)
     const centerW = width * 0.28;
     const centerH = height * 0.22;
+    const centerFill = tintColor(childColors[0], 0.6); // 60% lighter
     shapes.push({
         id: 'center',
         type: 'roundRect',
@@ -73,8 +87,8 @@ function matrixBasicLayout(option) {
         y: (height - centerH) / 2,
         width: centerW,
         height: centerH,
-        fill: theme.light1,
-        stroke: theme.accent1,
+        fill: centerFill,
+        stroke: theme.light1,
         strokeWidth: 2,
         text: items[0]?.text || items[0] || '',
         textColor: theme.dark1,
@@ -103,7 +117,7 @@ function matrixTitledLayout(option, config) {
     const gridHeight = height - titleHeight;
     const gap = 8;
 
-    // Title bar
+    // Title bar uses parentColor from scheme
     shapes.push({
         id: 'title',
         type: 'rect',
@@ -112,7 +126,7 @@ function matrixTitledLayout(option, config) {
         width,
         height: titleHeight - gap,
         text: items[0]?.text || items[0] || 'Title',
-        fill: theme.accent1,
+        fill: theme.parentColor || theme.accent1,
         stroke: 'none',
         textColor: theme.light1,
         fontSize: 18
@@ -122,6 +136,8 @@ function matrixTitledLayout(option, config) {
     const cellW = (width - gap) / 2;
     const cellH = (gridHeight - gap) / 2;
 
+    // Use childColors from scheme for grid cells
+    const childColors = theme.childColors || [theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
     for (let i = 0; i < 4; i++) {
         const row = Math.floor(i / 2);
         const col = i % 2;
@@ -135,7 +151,7 @@ function matrixTitledLayout(option, config) {
             width: cellW,
             height: cellH,
             text: item?.text || item || '',
-            fill: theme[`accent${(i % 4) + 1}`],
+            fill: childColors[i % childColors.length],
             stroke: 'none',
             textColor: theme.light1,
             fontSize: Math.min(18, cellH * 0.15)
@@ -162,7 +178,8 @@ function matrixCycleLayout(option, config) {
     const cellW = (width - gap) / 2;
     const cellH = (height - gap) / 2;
 
-    // 2x2 grid cells
+    // 2x2 grid cells - use childColors from scheme
+    const childColors = theme.childColors || [theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
     for (let i = 0; i < 4; i++) {
         const row = Math.floor(i / 2);
         const col = i % 2;
@@ -176,7 +193,7 @@ function matrixCycleLayout(option, config) {
             width: cellW,
             height: cellH,
             text: item?.text || item || '',
-            fill: theme[`accent${(i % 4) + 1}`],
+            fill: childColors[i % childColors.length],
             stroke: 'none',
             textColor: theme.light1,
             fontSize: Math.min(18, cellH * 0.15),

@@ -42,6 +42,31 @@ class SlideConfig:
 
 
 @dataclass
+class ContentAreas:
+    """Content area configuration for header/body/footer."""
+    header_heights: Dict[str, int]  # compact, normal, spacious
+    header_default: str
+    footer_height: int
+    body_gap: int
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'ContentAreas':
+        header_heights = {k: v['px'] for k, v in data['header']['heights'].items()}
+        return cls(
+            header_heights=header_heights,
+            header_default=data['header']['default'],
+            footer_height=data['footer']['height']['px'],
+            body_gap=data['bodyGap']['px'],
+        )
+
+    def get_header_height(self, style: str = None) -> int:
+        """Get header height for given style, or default if not specified."""
+        if style is None:
+            style = self.header_default
+        return self.header_heights.get(style, self.header_heights[self.header_default])
+
+
+@dataclass
 class ShapePreset:
     """Configuration for a shape preset."""
     name: str
@@ -71,6 +96,7 @@ class SlideMasterConfig:
             self._raw = json.load(f)
 
         self.slide = SlideConfig.from_dict(self._raw['slide'])
+        self.content_areas = ContentAreas.from_dict(self._raw['contentAreas'])
         self.placeholders = self._raw['placeholders']
         self.shapes = self._parse_shapes(self._raw['shapes'])
         self.grid_layouts = self._raw['gridLayouts']
@@ -143,6 +169,95 @@ class SlideMasterConfig:
 
         return bounds
 
+    def get_header_bounds(
+        self,
+        placeholders: List[str],
+        shapes: List[Dict[str, str]],
+        header_style: str = None
+    ) -> Dict[str, int]:
+        """
+        Get header area bounds (for title).
+        Header top is FIXED at baseMargin.top - not pushed down by shapes.
+        Only left/right are affected by shapes (like sidebar).
+
+        Returns:
+            Dict with top, left, right, height values in pixels
+        """
+        base = self.slide.base_margin
+        left = base['left']
+        right = base['right']
+
+        # Only apply left/right bounds from shapes (not top/bottom)
+        for shape in shapes:
+            shape_id = shape['id']
+            preset_id = shape['preset']
+            if shape_id not in self.shapes:
+                continue
+            shape_config = self.shapes[shape_id]
+            if not shape_config.occupies_space:
+                continue
+            if preset_id in shape_config.presets:
+                bounds = shape_config.presets[preset_id].bounds
+                if 'left' in bounds:
+                    left = max(left, bounds['left'])
+                if 'right' in bounds:
+                    right = max(right, bounds['right'])
+
+        # Apply placeholder left/right bounds
+        for placeholder_id in placeholders:
+            if placeholder_id in self.placeholders:
+                bounds = self.placeholders[placeholder_id].get('bounds', {})
+                if 'left' in bounds:
+                    left = max(left, bounds['left'])
+                if 'right' in bounds:
+                    right = max(right, bounds['right'])
+
+        return {
+            'top': base['top'],  # Fixed at baseMargin, not pushed by shapes
+            'left': left,
+            'right': right,
+            'height': self.content_areas.get_header_height(header_style),
+        }
+
+    def get_body_bounds(
+        self,
+        placeholders: List[str],
+        shapes: List[Dict[str, str]],
+        has_title: bool = True,
+        has_source: bool = False,
+        header_style: str = None
+    ) -> Dict[str, int]:
+        """
+        Get body area bounds (for content zones).
+        Body starts below header area, respects ALL shape bounds.
+
+        Returns:
+            Dict with top, left, right, bottom values in pixels
+        """
+        base = self.slide.base_margin
+        content_bounds = self.get_content_bounds(placeholders, shapes)
+
+        # Body top: below header if title exists
+        # Also respect shape top bounds (like header-badge)
+        if has_title:
+            header_height = self.content_areas.get_header_height(header_style)
+            header_bottom = base['top'] + header_height + self.content_areas.body_gap
+            body_top = max(header_bottom, content_bounds['top'])
+        else:
+            body_top = content_bounds['top']
+
+        # Body bottom: above footer if source exists
+        body_bottom = content_bounds['bottom']
+        if has_source:
+            body_bottom = content_bounds['bottom'] + self.content_areas.footer_height + self.content_areas.body_gap
+
+        return {
+            'top': body_top,
+            'left': content_bounds['left'],
+            'right': content_bounds['right'],
+            'bottom': body_bottom,
+        }
+
     def px_to_emu(self, px: int) -> int:
         """Convert pixels to EMU."""
         return int(px * EMU_PER_PX)
@@ -154,6 +269,28 @@ class SlideMasterConfig:
     ) -> Dict[str, int]:
         """Get content bounds in EMU units for python-pptx."""
         bounds_px = self.get_content_bounds(placeholders, shapes)
+        return {k: self.px_to_emu(v) for k, v in bounds_px.items()}
+
+    def get_header_bounds_emu(
+        self,
+        placeholders: List[str],
+        shapes: List[Dict[str, str]],
+        header_style: str = None
+    ) -> Dict[str, int]:
+        """Get header bounds in EMU units for python-pptx."""
+        bounds_px = self.get_header_bounds(placeholders, shapes, header_style)
+        return {k: self.px_to_emu(v) for k, v in bounds_px.items()}
+
+    def get_body_bounds_emu(
+        self,
+        placeholders: List[str],
+        shapes: List[Dict[str, str]],
+        has_title: bool = True,
+        has_source: bool = False,
+        header_style: str = None
+    ) -> Dict[str, int]:
+        """Get body bounds in EMU units for python-pptx."""
+        bounds_px = self.get_body_bounds(placeholders, shapes, has_title, has_source, header_style)
         return {k: self.px_to_emu(v) for k, v in bounds_px.items()}
 
 

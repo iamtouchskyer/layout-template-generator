@@ -1,136 +1,198 @@
 {
   "slide": {
-    "width": { "px": 1280, "emu": 12192000 },
-    "height": { "px": 720, "emu": 6858000 },
+    "aspectRatios": {
+      "16:9": {
+        "label": "16:9 宽屏",
+        "width": { "px": 1280, "inches": 13.333 },
+        "height": { "px": 720, "inches": 7.5 }
+      },
+      "4:3": {
+        "label": "4:3 传统",
+        "width": { "px": 960, "inches": 10.0 },
+        "height": { "px": 720, "inches": 7.5 }
+      },
+      "21:9": {
+        "label": "21:9 超宽",
+        "width": { "px": 1680, "inches": 17.5 },
+        "height": { "px": 720, "inches": 7.5 }
+      },
+      "22:5": {
+        "label": "22:5 超宽带",
+        "width": { "px": 3168, "inches": 33.0 },
+        "height": { "px": 720, "inches": 7.5 }
+      }
+    },
+    "defaultAspectRatio": "16:9",
     "baseMargin": {
-      "top": { "px": 40 },
+      "top": { "px": 20 },
       "right": { "px": 40 },
       "bottom": { "px": 40 },
       "left": { "px": 40 }
     }
   },
 
+  "contentAreas": {
+    "header": {
+      "heights": {
+        "compact": { "px": 60, "label": "紧凑" },
+        "normal": { "px": 75, "label": "标准" },
+        "spacious": { "px": 90, "label": "宽松" }
+      },
+      "default": "compact"
+    },
+    "titleStyles": {
+      "none": { "label": "无" },
+      "simple": { "label": "简单" },
+      "with-tag": { "label": "带标签" }
+    },
+    "titleStyleDefault": "with-tag",
+    "footer": {
+      "heights": {
+        "compact": { "px": 15, "label": "紧凑" },
+        "normal": { "px": 20, "label": "标准" },
+        "spacious": { "px": 25, "label": "宽松" }
+      },
+      "default": "compact"
+    },
+    "sourceStyles": {
+      "none": { "label": "无" },
+      "citation": { "label": "显示" }
+    },
+    "sourceStyleDefault": "citation",
+    "bodyGap": { "px": 8 }
+  },
+
   "placeholders": {
     "logo": {
       "label": "Logo",
-      "position": { "top": 24, "left": 40 },
-      "size": { "width": 80, "height": 30 },
-      "bounds": { "top": 70, "left": 100 },
-      "description": "top left"
+      "positions": {
+        "tl": { "label": "左上", "position": { "top": 24, "left": 40 } },
+        "tr": { "label": "右上", "position": { "top": 24, "right": 40 } },
+        "bl": { "label": "左下", "position": { "bottom": 40, "left": 40 } },
+        "br": { "label": "右下", "position": { "bottom": 40, "right": 40 } }
+      },
+      "defaultPosition": "tl",
+      "sizes": {
+        "small": { "width": 60, "height": 24, "label": "小" },
+        "medium": { "width": 80, "height": 30, "label": "中" },
+        "large": { "width": 120, "height": 45, "label": "大" }
+      },
+      "defaultSize": "medium",
+      "allowUpload": true
     },
     "page-number": {
-      "label": "Page Number",
-      "position": { "bottom": 20, "right": 60 },
-      "bounds": { "bottom": 50 },
-      "description": "bottom right"
+      "label": "页码",
+      "positions": {
+        "bl": { "label": "左下", "position": { "bottom": 20, "left": 60 } },
+        "br": { "label": "右下", "position": { "bottom": 20, "right": 60 } },
+        "bc": { "label": "底中", "position": { "bottom": 20 } }
+      },
+      "defaultPosition": "br"
     },
     "date": {
-      "label": "Date",
-      "position": { "bottom": 20, "left": 60 },
-      "bounds": { "bottom": 50 },
-      "description": "bottom left"
+      "label": "日期",
+      "positions": {
+        "bl": { "label": "左下", "position": { "bottom": 20, "left": 60 } },
+        "br": { "label": "右下", "position": { "bottom": 20, "right": 60 } }
+      },
+      "defaultPosition": "bl"
     }
   },
 
   "shapes": {
     "header-badge": {
       "label": "Header Badge",
-      "occupiesSpace": true,
+      "occupiesSpace": false,
       "defaultContent": "SECTION",
+      "comment": "Decorative badge at corner, does not affect content layout",
       "presets": {
         "pill-right": {
           "name": "Pill Right",
           "position": { "top": 20, "right": 0 },
           "size": { "width": 140, "height": 40 },
-          "style": { "borderRadius": "20px 0 0 20px" },
-          "bounds": { "top": 60, "right": 160 }
+          "style": { "borderRadius": "20px 0 0 20px" }
         },
         "pill-left": {
           "name": "Pill Left",
           "position": { "top": 20, "left": 0 },
           "size": { "width": 140, "height": 40 },
-          "style": { "borderRadius": "0 20px 20px 0" },
-          "bounds": { "top": 60, "left": 160 }
+          "style": { "borderRadius": "0 20px 20px 0" }
         },
         "tag-right": {
           "name": "Tag Right",
           "position": { "top": 20, "right": 0 },
           "size": { "width": 120, "height": 32 },
-          "style": { "borderRadius": "4px 0 0 4px" },
-          "bounds": { "top": 60, "right": 140 }
+          "style": { "borderRadius": "4px 0 0 4px" }
         },
         "banner": {
           "name": "Banner",
           "position": { "top": 0, "right": 0 },
           "size": { "width": 200, "height": 36 },
-          "style": { "borderRadius": "0" },
-          "bounds": { "top": 50, "right": 200 }
+          "style": { "borderRadius": "0" }
         }
       }
     },
 
-    "top-line": {
+    "header-line": {
       "label": "Header Line",
-      "occupiesSpace": true,
+      "occupiesSpace": false,
+      "comment": "Line below title area (header bottom ~80px)",
       "presets": {
         "full": {
           "name": "Full Width",
-          "position": { "top": 0, "left": 0, "right": 0 },
-          "size": { "height": 4 },
-          "bounds": { "top": 10 }
+          "position": { "top": 82, "left": 0, "right": 0 },
+          "size": { "height": 2 },
+          "style": { "opacity": 0.3 }
         },
         "center": {
           "name": "Center",
-          "position": { "top": 0 },
-          "size": { "height": 4, "left": "20%", "right": "20%" },
-          "bounds": { "top": 10 }
+          "position": { "top": 82, "left": 40, "right": 40 },
+          "size": { "height": 2 },
+          "style": { "opacity": 0.3 }
         },
         "left-half": {
           "name": "Left Half",
-          "position": { "top": 0, "left": 0 },
-          "size": { "width": "50%", "height": 4 },
-          "bounds": { "top": 10 }
+          "position": { "top": 82, "left": 0 },
+          "size": { "width": "50%", "height": 2 },
+          "style": { "opacity": 0.3 }
         },
         "right-half": {
           "name": "Right Half",
-          "position": { "top": 0, "right": 0 },
-          "size": { "width": "50%", "height": 4 },
-          "bounds": { "top": 10 }
+          "position": { "top": 82, "right": 0 },
+          "size": { "width": "50%", "height": 2 },
+          "style": { "opacity": 0.3 }
         }
       }
     },
 
     "footer-line": {
       "label": "Footer Line",
-      "occupiesSpace": true,
+      "occupiesSpace": false,
+      "comment": "Line above source citation (footer top ~60px from bottom)",
       "presets": {
         "full": {
           "name": "Full Width",
-          "position": { "bottom": 40, "left": 0, "right": 0 },
+          "position": { "bottom": 62, "left": 0, "right": 0 },
           "size": { "height": 2 },
-          "style": { "opacity": 0.3 },
-          "bounds": { "bottom": 50 }
+          "style": { "opacity": 0.3 }
         },
         "center": {
           "name": "Center",
-          "position": { "bottom": 40 },
-          "size": { "height": 2, "left": "20%", "right": "20%" },
-          "style": { "opacity": 0.3 },
-          "bounds": { "bottom": 50 }
+          "position": { "bottom": 62, "left": 40, "right": 40 },
+          "size": { "height": 2 },
+          "style": { "opacity": 0.3 }
         },
         "left-half": {
           "name": "Left Half",
-          "position": { "bottom": 40, "left": 0 },
+          "position": { "bottom": 62, "left": 0 },
           "size": { "width": "50%", "height": 2 },
-          "style": { "opacity": 0.3 },
-          "bounds": { "bottom": 50 }
+          "style": { "opacity": 0.3 }
         },
         "right-half": {
           "name": "Right Half",
-          "position": { "bottom": 40, "right": 0 },
+          "position": { "bottom": 62, "right": 0 },
           "size": { "width": "50%", "height": 2 },
-          "style": { "opacity": 0.3 },
-          "bounds": { "bottom": 50 }
+          "style": { "opacity": 0.3 }
         }
       }
     },
@@ -138,167 +200,114 @@
     "side-bar": {
       "label": "Side Bar",
       "occupiesSpace": true,
-      "presets": {
-        "thin-left": {
-          "name": "Thin Left",
-          "position": { "top": 0, "bottom": 0, "left": 0 },
-          "size": { "width": 8 },
-          "bounds": { "left": 30 }
-        },
-        "thick-left": {
-          "name": "Thick Left",
-          "position": { "top": 0, "bottom": 0, "left": 0 },
-          "size": { "width": 24 },
-          "bounds": { "left": 50 }
-        },
-        "thin-right": {
-          "name": "Thin Right",
-          "position": { "top": 0, "bottom": 0, "right": 0 },
-          "size": { "width": 8 },
-          "bounds": { "right": 30 }
-        },
-        "thick-right": {
-          "name": "Thick Right",
-          "position": { "top": 0, "bottom": 0, "right": 0 },
-          "size": { "width": 24 },
-          "bounds": { "right": 50 }
-        },
-        "thin-top": {
-          "name": "Thin Top",
-          "position": { "top": 0, "left": 0, "right": 0 },
-          "size": { "height": 8 },
-          "bounds": { "top": 30 }
-        },
-        "thick-top": {
-          "name": "Thick Top",
-          "position": { "top": 0, "left": 0, "right": 0 },
-          "size": { "height": 24 },
-          "bounds": { "top": 50 }
-        },
-        "thin-bottom": {
-          "name": "Thin Bottom",
-          "position": { "bottom": 0, "left": 0, "right": 0 },
-          "size": { "height": 8 },
-          "bounds": { "bottom": 30 }
-        },
-        "thick-bottom": {
-          "name": "Thick Bottom",
-          "position": { "bottom": 0, "left": 0, "right": 0 },
-          "size": { "height": 24 },
-          "bounds": { "bottom": 50 }
-        }
-      }
+      "configType": "thickness-positions",
+      "thickness": {
+        "thin": { "size": 8, "boundsOffset": 20, "label": "细" },
+        "thick": { "size": 20, "boundsOffset": 40, "label": "粗" }
+      },
+      "positions": {
+        "left": { "label": "左" },
+        "right": { "label": "右" },
+        "top": { "label": "上" },
+        "bottom": { "label": "下" }
+      },
+      "defaultThickness": "thin",
+      "defaultPositions": ["left"]
     },
 
     "corner": {
-      "label": "Corner",
+      "label": "Corner Triangle",
       "occupiesSpace": false,
-      "presets": {
-        "tl-small": {
-          "name": "Top-Left Small",
-          "position": { "top": 0, "left": 0 },
-          "size": { "width": 60, "height": 60 },
-          "style": { "type": "triangle", "direction": "tl", "opacity": 0.15 }
-        },
-        "tl-large": {
-          "name": "Top-Left Large",
-          "position": { "top": 0, "left": 0 },
-          "size": { "width": 120, "height": 120 },
-          "style": { "type": "triangle", "direction": "tl", "opacity": 0.15 }
-        },
-        "tr-small": {
-          "name": "Top-Right Small",
-          "position": { "top": 0, "right": 0 },
-          "size": { "width": 60, "height": 60 },
-          "style": { "type": "triangle", "direction": "tr", "opacity": 0.15 }
-        },
-        "tr-large": {
-          "name": "Top-Right Large",
-          "position": { "top": 0, "right": 0 },
-          "size": { "width": 120, "height": 120 },
-          "style": { "type": "triangle", "direction": "tr", "opacity": 0.15 }
-        },
-        "bl-small": {
-          "name": "Bottom-Left Small",
-          "position": { "bottom": 0, "left": 0 },
-          "size": { "width": 60, "height": 60 },
-          "style": { "type": "triangle", "direction": "bl", "opacity": 0.15 }
-        },
-        "br-small": {
-          "name": "Bottom-Right Small",
-          "position": { "bottom": 0, "right": 0 },
-          "size": { "width": 60, "height": 60 },
-          "style": { "type": "triangle", "direction": "br", "opacity": 0.15 }
-        }
-      }
+      "configType": "thickness-positions",
+      "thickness": {
+        "small": { "size": 60, "label": "小" },
+        "large": { "size": 120, "label": "大" }
+      },
+      "positions": {
+        "tl": { "label": "左上" },
+        "tr": { "label": "右上" },
+        "bl": { "label": "左下" },
+        "br": { "label": "右下" }
+      },
+      "defaultThickness": "small",
+      "defaultPositions": ["tl"],
+      "style": { "opacity": 0.15 }
     },
 
     "corner-dots": {
       "label": "Corner Dots",
       "occupiesSpace": false,
-      "presets": {
-        "tl": {
-          "name": "Top Left",
-          "position": { "top": 20, "left": 20 },
-          "size": { "width": 60, "height": 60 },
-          "style": { "type": "dots", "dotSize": 2, "gap": 10, "opacity": 0.3 }
-        },
-        "tr": {
-          "name": "Top Right",
-          "position": { "top": 20, "right": 20 },
-          "size": { "width": 60, "height": 60 },
-          "style": { "type": "dots", "dotSize": 2, "gap": 10, "opacity": 0.3 }
-        },
-        "bl": {
-          "name": "Bottom Left",
-          "position": { "bottom": 20, "left": 20 },
-          "size": { "width": 60, "height": 60 },
-          "style": { "type": "dots", "dotSize": 2, "gap": 10, "opacity": 0.3 }
-        },
-        "br": {
-          "name": "Bottom Right",
-          "position": { "bottom": 20, "right": 20 },
-          "size": { "width": 60, "height": 60 },
-          "style": { "type": "dots", "dotSize": 2, "gap": 10, "opacity": 0.3 }
-        }
-      }
+      "configType": "thickness-positions",
+      "thickness": {
+        "small": { "size": 40, "dotSize": 2, "gap": 8, "label": "小" },
+        "large": { "size": 80, "dotSize": 3, "gap": 12, "label": "大" }
+      },
+      "positions": {
+        "tl": { "label": "左上" },
+        "tr": { "label": "右上" },
+        "bl": { "label": "左下" },
+        "br": { "label": "右下" }
+      },
+      "defaultThickness": "small",
+      "defaultPositions": ["br"],
+      "style": { "opacity": 0.3 }
+    },
+
+    "corner-lines": {
+      "label": "Corner Lines",
+      "occupiesSpace": false,
+      "configType": "thickness-positions",
+      "thickness": {
+        "small": { "size": 40, "lineWidth": 1, "gap": 8, "label": "小" },
+        "large": { "size": 80, "lineWidth": 2, "gap": 12, "label": "大" }
+      },
+      "positions": {
+        "tl": { "label": "左上" },
+        "tr": { "label": "右上" },
+        "bl": { "label": "左下" },
+        "br": { "label": "右下" }
+      },
+      "defaultThickness": "small",
+      "defaultPositions": ["tl"],
+      "style": { "opacity": 0.2 }
     },
 
     "accent-circle": {
       "label": "Accent Circle",
       "occupiesSpace": false,
-      "presets": {
-        "tl-small": {
-          "name": "Top-Left Small",
-          "position": { "top": -30, "left": -30 },
-          "size": { "width": 120, "height": 120 },
-          "style": { "type": "circle", "opacity": 0.08 }
-        },
-        "tl-large": {
-          "name": "Top-Left Large",
-          "position": { "top": -60, "left": -60 },
-          "size": { "width": 200, "height": 200 },
-          "style": { "type": "circle", "opacity": 0.08 }
-        },
-        "tr-small": {
-          "name": "Top-Right Small",
-          "position": { "top": -30, "right": -30 },
-          "size": { "width": 120, "height": 120 },
-          "style": { "type": "circle", "opacity": 0.08 }
-        },
-        "br-small": {
-          "name": "Bottom-Right Small",
-          "position": { "bottom": -30, "right": -30 },
-          "size": { "width": 120, "height": 120 },
-          "style": { "type": "circle", "opacity": 0.08 }
-        },
-        "br-large": {
-          "name": "Bottom-Right Large",
-          "position": { "bottom": -60, "right": -60 },
-          "size": { "width": 200, "height": 200 },
-          "style": { "type": "circle", "opacity": 0.08 }
-        }
-      }
+      "configType": "thickness-positions",
+      "thickness": {
+        "small": { "size": 100, "offset": -25, "label": "小" },
+        "large": { "size": 180, "offset": -50, "label": "大" }
+      },
+      "positions": {
+        "tl": { "label": "左上" },
+        "tr": { "label": "右上" },
+        "bl": { "label": "左下" },
+        "br": { "label": "右下" }
+      },
+      "defaultThickness": "small",
+      "defaultPositions": ["br"],
+      "style": { "opacity": 0.08 }
+    },
+
+    "accent-ring": {
+      "label": "Accent Ring",
+      "occupiesSpace": false,
+      "configType": "thickness-positions",
+      "thickness": {
+        "small": { "size": 80, "strokeWidth": 3, "offset": -20, "label": "小" },
+        "large": { "size": 150, "strokeWidth": 5, "offset": -40, "label": "大" }
+      },
+      "positions": {
+        "tl": { "label": "左上" },
+        "tr": { "label": "右上" },
+        "bl": { "label": "左下" },
+        "br": { "label": "右下" }
+      },
+      "defaultThickness": "small",
+      "defaultPositions": ["tl"],
+      "style": { "opacity": 0.15 }
     }
   },
 
@@ -334,6 +343,22 @@
         { "id": "B", "flex": 2 }
       ]
     },
+    "two-col-wide-left": {
+      "label": "3:1",
+      "direction": "row",
+      "zones": [
+        { "id": "A", "flex": 3 },
+        { "id": "B", "flex": 1 }
+      ]
+    },
+    "two-col-wide-right": {
+      "label": "1:3",
+      "direction": "row",
+      "zones": [
+        { "id": "A", "flex": 1 },
+        { "id": "B", "flex": 3 }
+      ]
+    },
     "two-row-equal": {
       "label": "上下",
       "direction": "column",
@@ -351,6 +376,16 @@
         { "id": "C", "flex": 1 }
       ]
     },
+    "four-col": {
+      "label": "四列",
+      "direction": "row",
+      "zones": [
+        { "id": "A", "flex": 1 },
+        { "id": "B", "flex": 1 },
+        { "id": "C", "flex": 1 },
+        { "id": "D", "flex": 1 }
+      ]
+    },
     "four-grid": {
       "label": "2×2",
       "direction": "grid",
@@ -361,13 +396,94 @@
         { "id": "D", "flex": 1 }
       ]
     },
+    "six-grid": {
+      "label": "3×2",
+      "direction": "grid",
+      "columns": 3,
+      "rows": 2,
+      "zones": [
+        { "id": "A", "flex": 1 },
+        { "id": "B", "flex": 1 },
+        { "id": "C", "flex": 1 },
+        { "id": "D", "flex": 1 },
+        { "id": "E", "flex": 1 },
+        { "id": "F", "flex": 1 }
+      ]
+    },
     "top-two-bottom": {
       "label": "上2下1",
       "direction": "custom",
+      "customType": "top-two-bottom",
       "zones": [
         { "id": "A", "flex": 1 },
         { "id": "B", "flex": 1 },
         { "id": "C", "flex": 2 }
+      ]
+    },
+    "top-one-bottom-two": {
+      "label": "上1下2",
+      "direction": "custom",
+      "customType": "top-one-bottom-two",
+      "zones": [
+        { "id": "A", "flex": 2 },
+        { "id": "B", "flex": 1 },
+        { "id": "C", "flex": 1 }
+      ]
+    },
+    "top-two-bottom-three": {
+      "label": "上2下3",
+      "direction": "custom",
+      "customType": "top-two-bottom-three",
+      "zones": [
+        { "id": "A", "flex": 1 },
+        { "id": "B", "flex": 1 },
+        { "id": "C", "flex": 1 },
+        { "id": "D", "flex": 1 },
+        { "id": "E", "flex": 1 }
+      ]
+    },
+    "top-three-bottom-two": {
+      "label": "上3下2",
+      "direction": "custom",
+      "customType": "top-three-bottom-two",
+      "zones": [
+        { "id": "A", "flex": 1 },
+        { "id": "B", "flex": 1 },
+        { "id": "C", "flex": 1 },
+        { "id": "D", "flex": 1 },
+        { "id": "E", "flex": 1 }
+      ]
+    },
+    "left-one-right-two": {
+      "label": "左1右2",
+      "direction": "custom",
+      "customType": "left-one-right-two",
+      "zones": [
+        { "id": "A", "flex": 1 },
+        { "id": "B", "flex": 1 },
+        { "id": "C", "flex": 1 }
+      ]
+    },
+    "left-two-right-one": {
+      "label": "左2右1",
+      "direction": "custom",
+      "customType": "left-two-right-one",
+      "zones": [
+        { "id": "A", "flex": 1 },
+        { "id": "B", "flex": 1 },
+        { "id": "C", "flex": 1 }
+      ]
+    },
+    "grid-4x6": {
+      "label": "4×6",
+      "direction": "grid",
+      "columns": 6,
+      "rows": 4,
+      "zones": [
+        { "id": "A1" }, { "id": "A2" }, { "id": "A3" }, { "id": "A4" }, { "id": "A5" }, { "id": "A6" },
+        { "id": "B1" }, { "id": "B2" }, { "id": "B3" }, { "id": "B4" }, { "id": "B5" }, { "id": "B6" },
+        { "id": "C1" }, { "id": "C2" }, { "id": "C3" }, { "id": "C4" }, { "id": "C5" }, { "id": "C6" },
+        { "id": "D1" }, { "id": "D2" }, { "id": "D3" }, { "id": "D4" }, { "id": "D5" }, { "id": "D6" }
       ]
     }
   },

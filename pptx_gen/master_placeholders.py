@@ -55,10 +55,14 @@ def add_master_placeholders(master, placeholders: dict, theme: dict):
 
     # Set positions for enabled placeholders
     if enable_sldnum and sldnum_config:
-        _set_footer_placeholder_position(master.slide_number_placeholder, sldnum_config, SLIDE_WIDTH, SLIDE_HEIGHT)
+        ph = master.slide_number_placeholder
+        if ph is not None:
+            _set_footer_placeholder_position(ph, sldnum_config, SLIDE_WIDTH, SLIDE_HEIGHT)
 
     if enable_dt and dt_config:
-        _set_footer_placeholder_position(master.date_placeholder, dt_config, SLIDE_WIDTH, SLIDE_HEIGHT)
+        ph = master.date_placeholder
+        if ph is not None:
+            _set_footer_placeholder_position(ph, dt_config, SLIDE_WIDTH, SLIDE_HEIGHT)
 
 
 def set_header_footer(master, sldNum: bool = False, dt: bool = False, ftr: bool = False):

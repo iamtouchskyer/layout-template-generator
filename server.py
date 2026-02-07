@@ -54,6 +54,10 @@ class PPTXHandler(http.server.SimpleHTTPRequestHandler):
                 logging.error(f"PPTX generation failed: {e}\n{traceback.format_exc()}")
                 self._send_error_response(500, "Internal server error")
 
+        else:
+            self.send_response(404)
+            self.end_headers()
+
     def _send_error_response(self, status_code: int, message: str):
         """Send error response without exposing internal details."""
         self.send_response(status_code)
@@ -62,9 +66,6 @@ class PPTXHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         response = {'success': False, 'error': message}
         self.wfile.write(json.dumps(response).encode())
-        else:
-            self.send_response(404)
-            self.end_headers()
 
     def do_OPTIONS(self):
         self.send_response(200)

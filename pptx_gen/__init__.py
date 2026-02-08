@@ -6,10 +6,13 @@ Uses python-pptx Slide Master API for proper inheritance.
 
 import sys
 import json
+import os
 from pathlib import Path
 
 # Add python-pptx (enhanced fork) to path
-sys.path.insert(0, '/Users/touichskyer/Code/python-pptx/src')
+# Try to use environment variable, fallback to default location
+PPTX_LIB_PATH = os.environ.get('PYTHON_PPTX_PATH', '/Users/touichskyer/Code/python-pptx/src')
+sys.path.insert(0, PPTX_LIB_PATH)
 
 from pptx import Presentation
 
@@ -124,7 +127,8 @@ def main():
                 ]
             }
         }
-        output_path = "/Users/touichskyer/Desktop/layout-template-generator/output.pptx"
+        # Use current directory for demo output
+        output_path = os.path.join(os.getcwd(), "output.pptx")
         generate_pptx(demo_config, output_path)
         print(f"Demo generated: {output_path}")
         return

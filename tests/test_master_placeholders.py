@@ -2,15 +2,7 @@
 Unit tests for master_placeholders module.
 """
 
-import sys
-from pathlib import Path
-
-# Add project root to path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-# Add python-pptx (enhanced fork) to path
-sys.path.insert(0, '/Users/touichskyer/Code/python-pptx/src')
+# Path setup handled by conftest.py
 
 from pptx import Presentation
 from pptx_gen.master_placeholders import add_master_placeholders

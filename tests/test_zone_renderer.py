@@ -2,14 +2,7 @@
 Unit tests for zone_renderer module.
 """
 
-import sys
-import os
-
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Add python-pptx (enhanced fork) to path
-sys.path.insert(0, '/Users/touichskyer/Code/python-pptx/src')
+# Path setup handled by conftest.py
 
 from pptx import Presentation
 from pptx.util import Inches

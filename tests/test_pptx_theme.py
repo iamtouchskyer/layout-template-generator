@@ -5,15 +5,9 @@ Tests that theme colors (accent1-6, dk1, lt1, etc.) are correctly
 applied when generating PPTX files.
 """
 
-import sys
-import os
 import tempfile
 
-# Add python-pptx fork to path
-sys.path.insert(0, '/Users/touichskyer/Code/python-pptx/src')
-
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Path setup handled by conftest.py
 
 import pytest
 from pptx import Presentation

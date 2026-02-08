@@ -4,15 +4,9 @@ Unit tests for SmartArt generation.
 Tests that SmartArt color schemes work correctly with theme colors.
 """
 
-import sys
-import os
 import tempfile
 
-# Add python-pptx fork to path
-sys.path.insert(0, '/Users/touichskyer/Code/python-pptx/src')
-
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Path setup handled by conftest.py
 
 import pytest
 from pptx import Presentation

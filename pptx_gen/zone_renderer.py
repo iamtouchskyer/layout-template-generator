@@ -125,8 +125,9 @@ def _render_chart_zone(slide, zone_id, content_x, content_y, content_w, content_
     if chart_type_str == 'line' and chart.series:
         accent_color = hex_to_rgb(theme['accent'])
         for series in chart.series:
-            series.format.line.color.rgb = accent_color
-            series.format.line.width = Pt(2)
+            if hasattr(series.format, 'line'):
+                series.format.line.color.rgb = accent_color
+                series.format.line.width = Pt(2)
 
 
 def _render_chart_placeholder(slide, x, y, w, h):

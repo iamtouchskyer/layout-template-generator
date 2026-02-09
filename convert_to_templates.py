@@ -171,10 +171,10 @@ def convert_to_template(html: str) -> str:
 
 
 def main():
-    base = Path('/Users/touichskyer/Desktop/layout-template-generator/layouts')
-    
-    # First restore from outputs
-    outputs = Path('/Users/touichskyer/Desktop/layout-template-generator/outputs')
+    # Use script directory as base
+    script_dir = Path(__file__).parent
+    base = script_dir / 'layouts'
+    outputs = script_dir / 'outputs'
     
     # Restore classic from all-layouts
     classic_dir = base / 'classic'

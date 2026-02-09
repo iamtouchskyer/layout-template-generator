@@ -10,6 +10,15 @@ from ..layout import calculate_zone_positions, render_zone_content
 from ..dimensions import px_to_inches_x, px_to_inches_y
 from ..utils import get_blank_layout, get_title_only_layout
 
+# Layout constants
+PILL_WIDTH = Inches(0.8)
+PILL_HEIGHT = Inches(0.3)
+PILL_SPACING = Inches(0.15)
+PILL_FONT_SIZE = Pt(10)
+TITLE_FONT_SIZE = Pt(28)
+SOURCE_FONT_SIZE = Pt(9)
+SOURCE_HEIGHT = Inches(0.25)
+
 
 def generate_grid_slide(prs, config, theme):
     """Generate grid/content slide with dynamic layout from config.
@@ -110,14 +119,12 @@ def set_title_with_style(slide, title_placeholder, title: str, tag: str, theme: 
 
     if title_style == 'with-tag' and tag:
         # Add pill-shaped tag as a separate shape
-        pill_width = Inches(0.8)
-        pill_height = Inches(0.3)
         pill_left = ph_left
-        pill_top = ph_top + (ph_height - pill_height) // 2
+        pill_top = ph_top + (ph_height - PILL_HEIGHT) // 2
 
         pill = slide.shapes.add_shape(
             MSO_SHAPE.ROUNDED_RECTANGLE,
-            pill_left, pill_top, pill_width, pill_height
+            pill_left, pill_top, PILL_WIDTH, PILL_HEIGHT
         )
         pill.fill.solid()
         pill.fill.fore_color.rgb = accent_color
@@ -125,20 +132,20 @@ def set_title_with_style(slide, title_placeholder, title: str, tag: str, theme: 
 
         # Add tag text in pill
         pill.text_frame.paragraphs[0].text = tag
-        pill.text_frame.paragraphs[0].font.size = Pt(10)
+        pill.text_frame.paragraphs[0].font.size = PILL_FONT_SIZE
         pill.text_frame.paragraphs[0].font.bold = True
         pill.text_frame.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
         pill.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
         pill.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
 
         # Offset title to the right of the pill
-        title_left = pill_left + pill_width + Inches(0.15)
-        title_width = ph_width - pill_width - Inches(0.15)
+        title_left = pill_left + PILL_WIDTH + PILL_SPACING
+        title_width = ph_width - PILL_WIDTH - PILL_SPACING
 
         # Create title textbox (don't use placeholder since we need custom positioning)
         title_box = slide.shapes.add_textbox(title_left, ph_top, title_width, ph_height)
         title_box.text_frame.paragraphs[0].text = title
-        title_box.text_frame.paragraphs[0].font.size = Pt(28)
+        title_box.text_frame.paragraphs[0].font.size = TITLE_FONT_SIZE
         title_box.text_frame.paragraphs[0].font.bold = True
         title_box.text_frame.paragraphs[0].font.color.rgb = text_color
         title_box.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
@@ -148,7 +155,7 @@ def set_title_with_style(slide, title_placeholder, title: str, tag: str, theme: 
     else:
         p = tf.paragraphs[0]
         p.text = title
-        p.font.size = Pt(28)
+        p.font.size = TITLE_FONT_SIZE
         p.font.bold = True
         p.font.color.rgb = text_color
 
@@ -156,9 +163,9 @@ def set_title_with_style(slide, title_placeholder, title: str, tag: str, theme: 
 def add_source_citation_dynamic(slide, source: str, theme: dict, x: float, y: float, width: float):
     """Add source citation at specified position."""
     text_box = slide.shapes.add_textbox(
-        Inches(x), Inches(y), Inches(width), Inches(0.25)
+        Inches(x), Inches(y), Inches(width), SOURCE_HEIGHT
     )
     p = text_box.text_frame.paragraphs[0]
     p.text = f"数据来源：{source}"
-    p.font.size = Pt(9)
+    p.font.size = SOURCE_FONT_SIZE
     p.font.color.rgb = hex_to_rgb(theme.get('text_muted', '#888888'))

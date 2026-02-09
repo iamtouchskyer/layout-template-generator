@@ -46,21 +46,27 @@ export function cycleLayout(option, config = {}) {
     } else {
         // Basic cycle (cycle4) - OOXML constraints from layout4.xml
         const quadrantSize = Math.min(width, height) * 0.433;
-        const boxW = width * 0.38;
-        const boxH = height * 0.22;  // shorter
+        const boxW = width * 0.32;
+        const boxH = height * 0.18;
         const gap = Math.min(width, height) * 0.01;
-        const innerOffset = quadrantSize * 0.3;  // fixed inner corner offset
 
-        // Fixed inner corner positions (independent of box size)
-        const innerY = { top: centerY - quadrantSize + innerOffset, bottom: centerY + quadrantSize - innerOffset };
-        const innerX = { left: centerX - quadrantSize + innerOffset, right: centerX + quadrantSize - innerOffset };
+        // Calculate quadrant center position (at 45° bisector, ~55% of radius for visual centroid)
+        function getQuadrantCenter(quadrantIndex) {
+            const bisectorAngles = [225, 315, 45, 135]; // top-left, top-right, bottom-right, bottom-left
+            const angle = bisectorAngles[quadrantIndex] * Math.PI / 180;
+            const centerDist = quadrantSize * 0.55;
+            return {
+                x: centerX + Math.cos(angle) * centerDist,
+                y: centerY + Math.sin(angle) * centerDist
+            };
+        }
 
-        // Position boxes so inner corners stay at fixed positions
+        // Position boxes so inner corners are at quadrant centers
         const cornerPositions = [
-            { x: innerX.left - boxW, y: innerY.top - boxH },   // top-left
-            { x: innerX.right, y: innerY.top - boxH },         // top-right
-            { x: innerX.right, y: innerY.bottom },             // bottom-right
-            { x: innerX.left - boxW, y: innerY.bottom }        // bottom-left
+            { x: getQuadrantCenter(0).x - boxW, y: getQuadrantCenter(0).y - boxH },
+            { x: getQuadrantCenter(1).x, y: getQuadrantCenter(1).y - boxH },
+            { x: getQuadrantCenter(2).x, y: getQuadrantCenter(2).y },
+            { x: getQuadrantCenter(3).x - boxW, y: getQuadrantCenter(3).y }
         ];
 
         // Quadrant angles: top-left, top-right, bottom-right, bottom-left

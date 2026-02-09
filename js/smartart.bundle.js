@@ -406,23 +406,33 @@
         } else {
             // Basic cycle (cycle4) - OOXML constraints from layout4.xml
             const quadrantSize = Math.min(width, height) * 0.433;
-            const boxW = width * 0.38;
-            const boxH = height * 0.22;  // shorter
+            const boxW = width * 0.32;
+            const boxH = height * 0.18;
             const gap = Math.min(width, height) * 0.01;
-            const innerOffset = quadrantSize * 0.3;  // fixed inner corner offset
 
             const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
 
-            // Fixed inner corner positions (independent of box size)
-            const innerY = { top: cy - quadrantSize + innerOffset, bottom: cy + quadrantSize - innerOffset };
-            const innerX = { left: cx - quadrantSize + innerOffset, right: cx + quadrantSize - innerOffset };
+            // Calculate quadrant center position (at 45° bisector, ~60% of radius for visual centroid)
+            function getQuadrantCenter(quadrantIndex) {
+                const bisectorAngles = [225, 315, 45, 135]; // top-left, top-right, bottom-right, bottom-left
+                const angle = bisectorAngles[quadrantIndex] * Math.PI / 180;
+                const centerDist = quadrantSize * 0.55; // visual center of pie slice
+                return {
+                    x: cx + Math.cos(angle) * centerDist,
+                    y: cy + Math.sin(angle) * centerDist
+                };
+            }
 
-            // Position boxes so inner corners stay at fixed positions
+            // Position boxes so inner corners are at quadrant centers
             const cornerPositions = [
-                { x: innerX.left - boxW, y: innerY.top - boxH },   // top-left
-                { x: innerX.right, y: innerY.top - boxH },         // top-right
-                { x: innerX.right, y: innerY.bottom },             // bottom-right
-                { x: innerX.left - boxW, y: innerY.bottom }        // bottom-left
+                // top-left: inner corner is bottom-right of box
+                { x: getQuadrantCenter(0).x - boxW, y: getQuadrantCenter(0).y - boxH },
+                // top-right: inner corner is bottom-left of box
+                { x: getQuadrantCenter(1).x, y: getQuadrantCenter(1).y - boxH },
+                // bottom-right: inner corner is top-left of box
+                { x: getQuadrantCenter(2).x, y: getQuadrantCenter(2).y },
+                // bottom-left: inner corner is top-right of box
+                { x: getQuadrantCenter(3).x - boxW, y: getQuadrantCenter(3).y }
             ];
 
             // Quadrant angles: top-left, top-right, bottom-right, bottom-left

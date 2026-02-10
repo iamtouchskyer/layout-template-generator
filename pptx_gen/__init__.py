@@ -50,8 +50,8 @@ def generate_pptx(config: dict, output_path: str):
         'accent4': accent_colors[3] if len(accent_colors) > 3 else theme['accent'],
         'accent5': accent_colors[4] if len(accent_colors) > 4 else theme['accent'],
         'accent6': accent_colors[5] if len(accent_colors) > 5 else theme['accent'],
-        'major_font': 'Arial',  # TODO: get from theme
-        'minor_font': 'Arial',  # TODO: get from theme
+        'major_font': theme.get('major_font', 'Arial'),
+        'minor_font': theme.get('minor_font', 'Arial')
     }
 
     # Create presentation with mitsein template (has 18 layouts) and theme applied

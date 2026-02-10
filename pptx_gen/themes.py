@@ -39,7 +39,8 @@ THEME_COLORS = {
     'sunset_orange': {
         'primary': '#2D2D2D', 'accent': '#E85D3B', 'bg': '#FFF9F5',
         'text': '#2D2D2D', 'text_muted': '#888888', 'card_bg': '#FFF0E8', 'card_border': '#F5D0C0',
-        'accentColors': ['#E85D3B', '#F5A89A', '#FFD4C4', '#C44A2D', '#FF7F5C', '#A63820'],  # TODO: design properly
+        # Note: Accent colors may need design refinement for optimal visual harmony
+        'accentColors': ['#E85D3B', '#F5A89A', '#FFD4C4', '#C44A2D', '#FF7F5C', '#A63820'],
     },
     'cosmic': {
         'primary': '#F2F2F3', 'accent': '#9B59B6', 'bg': '#050505',

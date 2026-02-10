@@ -7,7 +7,10 @@ Uses python-pptx Slide Master API for proper inheritance.
 import sys
 import json
 import os
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 # Add python-pptx (enhanced fork) to path
 # Try to use environment variable, fallback to default location
@@ -70,7 +73,7 @@ def generate_pptx(config: dict, output_path: str):
         generate_grid_slide(prs, config, theme)
 
     prs.save(output_path)
-    print(f"Saved: {output_path}")
+    logger.info(f"Saved PPTX: {output_path}")
 
 
 def main():
@@ -130,7 +133,7 @@ def main():
         # Use current directory for demo output
         output_path = os.path.join(os.getcwd(), "output.pptx")
         generate_pptx(demo_config, output_path)
-        print(f"Demo generated: {output_path}")
+        logger.info(f"Demo PPTX generated: {output_path}")
         return
 
     config_path = sys.argv[1]

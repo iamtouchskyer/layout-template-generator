@@ -5,6 +5,7 @@ Tests that theme colors (accent1-6, dk1, lt1, etc.) are correctly
 applied when generating PPTX files.
 """
 
+import os
 import tempfile
 
 # Path setup handled by conftest.py

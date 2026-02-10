@@ -4,6 +4,7 @@ Unit tests for SmartArt generation.
 Tests that SmartArt color schemes work correctly with theme colors.
 """
 
+import os
 import tempfile
 
 # Path setup handled by conftest.py

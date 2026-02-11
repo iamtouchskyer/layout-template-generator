@@ -45,9 +45,9 @@ export function cycleLayout(option, config = {}) {
         });
     } else {
         // Basic cycle (cycle4) - OOXML constraints from layout4.xml
-        const quadrantSize = Math.min(width, height) * 0.433;
+        const quadrantSize = Math.min(width, height) * 0.368;  // 0.433 * 0.85
         const boxW = width * 0.32;
-        const boxH = height * 0.18;
+        const boxH = height * 0.342;  // 0.36 * 0.95
         const gap = Math.min(width, height) * 0.01;
 
         // Calculate quadrant center position (at 45° bisector, ~55% of radius for visual centroid)

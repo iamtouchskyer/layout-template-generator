@@ -1134,3 +1134,131 @@ select:focus, input:focus {
     color: var(--text-secondary);
     white-space: nowrap;
 }
+
+/* SmartArt Text Editor - PPT Style (outside slide, left panel) */
+.smartart-text-editor {
+    display: none;
+    width: 220px;
+    min-width: 220px;
+    max-height: 100%;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    border-radius: 8px 0 0 8px;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+    margin: auto 0;
+    align-self: center;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.smartart-text-editor.visible {
+    display: flex;
+}
+
+.smartart-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+.smartart-editor-header .editor-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.smartart-editor-header .editor-toolbar {
+    display: flex;
+    gap: 4px;
+}
+
+.smartart-editor-header .editor-btn {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.smartart-editor-header .editor-btn:hover {
+    background: var(--accent-l3);
+    border-color: var(--accent-l3);
+    color: white;
+}
+
+.smartart-editor-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+.smartart-editor-list .editor-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    transition: background 0.1s;
+}
+
+.smartart-editor-list .editor-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.smartart-editor-list .item-bullet {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    width: 14px;
+    text-align: center;
+}
+
+.smartart-editor-list .item-text {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 13px;
+    padding: 4px 6px;
+    border-radius: 3px;
+    outline: none;
+    min-width: 0;
+}
+
+.smartart-editor-list .item-text:focus {
+    background: var(--bg-primary);
+    box-shadow: 0 0 0 1px var(--accent-l3);
+}
+
+/* Level 0: no bullet, bold text, left color bar */
+.smartart-editor-list .editor-item.level-0 {
+    border-left: 3px solid var(--accent-l3);
+    margin-left: 0;
+    padding-left: 8px !important;
+}
+
+.smartart-editor-list .editor-item.level-0 .item-bullet {
+    display: none;
+}
+
+.smartart-editor-list .editor-item.level-0 .item-text {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* Level 1+: bullet, normal text */
+.smartart-editor-list .editor-item.level-1 .item-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+}

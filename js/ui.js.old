@@ -479,8 +479,20 @@ function renderSmartartPlacements() {
 }
 
 function selectSmartartType(typeId) {
+    const oldType = state.smartartType;
+
+    // Save current items to old type (if exists)
+    if (oldType && state.smartartItems) {
+        state.smartartItemsByType[oldType] = state.smartartItems;
+    }
+
+    // Switch to new type
     state.smartartType = typeId;
     state.smartartCategory = SMARTART_TYPES[typeId].category;
+
+    // Load items for new type (or null to initialize from test data)
+    state.smartartItems = state.smartartItemsByType[typeId] || null;
+
     renderSmartartTypeSelector();
     renderSmartartColorSelector();  // Refresh color picker thumbnails for new type
     render();
@@ -1009,5 +1021,130 @@ async function generatePPTX() {
     } finally {
         btn.textContent = originalText;
         btn.disabled = false;
+    }
+}
+
+// SmartArt Text Editor - PPT-style hierarchical text editing
+function renderSmartartTextEditor() {
+    const container = document.getElementById('smartart-text-editor');
+    if (!container) return;
+
+    // Only show for content-smartart page type
+    if (state.pageType !== 'content-smartart') {
+        container.classList.remove('visible');
+        return;
+    }
+    container.classList.add('visible');
+
+    const typeInfo = SMARTART_TYPES[state.smartartType];
+    const category = typeInfo?.category || 'list';
+
+    // Get or initialize items from SMARTART_TEST_DATA (per-type storage)
+    if (!state.smartartItems || !Array.isArray(state.smartartItems)) {
+        const testData = SMARTART_TEST_DATA[state.smartartType] || SMARTART_TEST_DATA[category] || SMARTART_TEST_DATA['list'];
+        state.smartartItems = JSON.parse(JSON.stringify(testData.slice(0, state.smartartItemCount)));
+        state.smartartItemsByType[state.smartartType] = state.smartartItems;
+    }
+
+    const items = state.smartartItems;
+    const itemsHtml = items.map((item, idx) => renderSmartartEditorItem(item, idx)).join('');
+
+    container.innerHTML = `
+        <div class="smartart-editor-header">
+            <span class="editor-title">在此处键入文字</span>
+            <div class="editor-toolbar">
+                <button class="editor-btn add-item" title="添加节点">+</button>
+                <button class="editor-btn remove-item" title="删除节点">−</button>
+            </div>
+        </div>
+        <div class="smartart-editor-list">${itemsHtml}</div>
+    `;
+
+    bindSmartartEditorEvents(container);
+}
+
+function renderSmartartEditorItem(item, index, level = 0) {
+    const text = typeof item === 'string' ? item : (item.text || '');
+    const children = (typeof item === 'object' && item.children) ? item.children : [];
+    // Level 0 = no bullet (text on shape), Level 1+ = bullet (text in textbox)
+    const bullet = level === 0 ? '' : '•';
+    const indent = level * 16;
+
+    let html = `
+        <div class="editor-item level-${level}" data-index="${index}" data-level="${level}" style="padding-left: ${indent}px">
+            <span class="item-bullet">${bullet}</span>
+            <input type="text" class="item-text" value="${escapeHtml(text)}" data-path="${index}" />
+        </div>
+    `;
+
+    children.forEach((child, childIdx) => {
+        const childText = typeof child === 'string' ? child : (child.text || '');
+        html += `
+            <div class="editor-item level-1" data-index="${index}-${childIdx}" data-level="1" style="padding-left: ${indent + 16}px">
+                <span class="item-bullet">•</span>
+                <input type="text" class="item-text" value="${escapeHtml(childText)}" data-path="${index}-${childIdx}" />
+            </div>
+        `;
+    });
+
+    return html;
+}
+
+function escapeHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function bindSmartartEditorEvents(container) {
+    // Text input change
+    container.addEventListener('input', (e) => {
+        if (!e.target.classList.contains('item-text')) return;
+        const path = e.target.dataset.path;
+        const newText = e.target.value;
+        updateSmartartItemText(path, newText);
+        renderSmartArtChart();
+    });
+
+    // Add item
+    container.querySelector('.add-item')?.addEventListener('click', () => {
+        const testData = SMARTART_TEST_DATA[state.smartartType] || SMARTART_TEST_DATA['list'];
+        const template = testData[0] || { text: '新节点', children: [] };
+        state.smartartItems.push(JSON.parse(JSON.stringify(template)));
+        state.smartartItemCount = state.smartartItems.length;
+        renderSmartartTextEditor();
+        renderSmartArtChart();
+    });
+
+    // Remove item
+    container.querySelector('.remove-item')?.addEventListener('click', () => {
+        if (state.smartartItems.length > 1) {
+            state.smartartItems.pop();
+            state.smartartItemCount = state.smartartItems.length;
+            renderSmartartTextEditor();
+            renderSmartArtChart();
+        }
+    });
+}
+
+function updateSmartartItemText(path, newText) {
+    const parts = path.split('-').map(Number);
+    if (parts.length === 1) {
+        // Parent node
+        const item = state.smartartItems[parts[0]];
+        if (typeof item === 'string') {
+            state.smartartItems[parts[0]] = newText;
+        } else {
+            item.text = newText;
+        }
+    } else if (parts.length === 2) {
+        // Child node
+        const parent = state.smartartItems[parts[0]];
+        if (typeof parent === 'object' && parent.children && parent.children[parts[1]]) {
+            const child = parent.children[parts[1]];
+            if (typeof child === 'string') {
+                parent.children[parts[1]] = newText;
+            } else {
+                child.text = newText;
+            }
+        }
     }
 }

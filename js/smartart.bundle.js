@@ -35,30 +35,36 @@
         const count = items.length || 1;
         const itemHeight = height / count;
 
-        const shapes = items.map((item, idx) => {
+        // Check if any item has children - if so, shrink pyramid for textboxes
+        const hasAnyChildren = items.some(item => item.children && item.children.length > 0);
+        const pyramidWidth = hasAnyChildren ? width * 0.55 : width;
+        const textboxX = pyramidWidth + width * 0.02;
+        const textboxW = width - textboxX - 10;
+
+        const shapes = [];
+
+        items.forEach((item, idx) => {
             // Normal pyramid: point at top (idx=0 narrow, idx=count-1 wide)
-            // Inverted pyramid: point at bottom (idx=0 wide, idx=count-1 narrow)
             let topRatio, bottomRatio;
 
             if (inverted) {
-                // Inverted: wide at top, narrow at bottom
                 topRatio = (count - idx) / count;
                 bottomRatio = (count - idx - 1) / count;
             } else {
-                // Normal: narrow at top, wide at bottom
                 topRatio = idx / count;
                 bottomRatio = (idx + 1) / count;
             }
 
-            const shapeWidth = width;
-            const x = 0;
+            const x = (pyramidWidth - pyramidWidth) / 2;
             const y = idx * itemHeight;
 
-            return {
+            // Pyramid shape (parent text, centered)
+            shapes.push({
                 id: `shape-${idx}`,
                 type: 'trapezoid',
-                x, y,
-                width: shapeWidth,
+                x: 0,
+                y,
+                width: pyramidWidth,
                 height: itemHeight,
                 text: item.text || item,
                 fill: getAccentColor(theme, idx),
@@ -68,7 +74,31 @@
                 bottomWidthRatio: bottomRatio,
                 textColor: theme.light1,
                 fontSize: Math.min(24, itemHeight * 0.4)
-            };
+            });
+
+            // Textbox for children (bullet text, left-top aligned)
+            const children = item.children || [];
+            if (children.length > 0) {
+                const bulletText = children.map(c => '• ' + (c.text || c)).join('\n');
+                shapes.push({
+                    id: `textbox-${idx}`,
+                    type: 'roundRect',
+                    x: textboxX,
+                    y,
+                    width: textboxW,
+                    height: itemHeight,
+                    text: bulletText,
+                    fill: theme.light1 || '#FFFFFF',
+                    stroke: getAccentColor(theme, idx),
+                    strokeWidth: 1.5,
+                    textColor: theme.dark1 || '#333333',
+                    fontSize: Math.min(16, itemHeight * 0.3),
+                    rx: 6,
+                    ry: 6,
+                    textAlign: 'left',
+                    textVAlign: 'top'
+                });
+            }
         });
 
         return { type: 'pyramid', shapes, connectors: [], bounds: { x: 0, y: 0, width, height } };
@@ -405,9 +435,9 @@
             });
         } else {
             // Basic cycle (cycle4) - OOXML constraints from layout4.xml
-            const quadrantSize = Math.min(width, height) * 0.433;
+            const quadrantSize = Math.min(width, height) * 0.368;  // 0.433 * 0.85
             const boxW = width * 0.32;
-            const boxH = height * 0.18;
+            const boxH = height * 0.342;  // 0.36 * 0.95
             const gap = Math.min(width, height) * 0.01;
 
             const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
@@ -1171,19 +1201,26 @@
 
     function renderAutoFitText(shape) {
         const padding = 8;
+        const hAlign = shape.textAlign || 'center';
+        const vAlign = shape.textVAlign || 'center';
+        const justifyMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
+        const alignMap = { top: 'flex-start', center: 'center', bottom: 'flex-end' };
+
         const fo = createSVGElement('foreignObject', {
-            x: shape.x + padding, y: shape.y,
-            width: shape.width - padding * 2, height: shape.height
+            x: shape.x + padding,
+            y: shape.y + (vAlign === 'top' ? padding : 0),
+            width: shape.width - padding * 2,
+            height: shape.height - (vAlign === 'top' ? padding : 0)
         });
         const wrapper = document.createElement('div');
-        wrapper.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;';
+        wrapper.style.cssText = `width:100%;height:100%;display:flex;align-items:${alignMap[vAlign]||'center'};justify-content:${justifyMap[hAlign]||'center'};overflow:hidden;`;
         const div = document.createElement('div');
         div.className = 'smartart-text-editable';
         div.setAttribute('contenteditable', 'true');
         div.setAttribute('data-shape-id', shape.id);
-        div.style.cssText = `max-width:100%;max-height:100%;text-align:center;font-family:Inter,sans-serif;
-            color:${shape.textColor||'#FFF'};font-size:${shape.fontSize||14}px;line-height:1.3;
-            word-wrap:break-word;word-break:break-word;outline:none;cursor:text;`;
+        div.style.cssText = `max-width:100%;max-height:100%;text-align:${hAlign};font-family:Inter,sans-serif;
+            color:${shape.textColor||'#FFF'};font-size:${shape.fontSize||14}px;line-height:1.4;
+            word-wrap:break-word;word-break:break-word;outline:none;cursor:text;white-space:pre-wrap;`;
         div.textContent = shape.text;
         div.addEventListener('input', (e) => {
             div.dispatchEvent(new CustomEvent('smartart-text-change', {
@@ -1195,7 +1232,6 @@
         div.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); div.blur(); } });
         wrapper.appendChild(div);
         fo.appendChild(wrapper);
-        // Font sizing handled by unifyFontSizes after all shapes render
         return fo;
     }
 

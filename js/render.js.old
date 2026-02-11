@@ -33,6 +33,9 @@ function render() {
     if (state.pageType === 'content-grid') {
         setTimeout(() => initZoneCharts(), 0);
     }
+
+    // Update SmartArt text editor visibility
+    renderSmartartTextEditor();
 }
 
 // Initialize ECharts in chart zones
@@ -1202,8 +1205,11 @@ function renderSmartartPage() {
         html = smartartContainer;
     }
 
-    // Schedule SmartArt rendering after DOM update (use requestAnimationFrame for smoother render)
-    requestAnimationFrame(() => renderSmartArtChart());
+    // Schedule SmartArt rendering and text editor init after DOM update
+    requestAnimationFrame(() => {
+        renderSmartArtChart();
+        renderSmartartTextEditor();
+    });
     return html;
 }
 
@@ -1247,15 +1253,23 @@ function renderSmartArtChart() {
         sampleData = sampleData.slice(0, count);
     }
 
-    // Use custom items if available, otherwise use sample data
-    // Initialize smartartItems if count changed or not set
-    const expectedCount = (category === 'hierarchy' || category === 'matrix') ? sampleData.length : count;
-    if (!state.smartartItems || state.smartartItems.length !== expectedCount) {
-        state.smartartItems = sampleData.map(item =>
-            typeof item === 'string' ? item : (item.text || item)
-        );
+    // Use custom items if available, otherwise use sample data from SMARTART_TEST_DATA
+    if (!state.smartartItems || !Array.isArray(state.smartartItems)) {
+        const testData = SMARTART_TEST_DATA[state.smartartType] || SMARTART_TEST_DATA[category] || SMARTART_TEST_DATA['list'];
+        state.smartartItems = JSON.parse(JSON.stringify(testData.slice(0, count)));
+        state.smartartItemsByType[state.smartartType] = state.smartartItems;
     }
-    const items = state.smartartItems;
+
+    // Convert { text, children } format to flat strings/objects for SmartArt library
+    const items = state.smartartItems.map(item => {
+        if (typeof item === 'string') return item;
+        if (typeof item === 'object' && item.text !== undefined) {
+            // For types that support parent-child, pass the full structure
+            // For simple types, just extract text
+            return item;
+        }
+        return item;
+    });
 
     // Calculate size based on placement
     const isVertical = state.smartartPlacement === 'top-desc' || state.smartartPlacement === 'bottom-desc';

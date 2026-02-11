@@ -354,24 +354,32 @@ function renderText(shape) {
  * Render text with auto-fit using foreignObject
  * Text will wrap and shrink font if needed
  * Supports inline editing via contenteditable
+ * shape.textAlign: 'center' (default), 'left', 'right'
+ * shape.textVAlign: 'center' (default), 'top', 'bottom'
  */
 function renderAutoFitText(shape) {
     const padding = 8;
     const fo = createSVGElement('foreignObject', {
         x: shape.x + padding,
-        y: shape.y,
+        y: shape.y + (shape.textVAlign === 'top' ? padding : 0),
         width: shape.width - padding * 2,
-        height: shape.height
+        height: shape.height - (shape.textVAlign === 'top' ? padding : 0)
     });
 
-    // Outer container for centering
+    // Text alignment options
+    const hAlign = shape.textAlign || 'center';
+    const vAlign = shape.textVAlign || 'center';
+    const justifyMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
+    const alignMap = { top: 'flex-start', center: 'center', bottom: 'flex-end' };
+
+    // Outer container for alignment
     const wrapper = document.createElement('div');
     wrapper.style.cssText = `
         width: 100%;
         height: 100%;
         display: flex;
-        align-items: center;
-        justify-content: center;
+        align-items: ${alignMap[vAlign] || 'center'};
+        justify-content: ${justifyMap[hAlign] || 'center'};
         overflow: hidden;
     `;
 
@@ -383,7 +391,7 @@ function renderAutoFitText(shape) {
     div.style.cssText = `
         max-width: 100%;
         max-height: 100%;
-        text-align: center;
+        text-align: ${hAlign};
         font-family: Inter, sans-serif;
         color: ${shape.textColor || '#FFFFFF'};
         font-size: ${shape.fontSize || 14}px;

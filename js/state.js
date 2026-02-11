@@ -55,7 +55,8 @@ const state = {
     smartartPlacement: 'left-desc',
     smartartItemCount: 4,
     smartartColorScheme: 'colorful1',  // see SMARTART_COLOR_SCHEMES in config.js
-    smartartItems: null,  // null = use sample data, array = custom content
+    smartartItems: null,  // current type's items (for backward compat)
+    smartartItemsByType: {},  // { typeId: items[] } - each type has independent data
     expandedSmartartCat: 'pyramid',
     // Grid Layout
     gridLayout: 'two-col-equal',

@@ -304,3 +304,49 @@ const COVER_LAYOUTS = {
         footer: { enabled: false },
     },
 };
+
+// SmartArt Test Data - Default items for each SmartArt type (with parent-child structure)
+const SMARTART_TEST_DATA = {
+    'cycle': [
+        { text: '计划', children: [{ text: 'Plan' }] },
+        { text: '执行', children: [{ text: 'Do' }] },
+        { text: '检查', children: [{ text: 'Check' }] },
+        { text: '改进', children: [{ text: 'Act' }] },
+    ],
+    'pyramid': [
+        { text: '愿景', children: [{ text: '长期目标' }] },
+        { text: '战略', children: [{ text: '中期规划' }] },
+        { text: '战术', children: [{ text: '短期行动' }] },
+        { text: '执行', children: [{ text: '日常任务' }] },
+    ],
+    'matrix': [
+        { text: '战略矩阵', children: [{ text: 'Strategy Matrix' }] },
+        { text: '高影响/低成本', children: [{ text: '优先执行' }] },
+        { text: '高影响/高成本', children: [{ text: '谨慎投入' }] },
+        { text: '低影响/低成本', children: [{ text: '快速完成' }] },
+        { text: '低影响/高成本', children: [{ text: '避免投入' }] },
+    ],
+    'chevron': [
+        { text: '需求分析', children: [{ text: 'Requirements' }] },
+        { text: '方案设计', children: [{ text: 'Design' }] },
+        { text: '开发实现', children: [{ text: 'Development' }] },
+        { text: '测试验收', children: [{ text: 'Testing' }] },
+    ],
+    'hierarchy': [
+        { text: 'CEO', children: [] },
+        { text: 'CTO', children: [{ text: '研发部' }, { text: '质量部' }] },
+        { text: 'CFO', children: [{ text: '财务部' }] },
+    ],
+    'radial': [
+        { text: '核心目标', children: [{ text: 'Core' }] },
+        { text: '策略A', children: [{ text: 'Strategy A' }] },
+        { text: '策略B', children: [{ text: 'Strategy B' }] },
+        { text: '策略C', children: [{ text: 'Strategy C' }] },
+    ],
+    'list': [
+        { text: '要点一', children: [{ text: 'Point 1' }] },
+        { text: '要点二', children: [{ text: 'Point 2' }] },
+        { text: '要点三', children: [{ text: 'Point 3' }] },
+        { text: '要点四', children: [{ text: 'Point 4' }] },
+    ],
+};

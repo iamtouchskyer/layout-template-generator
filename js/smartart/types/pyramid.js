@@ -26,19 +26,28 @@ export function pyramidLayout(option, config = {}) {
     // Use childColors from scheme
     const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
 
+    // Check if any item has children - if so, shrink pyramid to make room for textboxes
+    const hasAnyChildren = items.some(item => item.children && item.children.length > 0);
+    const pyramidWidth = hasAnyChildren ? width * 0.55 : width;
+    const textboxX = pyramidWidth + width * 0.02;
+    const textboxW = width - textboxX - 10;
+
     // Calculate shapes - each level gets wider (or narrower if inverted)
-    const shapes = items.map((item, idx) => {
+    const shapes = [];
+
+    items.forEach((item, idx) => {
         const level = inverted ? count - 1 - idx : idx;
         const levelRatio = (level + 1) / count;
 
         // Width increases with level (bottom is widest)
-        const levelWidth = width * levelRatio;
-        const prevWidth = level === 0 ? 0 : width * (level / count);
+        const levelWidth = pyramidWidth * levelRatio;
+        const prevWidth = level === 0 ? 0 : pyramidWidth * (level / count);
 
-        const x = (width - levelWidth) / 2;
+        const x = (pyramidWidth - levelWidth) / 2;
         const y = inverted ? idx * itemHeight : (count - 1 - idx) * itemHeight;
 
-        return {
+        // Pyramid shape (parent text, centered)
+        shapes.push({
             id: `shape-${idx}`,
             type: 'trapezoid',
             x,
@@ -49,27 +58,51 @@ export function pyramidLayout(option, config = {}) {
             fill: childColors[idx % childColors.length],
             stroke: theme.light1,
             strokeWidth: 2,
-            // Trapezoid specific - top width ratio
             topWidthRatio: prevWidth / levelWidth,
             textColor: theme.light1,
             fontSize: Math.min(24, itemHeight * 0.4),
-            // OOXML reference data
-            ooxml: {
-                prst: 'trapezoid',
-                adj: 75000 // adjustment value from drawing5.xml
-            }
-        };
+            ooxml: { prst: 'trapezoid', adj: 75000 }
+        });
+
+        // Textbox for children (bullet text, left-top aligned)
+        const children = item.children || [];
+        if (children.length > 0) {
+            const bulletText = children.map(c => '• ' + (c.text || c)).join('\n');
+            shapes.push({
+                id: `textbox-${idx}`,
+                type: 'roundRect',
+                x: textboxX,
+                y,
+                width: textboxW,
+                height: itemHeight,
+                text: bulletText,
+                fill: theme.light1 || '#FFFFFF',
+                stroke: childColors[idx % childColors.length],
+                strokeWidth: 1.5,
+                textColor: theme.dark1 || '#333333',
+                fontSize: Math.min(16, itemHeight * 0.3),
+                rx: 6,
+                ry: 6,
+                textAlign: 'left',
+                textVAlign: 'top'
+            });
+        }
     });
 
-    // Reverse for normal pyramid (top-down in data, bottom-up visually)
+    // Reverse pyramid shapes for normal pyramid (top-down in data, bottom-up visually)
+    // But keep textboxes in original order
     if (!inverted) {
-        shapes.reverse();
+        const pyramidShapes = shapes.filter(s => s.id.startsWith('shape-'));
+        const textboxShapes = shapes.filter(s => s.id.startsWith('textbox-'));
+        pyramidShapes.reverse();
+        shapes.length = 0;
+        shapes.push(...pyramidShapes, ...textboxShapes);
     }
 
     return {
         type: 'pyramid',
         shapes,
-        connectors: [], // Pyramids don't have connectors
+        connectors: [],
         bounds: { x: 0, y: 0, width, height }
     };
 }
@@ -122,9 +155,17 @@ function pyramidListLayout(option, config) {
     });
 
     // Add list items - use parentColor for border
+    // Children are rendered as bullet text (left-top aligned)
     items.forEach((item, idx) => {
         const y = height * (startYRatio + idx * stepRatio);
         const itemH = height * itemHeightRatio;
+
+        // Build text content: if has children, show as bullet list
+        const children = item.children || [];
+        const bulletText = children.length > 0
+            ? children.map(c => '• ' + (c.text || c)).join('\n')
+            : (item.text || item);
+        const hasChildren = children.length > 0;
 
         shapes.push({
             id: `list-${idx}`,
@@ -133,14 +174,17 @@ function pyramidListLayout(option, config) {
             y,
             width: listW,
             height: itemH,
-            text: item.text || item,
+            text: bulletText,
             fill: theme.light1 || '#FFFFFF',
             stroke: theme.parentColor || theme.accent1 || '#CCCCCC',
             strokeWidth: 1.5,
             textColor: theme.dark1 || '#333333',
             fontSize: Math.min(18, itemH * 0.35),
             rx: 8,
-            ry: 8
+            ry: 8,
+            // Children use left-top alignment, parent text uses center
+            textAlign: hasChildren ? 'left' : 'center',
+            textVAlign: hasChildren ? 'top' : 'center'
         });
     });
 

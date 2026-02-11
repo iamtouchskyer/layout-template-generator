@@ -194,6 +194,8 @@
                 </div>
             </div>
             <div class="preview-viewport" id="preview-viewport">
+                <!-- SmartArt Text Editor (outside slide, PPT-style) -->
+                <div class="smartart-text-editor" id="smartart-text-editor"></div>
                 <div class="slide-wrapper">
                     <div class="slide-container" id="slide"><div class="master-layer" id="master-layer"></div><div class="content-layer" id="content-layer"></div></div>
                 </div>
@@ -208,10 +210,33 @@
     <script src="js/config-loader.js?v=14"></script>
     <script src="js/config.js?v=14"></script>
     <script src="js/state.js?v=15"></script>
-    <script src="js/ui.js?v=21"></script>
-    <script src="js/render.js?v=21"></script>
+
+    <!-- Render modules (load first - no dependencies) -->
+    <script src="js/render/charts.js"></script>
+    <script src="js/render/placeholders.js"></script>
+    <script src="js/render/shapes.js"></script>
+    <script src="js/render/master.js"></script>
+    <script src="js/render/cover.js"></script>
+    <script src="js/render/divider.js"></script>
+    <script src="js/render/zones.js"></script>
+    <script src="js/render/smartart.js"></script>
+    <script src="js/render/core.js"></script>
+
+    <!-- UI modules (depend on render modules) -->
+    <script src="js/ui/controls.js"></script>
+    <script src="js/ui/placeholders.js"></script>
+    <script src="js/ui/shapes.js"></script>
+    <script src="js/ui/page-types.js"></script>
+    <script src="js/ui/grid.js"></script>
+    <script src="js/ui/divider.js"></script>
+    <script src="js/ui/smartart.js"></script>
+    <script src="js/ui/export.js"></script>
+
+    <!-- Legacy modules (to be migrated) -->
     <script src="js/render-layouts.js?v=9"></script>
     <script src="js/render-cards.js?v=9"></script>
+
+    <!-- App entry point -->
     <script src="js/main.js?v=9"></script>
 </body>
 </html>

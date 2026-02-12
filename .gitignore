@@ -28,3 +28,5 @@ __pycache__/
 *.code-workspace
 *.pptx
 smartart-extracted/
+.coverage
+X6/

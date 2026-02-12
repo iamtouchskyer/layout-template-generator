@@ -1,6 +1,6 @@
 # SmartArt 库重构方案：借鉴 X6 设计模式
 
-> 文档版本：v1.0
+> 文档版本：v1.1
 > 日期：2026-02-07
 > 状态：待评审
 
@@ -14,6 +14,7 @@
 4. [核心模块设计](#4-核心模块设计)
 5. [实现细节](#5-实现细节)
 6. [迁移计划](#6-迁移计划)
+7. [补充：落地与遗漏](#7-补充落地与遗漏)
 
 ---
 
@@ -46,6 +47,9 @@ smartart.bundle.js (1429 行, 56KB)
     ├── setOption()
     └── dispose()
 ```
+
+> 补充校正：当前项目已存在模块化源码 `js/smartart/*`，但页面运行时仍直接加载 `js/smartart.bundle.js`。  
+> 即：**开发态源码**与**运行态产物**并存，且文档化的构建链路尚不完整。
 
 ### 1.2 问题清单
 
@@ -87,6 +91,15 @@ function pyramidListLayout(option, config) {
     });
 }
 ```
+
+### 1.4 额外现状（本次评审补充）
+
+| 现状 | 位置 | 影响 |
+|------|------|------|
+| 运行时仍依赖 bundle 文件 | `index.html` | 源码重构后若不更新 bundle，页面效果不会变化 |
+| SmartArt 类型定义分散在多处 | `js/config.js` / `js/smartart/types/registry.js` / `pptx_gen/themes.py` | 新增类型需要多点同步，容易漏改 |
+| 前后端 SmartArt 契约未显式化 | `js/ui/export.js` / `pptx_gen/slides/smartart.py` | 预览和导出容易“看起来一致，实际不一致” |
+| 存在已知渲染/交互缺陷 | `js/smartart/types/matrix.js` / `js/smartart/renderers/svg.js` / `js/render/smartart.js` | 重构前后难以定义“回归” |
 
 ---
 
@@ -1146,14 +1159,223 @@ Phase 4: 收尾 (2天)
 | 渲染差异 | 中 | 高 | 逐个布局对比测试 |
 | 性能下降 | 低 | 中 | Benchmark 对比 |
 | API 不兼容 | 中 | 高 | PropHooks 保持向后兼容 |
+| 类型映射漂移（多处配置） | 高 | 高 | 建立单一事实源 + 自动生成 |
+| 重构后未进入运行时 | 中 | 高 | 明确 bundle 构建/发布步骤，CI 检查产物变更 |
+| 预览与最终 PPT 不一致 | 中 | 高 | 建立前后端契约表 + 端到端回归用例 |
 
 ### 6.3 验收标准
 
 - [ ] 所有现有 SmartArt 类型正常渲染
 - [ ] 无魔法数字，所有常量有注释说明来源
-- [ ] 新增布局类型只需一个文件
+- [ ] 新增布局类型只改“一处事实源”，其余映射自动生成
 - [ ] 单元测试覆盖率 > 80%
 - [ ] Bundle 体积增长 < 20%
+- [ ] 文档中明确“源码 -> bundle -> 页面生效”链路
+- [ ] 前后端契约字段有测试覆盖（类型、颜色、层级结构）
+- [ ] 至少 10 个代表性类型完成视觉基线对比（与 `assets/smartart-refs`）
+
+---
+
+## 7. 补充：落地与遗漏
+
+### 7.1 前后端契约矩阵（必须固化）
+
+| 字段 | 前端来源 | 后端消费 | 现状问题 | 重构后要求 |
+|------|----------|----------|----------|------------|
+| `smartart.type` | UI 选择器 | `SMARTART_TYPE_MAP` | 多处映射可能不一致 | 单一事实源生成两端映射 |
+| `smartart.colorScheme` | UI 配色选择器 | `SMARTART_COLOR_SCHEME_MAP` | 语义一致但缺契约文档 | 统一枚举定义 + 校验 |
+| `smartart.items` | 编辑器 + SVG inline edit | `SmartArtData` 节点数据 | 编辑回写可能破坏结构 | 保障 `{text, children}` 结构稳定 |
+| `smartart.ooxml` | `SmartArt.toOOXML()` | 当前后端基本未使用细节 | 看起来导出了，实际未消费 | 明确是否消费；若不消费则删除/降级 |
+
+**决策建议：**
+- 路线 A（推荐，短期）: 以 `type + colorScheme + items` 作为唯一后端契约，`ooxml` 仅用于调试。
+- 路线 B（中期）: 后端逐步消费 `ooxml` 细节，实现预览与导出高度一致。
+
+### 7.2 单一事实源（Single Source of Truth）
+
+当前类型信息至少存在三处：UI 类型列表、前端布局注册、后端类型映射。  
+建议新增一份元数据源，例如：
+
+```text
+smartart/catalog.json   # 唯一事实源
+├── id
+├── ui.category / ui.label / ui.thumbnail
+├── layout.impl
+├── ooxml.layoutId
+└── pptx.smartartType
+```
+
+由脚本自动生成：
+- `js/config.smartart.generated.js`（UI 用）
+- `js/smartart/types/registry.generated.js`（前端布局注册）
+- `pptx_gen/smartart_map_generated.py`（后端映射）
+
+这样可以把“新增类型的修改点”从 3 处收敛到 1 处。
+
+#### 7.2.1 `catalog.json` 草案（可直接落地）
+
+```json
+{
+  "version": "1.0.0",
+  "categories": [
+    { "id": "matrix", "label": "Matrix", "desc": "矩阵/循环结构" },
+    { "id": "pyramid", "label": "Pyramid", "desc": "金字塔/漏斗结构" },
+    { "id": "others", "label": "Others", "desc": "其他图形" }
+  ],
+  "types": [
+    {
+      "id": "pyramid",
+      "ui": { "category": "pyramid", "label": "基础金字塔", "thumbnail": "pyramid1" },
+      "layout": { "impl": "pyramid", "variant": "basic" },
+      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/pyramid1" },
+      "pptx": { "smartartType": "BASIC_PYRAMID" }
+    },
+    {
+      "id": "pyramid-list",
+      "ui": { "category": "pyramid", "label": "金字塔列表", "thumbnail": "pyramid2" },
+      "layout": { "impl": "pyramid", "variant": "list" },
+      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/pyramid2" },
+      "pptx": { "smartartType": "PYRAMID_LIST" }
+    },
+    {
+      "id": "cycle",
+      "ui": { "category": "matrix", "label": "基础循环", "thumbnail": "cycle4" },
+      "layout": { "impl": "cycle", "variant": "basic" },
+      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle4" },
+      "pptx": { "smartartType": "BLOCK_CYCLE" }
+    },
+    {
+      "id": "hierarchy",
+      "ui": { "category": "others", "label": "组织架构", "thumbnail": "chart3" },
+      "layout": { "impl": "hierarchy", "variant": "basic" },
+      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/chart3" },
+      "pptx": { "smartartType": "HIERARCHY" }
+    }
+  ]
+}
+```
+
+> 说明：分类展示顺序由 `categories` 数组顺序决定，不再单独维护 `order` 字段。
+
+#### 7.2.2 生成物契约（脚本产出应满足）
+
+1. `js/config.smartart.generated.js`
+   - 导出 `SMARTART_CATEGORIES` 与 `SMARTART_TYPES`（仅 UI 展示字段）
+2. `js/smartart/types/registry.generated.js`
+   - 导出 `SMARTART_TYPES`（含 `layout` 绑定与元数据）
+3. `pptx_gen/smartart_map_generated.py`
+   - 导出 `SMARTART_TYPE_MAP`（字符串映射到 `SMARTART_TYPE.*`）
+
+#### 7.2.3 引入步骤（最小改造）
+
+1. 新增 `smartart/catalog.json`，先迁移现有 16 个活跃类型。
+2. 新增生成脚本（例如 `scripts/generate-smartart-catalog.js`）。
+3. 将 `js/config.js` 与 `pptx_gen/themes.py` 中 SmartArt 映射改为引用生成产物。
+4. CI 增加检查：`catalog.json` 变更后，生成产物必须同步变更。
+
+### 7.3 构建与发布链路（补齐最后一公里）
+
+当前运行时直接加载 `js/smartart.bundle.js`，因此重构后必须定义产物更新规则：
+
+1. 源码改动目录：`js/smartart/**`
+2. 产物文件：`js/smartart.bundle.js`
+3. 页面入口：`index.html` 的 `<script src="js/smartart.bundle.js?...">`
+4. 发布前检查：
+   - [ ] bundle 已更新（文件 hash/时间戳变化）
+   - [ ] 浏览器实测新逻辑生效
+   - [ ] 导出 PPT 回归通过
+
+如果短期不引入完整打包器，也需要至少补一份明确的 bundling 脚本和 README。
+
+可落地最小示例：
+
+```json
+// package.json (示例)
+{
+  "scripts": {
+    "build:smartart": "bash scripts/build-smartart.sh"
+  }
+}
+```
+
+```bash
+# scripts/build-smartart.sh (示例)
+#!/usr/bin/env bash
+set -euo pipefail
+shopt -s globstar nullglob
+cat js/smartart/index.js js/smartart/**/*.js > js/smartart.bundle.js
+```
+
+> 注：上面是“最小可用示例”，后续建议升级为可控的打包器（保证依赖顺序、去重、压缩与 sourcemap）。
+
+### 7.4 双轨迁移与开关策略（降低切换风险）
+
+建议增加引擎开关：
+
+```javascript
+state.smartartEngine = 'legacy' | 'next';
+```
+
+执行策略：
+- `legacy`：继续走旧实现（默认）
+- `next`：走重构后实现（灰度）
+- 支持 query 参数或本地开关快速切换
+- 出问题可秒级回滚到 `legacy`
+
+### 7.5 已知缺陷纳入回归基线
+
+重构前先记录并建用例，避免“旧 bug 被隐藏，误判重构成功”：
+
+- `matrix-cycle` 连接器类型与渲染器支持不一致（`arrow` 未被渲染）。
+- 文本编辑回写按 shapeId 尾号索引，可能把对象节点覆盖成字符串，导致 `children` 丢失。
+- 部分 layoutId/preset 映射存在语义错位风险（需逐项核对 ooxmlId 与类型名）。
+
+### 7.6 测试策略增强（不仅是覆盖率）
+
+除单测覆盖率外，增加三类质量门禁：
+
+1. 几何快照测试  
+输入固定 `items + size + theme`，断言 `layoutResult` 的关键字段（位置、尺寸、连接关系）。
+
+2. 视觉回归测试  
+对齐 `assets/smartart-refs`，产出截图后做像素或结构比对（可允许阈值）。
+
+当前仓库状态：
+- `assets/smartart-refs` 目录已存在（当前约 37 个参考文件，含 png/svg）。
+- 仍需在 Phase 0 明确“哪些类型/变体算基线覆盖完成”。
+
+3. 端到端导出回归  
+前端生成配置 -> 后端生成 PPTX -> 验证 SmartArt 类型、颜色方案、节点数与层级。
+
+### 7.7 性能预算与观测指标
+
+建议把性能验收从“体积”扩展到“交互体验”：
+
+| 指标 | 目标值（初版） | 场景 |
+|------|----------------|------|
+| 首次渲染耗时 | < 50ms | 6 节点基础类型 |
+| 复杂类型渲染耗时 | < 120ms | 20+ 节点层级图 |
+| 文本编辑回流耗时 | < 16ms | 单次输入更新 |
+| Bundle 增长 | < 20% | 相比现网版本 |
+
+来源说明：
+- `16ms` 来自 60fps 单帧预算（交互不卡顿基线）。
+- `50ms / 120ms` 为当前工程目标值（估算），用于约束重构方向。
+- Phase 0 需补一次基线测量，测完后把“估算值”替换为“实测阈值”。
+
+### 7.8 迁移阶段调整（建议）
+
+在原有 4 阶段基础上增加一个前置阶段：
+
+```text
+Phase 0: 对齐与基线 (2天)
+├── 梳理前后端契约矩阵
+├── 固化单一事实源方案
+├── 建立已知缺陷回归用例
+└── 明确 bundle 构建脚本
+```
+
+这样 Phase 1-4 的开发和验收更可控，减少返工。
 
 ---
 

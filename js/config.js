@@ -39,26 +39,23 @@ const ZONE_TO_CARD_TYPE = {
     'quote': 'text', 'list': 'text', 'summary': 'text', 'card': 'text',
 };
 
-// SmartArt Categories - PPT style (Matrix, Pyramid, Others)
-const SMARTART_CATEGORIES = {
+// SmartArt metadata is generated from smartart/catalog.json.
+// Fallback values are kept for safety when generated file is unavailable.
+const SMARTART_DEFAULT_CATEGORIES = {
     'matrix': { label: 'Matrix', desc: '矩阵/循环结构' },
     'pyramid': { label: 'Pyramid', desc: '金字塔/漏斗结构' },
     'others': { label: 'Others', desc: '其他图形' },
 };
 
-// SmartArt Types - organized by PPT categories with thumbnail support
-const SMARTART_TYPES = {
-    // Matrix (matrix1, matrix2, matrix3, cycle4)
+const SMARTART_DEFAULT_TYPES = {
     'matrix': { category: 'matrix', label: '标题矩阵', ooxmlId: 'matrix1' },
     'matrix-titled': { category: 'matrix', label: '基础矩阵', ooxmlId: 'matrix2' },
     'matrix-cycle': { category: 'matrix', label: '循环矩阵', ooxmlId: 'matrix3' },
     'cycle': { category: 'matrix', label: '基础循环', ooxmlId: 'cycle4' },
-    // Pyramid (pyramid1, pyramid2, pyramid3, pyramid4)
     'pyramid': { category: 'pyramid', label: '基础金字塔', ooxmlId: 'pyramid1' },
     'pyramid-list': { category: 'pyramid', label: '金字塔列表', ooxmlId: 'pyramid2' },
     'pyramid-inverted': { category: 'pyramid', label: '倒漏斗', ooxmlId: 'pyramid3' },
     'pyramid-segmented': { category: 'pyramid', label: '分段金字塔', ooxmlId: 'pyramid4' },
-    // Others
     'chevron': { category: 'others', label: '基础流程', ooxmlId: 'chevron1' },
     'arrow-process': { category: 'others', label: '流程箭头', ooxmlId: 'arrow2' },
     'descending-process': { category: 'others', label: '下降流程', ooxmlId: 'DescendingProcess' },
@@ -71,6 +68,9 @@ const SMARTART_TYPES = {
     'picture-accent': { category: 'others', label: '突出图片', ooxmlId: 'AccentedPicture' },
     'picture-captioned': { category: 'others', label: '带标题图片', ooxmlId: 'CaptionedPictures' },
 };
+
+const SMARTART_CATEGORIES = window.SMARTART_CATEGORIES || SMARTART_DEFAULT_CATEGORIES;
+const SMARTART_TYPES = window.SMARTART_TYPES || SMARTART_DEFAULT_TYPES;
 
 // SmartArt Placements
 const SMARTART_PLACEMENTS = {

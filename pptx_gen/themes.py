@@ -5,6 +5,8 @@ Theme colors and SmartArt mappings for PPTX generation.
 from pptx.dml.color import RGBColor
 from pptx.enum.smartart import SMARTART_TYPE, SMARTART_COLORS
 
+from .smartart_map_generated import GENERATED_SMARTART_TYPE_MAP
+
 
 def hex_to_rgb(hex_color: str) -> RGBColor:
     """Convert hex color to RGBColor."""
@@ -122,23 +124,7 @@ THEME_COLORS = {
 
 # SmartArt type mappings - New OOXML-based types
 SMARTART_TYPE_MAP = {
-    # New types (from frontend SmartArt library)
-    'pyramid': SMARTART_TYPE.BASIC_PYRAMID,           # pyramid1
-    'pyramid-list': SMARTART_TYPE.PYRAMID_LIST,       # pyramid2
-    'pyramid-inverted': SMARTART_TYPE.INVERTED_PYRAMID,  # pyramid3
-    'pyramid-segmented': SMARTART_TYPE.SEGMENTED_PYRAMID,  # pyramid4
-    'matrix': SMARTART_TYPE.BASIC_MATRIX,
-    'matrix-titled': SMARTART_TYPE.TITLED_MATRIX,
-    'matrix-cycle': SMARTART_TYPE.TITLED_MATRIX,
-    'cycle': SMARTART_TYPE.BLOCK_CYCLE,  # cycle4
-    'cycle-segmented': SMARTART_TYPE.SEGMENTED_CYCLE,
-    'chevron': SMARTART_TYPE.BASIC_CHEVRON_PROCESS,
-    'arrow-process': SMARTART_TYPE.BASIC_PROCESS,
-    'descending-process': SMARTART_TYPE.DESCENDING_PROCESS,
-    'hierarchy': SMARTART_TYPE.HIERARCHY,
-    'radial': SMARTART_TYPE.BASIC_RADIAL,
-    'list': SMARTART_TYPE.BASIC_BLOCK_LIST,
-    'list-vertical': SMARTART_TYPE.VERTICAL_BULLET_LIST,
+    **GENERATED_SMARTART_TYPE_MAP,
     # Legacy types (for backwards compatibility)
     'stairs-blocks': SMARTART_TYPE.STEP_DOWN_PROCESS,
     'stairs-cubes': SMARTART_TYPE.BASIC_PROCESS,

@@ -1,0 +1,29 @@
+name: SmartArt Sync
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  smartart-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate catalog artifacts
+        run: node scripts/generate-smartart-catalog.js
+
+      - name: Build smartart bundle
+        run: scripts/build-smartart.sh
+
+      - name: Verify generated artifacts are in sync
+        run: scripts/verify-smartart-catalog-sync.sh
+
+      - name: Ensure bundle and generated files are committed
+        run: git diff --exit-code -- js/smartart.bundle.js js/config.smartart.generated.js js/smartart/types/registry.generated.js pptx_gen/smartart_map_generated.py

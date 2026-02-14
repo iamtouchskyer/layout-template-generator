@@ -122,12 +122,33 @@ function renderSmartArtChart() {
 
 function handleSmartartTextChange(e) {
     const { shapeId, text } = e.detail;
-    const match = shapeId.match(/(\d+)$/);
-    if (match && state.smartartItems) {
-        const idx = parseInt(match[1], 10);
-        if (idx >= 0 && idx < state.smartartItems.length) {
-            state.smartartItems[idx] = text;
-        }
+    const match = shapeId.match(/^([a-zA-Z-]+)-(\d+)$/);
+    if (!match || !state.smartartItems) return;
+
+    const shapeKind = match[1];
+    const idx = parseInt(match[2], 10);
+    if (idx < 0 || idx >= state.smartartItems.length) return;
+
+    const current = state.smartartItems[idx];
+    const currentObj = (typeof current === 'object' && current !== null) ? current : { text: String(current || '') };
+
+    // Child textbox edits should map to children[] instead of overwriting root item.
+    if (shapeKind === 'textbox') {
+        const lines = String(text || '')
+            .split('\n')
+            .map(line => line.replace(/^\s*[•·]\s*/, '').trim())
+            .filter(Boolean);
+        currentObj.children = lines.map(line => ({ text: line }));
+        state.smartartItems[idx] = currentObj;
+        return;
+    }
+
+    // Root shape/list item edits map to item.text while preserving children and metadata.
+    currentObj.text = text;
+    state.smartartItems[idx] = currentObj;
+    if (typeof current === 'string') {
+        // Keep pure-string list behavior for simple layouts.
+        state.smartartItems[idx] = text;
     }
 }
 

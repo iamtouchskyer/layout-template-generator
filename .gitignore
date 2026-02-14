@@ -30,3 +30,6 @@ __pycache__/
 smartart-extracted/
 .coverage
 X6/
+
+# Node
+node_modules/

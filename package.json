@@ -1,0 +1,11 @@
+{
+  "name": "layout-template-generator",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "smartart:generate": "node scripts/generate-smartart-catalog.js",
+    "smartart:build": "scripts/build-smartart.sh",
+    "smartart:verify": "scripts/verify-smartart-catalog-sync.sh",
+    "smartart:pipeline": "scripts/smartart-pipeline.sh"
+  }
+}

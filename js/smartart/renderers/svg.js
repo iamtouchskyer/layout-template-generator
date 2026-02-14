@@ -444,9 +444,35 @@ function renderConnector(conn) {
             });
         case 'curvedArrow':
             return renderCurvedArrow(conn);
+        case 'arrow':
+            return renderArrowConnector(conn);
         default:
             return null;
     }
+}
+
+function renderArrowConnector(conn) {
+    const { x, y, size = 12, rotation = 0, fill = '#666' } = conn;
+    const half = size / 2;
+    const points = [
+        `${x},${y + half}`,
+        `${x + size * 0.6},${y + half}`,
+        `${x + size * 0.6},${y}`,
+        `${x + size},${y + half}`,
+        `${x + size * 0.6},${y + size}`,
+        `${x + size * 0.6},${y + half}`
+    ].join(' ');
+
+    const polygon = createSVGElement('polygon', {
+        points,
+        fill
+    });
+
+    if (rotation) {
+        polygon.setAttribute('transform', `rotate(${rotation} ${x + half} ${y + half})`);
+    }
+
+    return polygon;
 }
 
 function renderCurvedArrow(conn) {

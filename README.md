@@ -36,6 +36,17 @@ PowerPoint-style Slide Master & Layout Editor for PPTX generation.
 
 Open `index.html` in a browser to start editing.
 
+## SmartArt Workflow
+
+SmartArt metadata now uses a single source of truth: `smartart/catalog.json`.
+
+Common commands:
+
+- `npm run smartart:generate` - regenerate SmartArt generated artifacts
+- `npm run smartart:build` - rebuild `js/smartart.bundle.js`
+- `npm run smartart:verify` - assert generated artifacts are in sync
+- `npm run smartart:pipeline` - run full local pipeline (generate, build, verify, tests)
+
 ## OOXML Hierarchy
 
 Theme → Slide Master → Slide Layout → Slide

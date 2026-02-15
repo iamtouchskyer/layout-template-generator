@@ -17,6 +17,13 @@ const EMU_PER_POINT = 12700;
 const EMU_PER_CM = 360000;
 const EMU_PER_PX = 9525; // 96 DPI
 
+function nowMs() {
+    if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+        return performance.now();
+    }
+    return Date.now();
+}
+
 export class SmartArt {
     constructor(container) {
         this.container = typeof container === 'string'
@@ -25,6 +32,7 @@ export class SmartArt {
         this.option = null;
         this.data = null;
         this.svgElement = null;
+        this.metrics = null;
     }
 
     /**
@@ -80,8 +88,16 @@ export class SmartArt {
         return {
             type: this.option?.type,
             items: this.option?.items,
-            theme: this.option?.theme
+            theme: this.option?.theme,
+            metrics: this.metrics
         };
+    }
+
+    /**
+     * Get the last render metrics
+     */
+    getMetrics() {
+        return this.metrics;
     }
 
     /**
@@ -89,6 +105,7 @@ export class SmartArt {
      */
     _render() {
         if (!this.container || !this.option) return;
+        const totalStart = nowMs();
 
         const typeConfig = SMARTART_TYPES[this.option.type];
         if (!typeConfig) {
@@ -97,14 +114,27 @@ export class SmartArt {
         }
 
         // Calculate layout
+        const layoutStart = nowMs();
         this.data = typeConfig.layout(this.option);
+        const layoutMs = nowMs() - layoutStart;
 
         // Render SVG
+        const renderStart = nowMs();
         this.svgElement = renderSVG(this.data, this.option);
+        const renderMs = nowMs() - renderStart;
 
         // Clear and append
         this.container.innerHTML = '';
         this.container.appendChild(this.svgElement);
+
+        this.metrics = {
+            type: this.option.type,
+            layoutMs: Number(layoutMs.toFixed(2)),
+            renderMs: Number(renderMs.toFixed(2)),
+            totalMs: Number((nowMs() - totalStart).toFixed(2)),
+            shapeCount: this.data?.shapes?.length || 0,
+            connectorCount: this.data?.connectors?.length || 0
+        };
     }
 
     _getContainerSize() {

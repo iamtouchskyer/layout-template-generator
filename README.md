@@ -47,6 +47,21 @@ Common commands:
 - `npm run smartart:verify` - assert generated artifacts are in sync
 - `npm run smartart:pipeline` - run full local pipeline (generate, build, verify, tests)
 
+Browser-side benchmark helper:
+
+```javascript
+// Run in browser console (after opening index.html)
+SmartArt.benchmark(
+  document.getElementById('smartart-render-target'),
+  {
+    type: 'pyramid',
+    items: ['A', 'B', 'C', 'D', 'E', 'F'],
+    size: { width: 1000, height: 500 },
+  },
+  50
+)
+```
+
 ## OOXML Hierarchy
 
 Theme → Slide Master → Slide Layout → Slide

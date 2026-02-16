@@ -193,6 +193,7 @@ function updateJsonOutput() {
         } : {}),
         ...(state.pageType === 'content-smartart' ? {
             smartart: {
+                engine: state.smartartEngine || 'next',
                 type: state.smartartType,
                 category: state.smartartCategory,
                 placement: state.smartartPlacement,

@@ -193,6 +193,40 @@ SmartArt.registerType = function(name, config) {
     SMARTART_TYPES[name] = config;
 };
 
+// Benchmark helper for local profiling in browser.
+SmartArt.benchmark = function(container, optionFactory, runs = 20) {
+    const inst = SmartArt.init(container);
+    const metrics = [];
+
+    for (let i = 0; i < runs; i++) {
+        const option = (typeof optionFactory === 'function')
+            ? optionFactory(i)
+            : optionFactory;
+        inst.setOption(option);
+        const m = inst.getMetrics();
+        if (m) metrics.push(m);
+    }
+
+    const summaryOf = (key) => {
+        const arr = metrics.map(m => m[key]).filter(v => Number.isFinite(v));
+        if (arr.length === 0) return null;
+        const sum = arr.reduce((a, b) => a + b, 0);
+        return {
+            min: Number(Math.min(...arr).toFixed(2)),
+            max: Number(Math.max(...arr).toFixed(2)),
+            avg: Number((sum / arr.length).toFixed(2)),
+        };
+    };
+
+    return {
+        runs: metrics.length,
+        layoutMs: summaryOf('layoutMs'),
+        renderMs: summaryOf('renderMs'),
+        totalMs: summaryOf('totalMs'),
+        latest: metrics[metrics.length - 1] || null,
+    };
+};
+
 // Utility functions
 SmartArt.utils = {
     emuToPx: (emu) => emu / EMU_PER_PX,

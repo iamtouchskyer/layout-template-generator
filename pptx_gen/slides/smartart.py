@@ -2,6 +2,8 @@
 SmartArt content slide generator.
 """
 
+import logging
+
 from pptx.util import Inches, Pt
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.smartart import SMARTART_TYPE, SMARTART_COLORS
@@ -16,18 +18,19 @@ def generate_smartart_slide(prs, config, theme):
     slide = prs.slides.add_slide(get_blank_layout(prs))
 
     smartart_config = config.get('smartart', {})
+    smartart_engine = smartart_config.get('engine', 'next')
+    if smartart_engine not in ('legacy', 'next'):
+        logging.warning("Unknown SmartArt engine '%s', fallback to 'next'", smartart_engine)
+        smartart_engine = 'next'
     smartart_type_id = smartart_config.get('type', 'pyramid')
     placement = smartart_config.get('placement', 'full')
     color_scheme_id = smartart_config.get('colorScheme', 'colorful2')
 
-    # Get items from ooxml data (passed from frontend)
-    ooxml_data = smartart_config.get('ooxml', {})
-    items = ooxml_data.get('items', [])
-    # Extract text from items
-    item_texts = [
-        item.get('text', str(item)) if isinstance(item, dict) else str(item)
-        for item in items
-    ]
+    # Frontend runtime currently provides one implementation for both engines.
+    # Keep this field in contract for gradual engine migration.
+    _ = smartart_engine
+
+    item_texts = _extract_item_texts(smartart_config)
 
     # Title
     _add_title_with_tag(slide, "流程分析", "SmartArt", theme, 'with-tag')
@@ -54,7 +57,6 @@ def generate_smartart_slide(prs, config, theme):
     try:
         slide.shapes.add_smartart(pptx_type, x, y, cx, cy, smartart_data, color_scheme=color_scheme)
     except (KeyError, ValueError, AttributeError, TypeError) as e:
-        import logging
         logging.warning(f"SmartArt creation failed for type '{smartart_type_id}': {e}")
         _add_fallback_placeholder(slide, x, y, cx, cy, theme)
 
@@ -170,3 +172,22 @@ def _create_smartart_data(smartart_type_id: str, items: list) -> SmartArtData:
             data.add_node(item)
 
     return data
+
+
+def _extract_item_texts(smartart_config: dict) -> list:
+    """Extract item texts from config with explicit items first, OOXML fallback."""
+    items = smartart_config.get('items')
+    if not isinstance(items, list) or len(items) == 0:
+        ooxml_data = smartart_config.get('ooxml', {})
+        if isinstance(ooxml_data, dict):
+            items = ooxml_data.get('items', [])
+        else:
+            items = []
+
+    item_texts = []
+    for item in items:
+        if isinstance(item, dict):
+            item_texts.append(str(item.get('text', str(item))))
+        else:
+            item_texts.append(str(item))
+    return item_texts

@@ -15,6 +15,7 @@ from pptx.enum.smartart import SMARTART_TYPE, SMARTART_COLORS
 
 from pptx_gen import generate_pptx
 from pptx_gen.themes import THEME_COLORS, get_theme
+from pptx_gen.slides.smartart import _extract_item_texts
 
 
 class TestSmartArtColorSchemes:
@@ -224,6 +225,7 @@ class TestSmartArtLayouts:
         finally:
             os.unlink(output_path)
 
+
     def test_hexagon_alternating_layout(self):
         """Generate PPTX with alternating hexagons SmartArt."""
         config = {
@@ -281,6 +283,25 @@ class TestSmartArtLayouts:
             assert len(prs.slides) == 1
         finally:
             os.unlink(output_path)
+
+
+class TestSmartArtContract:
+    """Test SmartArt contract field handling."""
+
+    def test_extract_items_prefers_explicit_items(self):
+        """smartart.items should take precedence over smartart.ooxml.items."""
+        config = {
+            'items': ['A', {'text': 'B'}],
+            'ooxml': {'items': [{'text': 'legacy-1'}, {'text': 'legacy-2'}]},
+        }
+        assert _extract_item_texts(config) == ['A', 'B']
+
+    def test_extract_items_falls_back_to_ooxml(self):
+        """Fallback to ooxml.items when explicit items is absent."""
+        config = {
+            'ooxml': {'items': [{'text': 'X'}, 'Y']},
+        }
+        assert _extract_item_texts(config) == ['X', 'Y']
 
 
 if __name__ == '__main__':

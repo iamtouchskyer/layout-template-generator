@@ -15,7 +15,7 @@ from pptx.enum.smartart import SMARTART_TYPE, SMARTART_COLORS
 
 from pptx_gen import generate_pptx
 from pptx_gen.themes import THEME_COLORS, get_theme
-from pptx_gen.slides.smartart import _extract_item_texts
+from pptx_gen.slides.smartart import _create_smartart_data, _extract_smartart_items
 
 
 class TestSmartArtColorSchemes:
@@ -294,14 +294,32 @@ class TestSmartArtContract:
             'items': ['A', {'text': 'B'}],
             'ooxml': {'items': [{'text': 'legacy-1'}, {'text': 'legacy-2'}]},
         }
-        assert _extract_item_texts(config) == ['A', 'B']
+        assert _extract_smartart_items(config) == ['A', {'text': 'B'}]
 
     def test_extract_items_falls_back_to_ooxml(self):
         """Fallback to ooxml.items when explicit items is absent."""
         config = {
             'ooxml': {'items': [{'text': 'X'}, 'Y']},
         }
-        assert _extract_item_texts(config) == ['X', 'Y']
+        assert _extract_smartart_items(config) == [{'text': 'X'}, 'Y']
+
+    def test_hierarchy_children_are_preserved(self):
+        """Hierarchy nodes should keep nested children from structured items."""
+        items = [
+            {
+                'text': 'CEO',
+                'children': [
+                    {'text': 'CTO'},
+                    {'text': 'CFO', 'children': [{'text': 'Finance'}]},
+                ],
+            }
+        ]
+
+        data = _create_smartart_data('hierarchy', items)
+        assert len(data.root_nodes) == 1
+        assert data.root_nodes[0].text == 'CEO'
+        assert [n.text for n in data.root_nodes[0].children] == ['CTO', 'CFO']
+        assert data.root_nodes[0].children[1].children[0].text == 'Finance'
 
 
 if __name__ == '__main__':

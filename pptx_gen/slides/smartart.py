@@ -30,7 +30,7 @@ def generate_smartart_slide(prs, config, theme):
     # Keep this field in contract for gradual engine migration.
     _ = smartart_engine
 
-    item_texts = _extract_item_texts(smartart_config)
+    items = _extract_smartart_items(smartart_config)
 
     # Title
     _add_title_with_tag(slide, "流程分析", "SmartArt", theme, 'with-tag')
@@ -52,7 +52,7 @@ def generate_smartart_slide(prs, config, theme):
     # Add SmartArt with selected color scheme
     pptx_type = SMARTART_TYPE_MAP.get(smartart_type_id, SMARTART_TYPE.BASIC_PYRAMID)
     color_scheme = SMARTART_COLOR_SCHEME_MAP.get(color_scheme_id, SMARTART_COLORS.COLORFUL_ACCENT_COLORS)
-    smartart_data = _create_smartart_data(smartart_type_id, item_texts)
+    smartart_data = _create_smartart_data(smartart_type_id, items)
 
     try:
         slide.shapes.add_smartart(pptx_type, x, y, cx, cy, smartart_data, color_scheme=color_scheme)
@@ -159,23 +159,28 @@ def _create_smartart_data(smartart_type_id: str, items: list) -> SmartArtData:
     is_hierarchy = pptx_type in [SMARTART_TYPE.HIERARCHY, SMARTART_TYPE.ORGANIZATION_CHART]
     is_radial = pptx_type in [SMARTART_TYPE.BASIC_RADIAL, SMARTART_TYPE.RADIAL]
 
-    if is_hierarchy and len(items) > 1:
-        root = data.add_node(items[0])
+    if (is_hierarchy or is_radial) and _has_nested_children(items):
+        for item in items:
+            root = data.add_node(_item_text(item))
+            if isinstance(item, dict):
+                _add_child_nodes(root, item.get('children', []))
+    elif is_hierarchy and len(items) > 1:
+        root = data.add_node(_item_text(items[0]))
         for item in items[1:]:
-            root.add_child(item)
+            root.add_child(_item_text(item))
     elif is_radial and len(items) > 1:
-        center = data.add_node(items[0])
+        center = data.add_node(_item_text(items[0]))
         for item in items[1:]:
-            center.add_child(item)
+            center.add_child(_item_text(item))
     else:
         for item in items:
-            data.add_node(item)
+            data.add_node(_item_text(item))
 
     return data
 
 
-def _extract_item_texts(smartart_config: dict) -> list:
-    """Extract item texts from config with explicit items first, OOXML fallback."""
+def _extract_smartart_items(smartart_config: dict) -> list:
+    """Extract SmartArt items from config with explicit items first, OOXML fallback."""
     items = smartart_config.get('items')
     if not isinstance(items, list) or len(items) == 0:
         ooxml_data = smartart_config.get('ooxml', {})
@@ -183,11 +188,31 @@ def _extract_item_texts(smartart_config: dict) -> list:
             items = ooxml_data.get('items', [])
         else:
             items = []
+    return items if isinstance(items, list) else []
 
-    item_texts = []
+
+def _item_text(item) -> str:
+    """Return display text from SmartArt item."""
+    if isinstance(item, dict):
+        return str(item.get('text', str(item)))
+    return str(item)
+
+
+def _has_nested_children(items: list) -> bool:
+    """Check whether items include explicit nested children."""
     for item in items:
         if isinstance(item, dict):
-            item_texts.append(str(item.get('text', str(item))))
-        else:
-            item_texts.append(str(item))
-    return item_texts
+            children = item.get('children', [])
+            if isinstance(children, list) and len(children) > 0:
+                return True
+    return False
+
+
+def _add_child_nodes(parent_node, children: list) -> None:
+    """Recursively add child nodes from nested items."""
+    if not isinstance(children, list):
+        return
+    for child in children:
+        node = parent_node.add_child(_item_text(child))
+        if isinstance(child, dict):
+            _add_child_nodes(node, child.get('children', []))

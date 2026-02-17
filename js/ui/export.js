@@ -198,6 +198,9 @@ function updateJsonOutput() {
                 category: state.smartartCategory,
                 placement: state.smartartPlacement,
                 colorScheme: state.smartartColorScheme,
+                items: Array.isArray(state.smartartItems)
+                    ? JSON.parse(JSON.stringify(state.smartartItems))
+                    : [],
                 ooxmlId: SMARTART_TYPES[state.smartartType]?.ooxmlId,
                 ...(typeof getSmartArtOOXML === 'function' ? { ooxml: getSmartArtOOXML() } : {})
             }

@@ -4,8 +4,11 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+INDEX_HTML = ROOT / 'index.html'
 STATE_JS = ROOT / 'js' / 'state.js'
 EXPORT_JS = ROOT / 'js' / 'ui' / 'export.js'
+PAGE_TYPES_JS = ROOT / 'js' / 'ui' / 'page-types.js'
+SMARTART_UI_JS = ROOT / 'js' / 'ui' / 'smartart.js'
 
 
 def _read(path: Path) -> str:
@@ -28,3 +31,14 @@ def test_export_includes_key_smartart_contract_fields():
     ]
     for snippet in required_snippets:
         assert snippet in source
+
+
+def test_engine_selector_is_wired_in_ui():
+    index_source = _read(INDEX_HTML)
+    page_type_source = _read(PAGE_TYPES_JS)
+    smartart_ui_source = _read(SMARTART_UI_JS)
+
+    assert 'id="smartart-engine-selector"' in index_source
+    assert 'renderSmartartEngineSelector();' in page_type_source
+    assert 'function renderSmartartEngineSelector()' in smartart_ui_source
+    assert 'function selectSmartartEngine(engineId)' in smartart_ui_source

@@ -42,6 +42,7 @@ function updatePageType(type) {
     const smartartBar = document.getElementById('smartart-operation-bar');
     if (type === 'content-smartart') {
         smartartBar.classList.add('visible');
+        renderSmartartEngineSelector();
         renderSmartartTypeSelector();
         renderSmartartCountSelector();
         renderSmartartPlacements();

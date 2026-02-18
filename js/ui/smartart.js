@@ -98,6 +98,53 @@ function selectSmartartPlacement(placementId) {
 }
 
 /**
+ * Render SmartArt engine selector (legacy/next)
+ */
+function renderSmartartEngineSelector() {
+    const container = document.getElementById('smartart-engine-selector');
+    if (!container) return;
+
+    const engines = [
+        { id: 'next', label: 'Next' },
+        { id: 'legacy', label: 'Legacy' },
+    ];
+
+    container.innerHTML = `<div class="placement-btns">
+        ${engines.map(engine => `
+            <button class="placement-btn ${state.smartartEngine === engine.id ? 'active' : ''}"
+                    onclick="selectSmartartEngine('${engine.id}')"
+                    title="${engine.id === 'next' ? '新引擎' : '回退引擎'}">
+                ${engine.label}
+            </button>
+        `).join('')}
+    </div>`;
+}
+
+/**
+ * Select SmartArt engine and sync query param for reproducibility
+ */
+function selectSmartartEngine(engineId) {
+    state.smartartEngine = engineId === 'legacy' ? 'legacy' : 'next';
+    syncSmartartEngineQuery(state.smartartEngine);
+    renderSmartartEngineSelector();
+    render();
+}
+
+function syncSmartartEngineQuery(engineId) {
+    try {
+        const url = new URL(window.location.href);
+        if (engineId === 'legacy') {
+            url.searchParams.set('smartartEngine', 'legacy');
+        } else {
+            url.searchParams.delete('smartartEngine');
+        }
+        window.history.replaceState({}, '', url.toString());
+    } catch (_) {
+        // ignore query sync errors in unsupported environments
+    }
+}
+
+/**
  * Render item count selector
  */
 function renderSmartartCountSelector() {

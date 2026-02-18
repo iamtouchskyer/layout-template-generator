@@ -1268,10 +1268,10 @@ smartart/catalog.json   # 唯一事实源
 
 #### 7.2.3 引入步骤（最小改造）
 
-1. 新增 `smartart/catalog.json`，先迁移现有 16 个活跃类型。
-2. 新增生成脚本（例如 `scripts/generate-smartart-catalog.js`）。
-3. 将 `js/config.js` 与 `pptx_gen/themes.py` 中 SmartArt 映射改为引用生成产物。
-4. CI 增加检查：`catalog.json` 变更后，生成产物必须同步变更。
+1. [x] 新增 `smartart/catalog.json`（当前已覆盖 19 个类型）。
+2. [x] 新增生成脚本 `scripts/generate-smartart-catalog.js`。
+3. [x] 将 `js/config.js` 与 `pptx_gen/themes.py` 中 SmartArt 映射改为引用生成产物。
+4. [x] CI 增加检查：`catalog.json` 变更后，生成产物必须同步变更。
 
 ### 7.3 构建与发布链路（补齐最后一公里）
 
@@ -1281,32 +1281,33 @@ smartart/catalog.json   # 唯一事实源
 2. 产物文件：`js/smartart.bundle.js`
 3. 页面入口：`index.html` 的 `<script src="js/smartart.bundle.js?...">`
 4. 发布前检查：
-   - [ ] bundle 已更新（文件 hash/时间戳变化）
-   - [ ] 浏览器实测新逻辑生效
-   - [ ] 导出 PPT 回归通过
+   - [x] bundle 已更新（`scripts/build-smartart.sh` + CI 校验）
+   - [ ] 浏览器实测新逻辑生效（仍需人工 smoke）
+   - [x] 导出 PPT 回归通过（`tests/test_smartart.py`）
 
 如果短期不引入完整打包器，也需要至少补一份明确的 bundling 脚本和 README。
 
-可落地最小示例：
+当前落地脚本：
 
 ```json
-// package.json (示例)
 {
   "scripts": {
-    "build:smartart": "bash scripts/build-smartart.sh"
+    "smartart:build": "scripts/build-smartart.sh",
+    "smartart:pipeline": "scripts/smartart-pipeline.sh"
   }
 }
 ```
 
 ```bash
-# scripts/build-smartart.sh (示例)
+# scripts/build-smartart.sh (当前实现)
 #!/usr/bin/env bash
 set -euo pipefail
-shopt -s globstar nullglob
-cat js/smartart/index.js js/smartart/**/*.js > js/smartart.bundle.js
+npx --yes esbuild@0.25.10 js/smartart/bundle-entry.js \
+  --bundle --format=iife --global-name=SmartArt \
+  --minify --outfile=js/smartart.bundle.js
 ```
 
-> 注：上面是“最小可用示例”，后续建议升级为可控的打包器（保证依赖顺序、去重、压缩与 sourcemap）。
+> 说明：已从 `cat` 拼接升级为 `esbuild`，保证依赖顺序与可重复产物。
 
 ### 7.4 双轨迁移与开关策略（降低切换风险）
 
@@ -1317,9 +1318,9 @@ state.smartartEngine = 'legacy' | 'next';
 ```
 
 执行策略：
-- `legacy`：继续走旧实现（默认）
-- `next`：走重构后实现（灰度）
-- 支持 query 参数或本地开关快速切换
+- `legacy`：回退开关（当前映射到同一运行时实现，用于切换通路验证）
+- `next`：主路径（默认）
+- 支持 query 参数（`?smartartEngine=legacy`）和 UI 开关快速切换
 - 出问题可秒级回滚到 `legacy`
 
 ### 7.5 已知缺陷纳入回归基线
@@ -1330,12 +1331,18 @@ state.smartartEngine = 'legacy' | 'next';
 - 文本编辑回写按 shapeId 尾号索引，可能把对象节点覆盖成字符串，导致 `children` 丢失。
 - 部分 layoutId/preset 映射存在语义错位风险（需逐项核对 ooxmlId 与类型名）。
 
+当前状态：
+- [x] 已修复 `matrix-cycle` 的 `arrow` 连接器渲染。
+- [x] 已修复文本回写导致 `children` 丢失问题。
+- [ ] `layoutId/preset` 语义核对仍需逐项完成。
+
 ### 7.6 测试策略增强（不仅是覆盖率）
 
 除单测覆盖率外，增加三类质量门禁：
 
 1. 几何快照测试  
 输入固定 `items + size + theme`，断言 `layoutResult` 的关键字段（位置、尺寸、连接关系）。
+   - [x] 已落地：`scripts/verify-smartart-layout-snapshots.sh` + `tests/snapshots/smartart_layout_snapshots.json`（19 类型）
 
 2. 视觉回归测试  
 对齐 `assets/smartart-refs`，产出截图后做像素或结构比对（可允许阈值）。
@@ -1346,6 +1353,7 @@ state.smartartEngine = 'legacy' | 'next';
 
 3. 端到端导出回归  
 前端生成配置 -> 后端生成 PPTX -> 验证 SmartArt 类型、颜色方案、节点数与层级。
+   - [x] 已纳入 pipeline：`tests/test_smartart.py`
 
 ### 7.7 性能预算与观测指标
 
@@ -1361,7 +1369,8 @@ state.smartartEngine = 'legacy' | 'next';
 来源说明：
 - `16ms` 来自 60fps 单帧预算（交互不卡顿基线）。
 - `50ms / 120ms` 为当前工程目标值（估算），用于约束重构方向。
-- Phase 0 需补一次基线测量，测完后把“估算值”替换为“实测阈值”。
+- 已具备观测能力：`SmartArt.getMetrics()` 与 `SmartArt.benchmark(...)`。
+- Phase 0/1 仍需补一次固定场景基线测量，测完后把“估算值”替换为“实测阈值”。
 
 ### 7.8 迁移阶段调整（建议）
 

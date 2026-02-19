@@ -33,3 +33,12 @@ def test_catalog_has_unique_type_ids():
     catalog = load_catalog()
     ids = [item['id'] for item in catalog['types']]
     assert len(ids) == len(set(ids))
+
+
+def test_ooxml_id_matches_layout_id_tail():
+    catalog = load_catalog()
+    for item in catalog['types']:
+        ooxml_id = item['ui']['ooxmlId']
+        layout_id = item['ooxml']['layoutId']
+        layout_tail = layout_id.rsplit('/', 1)[-1]
+        assert ooxml_id == layout_tail

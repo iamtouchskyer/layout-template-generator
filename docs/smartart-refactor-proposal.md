@@ -1370,6 +1370,7 @@ state.smartartEngine = 'legacy' | 'next';
 - `16ms` 来自 60fps 单帧预算（交互不卡顿基线）。
 - `50ms / 120ms` 为当前工程目标值（估算），用于约束重构方向。
 - 已具备观测能力：`SmartArt.getMetrics()` 与 `SmartArt.benchmark(...)`。
+- 已提供可重复布局基线脚本：`npm run smartart:benchmark`（输出 `reports/smartart-layout-benchmark.json`）。
 - Phase 0/1 仍需补一次固定场景基线测量，测完后把“估算值”替换为“实测阈值”。
 
 ### 7.8 迁移阶段调整（建议）

@@ -46,6 +46,7 @@ Common commands:
 - `npm run smartart:build` - rebuild `js/smartart.bundle.js`
 - `npm run smartart:verify` - assert generated artifacts are in sync
 - `npm run smartart:pipeline` - run full local pipeline (generate, build, verify, tests)
+- `npm run smartart:benchmark` - run layout benchmark and write `reports/smartart-layout-benchmark.json`
 
 Browser-side benchmark helper:
 

@@ -6,6 +6,7 @@
     "smartart:generate": "node scripts/generate-smartart-catalog.js",
     "smartart:build": "scripts/build-smartart.sh",
     "smartart:verify": "scripts/verify-smartart-catalog-sync.sh",
-    "smartart:pipeline": "scripts/smartart-pipeline.sh"
+    "smartart:pipeline": "scripts/smartart-pipeline.sh",
+    "smartart:benchmark": "scripts/benchmark-smartart-layout.sh"
   }
 }

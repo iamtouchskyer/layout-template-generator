@@ -1282,7 +1282,7 @@ smartart/catalog.json   # 唯一事实源
 3. 页面入口：`index.html` 的 `<script src="js/smartart.bundle.js?...">`
 4. 发布前检查：
    - [x] bundle 已更新（`scripts/build-smartart.sh` + CI 校验）
-   - [x] 浏览器 smoke 已自动化（Playwright，覆盖 SmartArt 页面与引擎切换）
+   - [x] 浏览器 smoke 已自动化（Playwright，覆盖 SmartArt 页面、引擎切换、`/generate` 请求契约）
    - [x] 导出 PPT 回归通过（`tests/test_smartart.py`）
 
 如果短期不引入完整打包器，也需要至少补一份明确的 bundling 脚本和 README。

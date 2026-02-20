@@ -47,7 +47,7 @@ Common commands:
 - `npm run smartart:verify` - assert generated artifacts are in sync
 - `npm run smartart:pipeline` - run full local pipeline (generate, build, verify, tests)
 - `npm run smartart:benchmark` - run layout benchmark and write `reports/smartart-layout-benchmark.json`
-- `npm run smartart:smoke` - run browser smoke test (requires `@playwright/test` and Chromium runtime)
+- `npm run smartart:smoke` - run browser smoke test (engine toggle + mocked `/generate` payload contract)
 
 Browser-side benchmark helper:
 

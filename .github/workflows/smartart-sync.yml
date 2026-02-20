@@ -21,23 +21,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Generate catalog artifacts
-        run: node scripts/generate-smartart-catalog.js
-
-      - name: Build smartart bundle
-        run: scripts/build-smartart.sh
-
-      - name: Verify generated artifacts are in sync
-        run: scripts/verify-smartart-catalog-sync.sh
-
-      - name: Install Playwright test runner
-        run: npm install --no-save --no-package-lock @playwright/test@1.52.0
-
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Run SmartArt pipeline tests
+        run: make test
 
       - name: Browser smoke test (SmartArt)
-        run: npm run smartart:smoke
+        run: make test:e2e
 
       - name: Ensure bundle and generated files are committed
         run: git diff --exit-code -- js/smartart.bundle.js js/config.smartart.generated.js js/smartart/types/registry.generated.js pptx_gen/smartart_map_generated.py

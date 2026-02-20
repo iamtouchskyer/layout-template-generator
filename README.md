@@ -42,6 +42,8 @@ SmartArt metadata now uses a single source of truth: `smartart/catalog.json`.
 
 Common commands:
 
+- `make test` - run full local pipeline (generate, build, verify, tests)
+- `make test:e2e` - run browser smoke test (engine toggle + mocked `/generate` payload contract)
 - `npm run smartart:generate` - regenerate SmartArt generated artifacts
 - `npm run smartart:build` - rebuild `js/smartart.bundle.js`
 - `npm run smartart:verify` - assert generated artifacts are in sync

@@ -171,17 +171,30 @@ function renderEllipse(shape) {
 }
 
 function renderTrapezoid(shape) {
-    const { x, y, width, height, topWidthRatio = 0 } = shape;
-    const topWidth = width * topWidthRatio;
-    const topOffset = (width - topWidth) / 2;
+    const { x, y, width, height, topWidthRatio = 0, invertedTrapezoid = false } = shape;
 
-    // Points: top-left, top-right, bottom-right, bottom-left
-    const points = [
-        `${x + topOffset},${y}`,
-        `${x + topOffset + topWidth},${y}`,
-        `${x + width},${y + height}`,
-        `${x},${y + height}`
-    ].join(' ');
+    let points;
+    if (invertedTrapezoid) {
+        // Inverted: wide top, narrow bottom
+        const bottomWidth = width * topWidthRatio;
+        const bottomOffset = (width - bottomWidth) / 2;
+        points = [
+            `${x},${y}`,                              // top-left (full width)
+            `${x + width},${y}`,                      // top-right (full width)
+            `${x + bottomOffset + bottomWidth},${y + height}`,  // bottom-right
+            `${x + bottomOffset},${y + height}`       // bottom-left
+        ].join(' ');
+    } else {
+        // Normal: narrow top, wide bottom
+        const topWidth = width * topWidthRatio;
+        const topOffset = (width - topWidth) / 2;
+        points = [
+            `${x + topOffset},${y}`,
+            `${x + topOffset + topWidth},${y}`,
+            `${x + width},${y + height}`,
+            `${x},${y + height}`
+        ].join(' ');
+    }
 
     return createSVGElement('polygon', {
         points,
@@ -267,13 +280,25 @@ function renderHexagon(shape) {
 }
 
 function renderTriangle(shape) {
-    const { x, y, width, height } = shape;
-    // Normal triangle: point at top, wide at bottom
-    const points = [
-        `${x + width / 2},${y}`,      // apex (top center)
-        `${x + width},${y + height}`, // bottom right
-        `${x},${y + height}`          // bottom left
-    ].join(' ');
+    const { x, y, width, height, inverted = false } = shape;
+
+    let points;
+    if (inverted) {
+        // Inverted triangle: point at bottom, wide at top
+        points = [
+            `${x},${y}`,                  // top-left
+            `${x + width},${y}`,          // top-right
+            `${x + width / 2},${y + height}` // apex (bottom center)
+        ].join(' ');
+    } else {
+        // Normal triangle: point at top, wide at bottom
+        points = [
+            `${x + width / 2},${y}`,      // apex (top center)
+            `${x + width},${y + height}`, // bottom right
+            `${x},${y + height}`          // bottom left
+        ].join(' ');
+    }
+
     return createSVGElement('polygon', {
         points,
         fill: shape.fill || '#4472C4',

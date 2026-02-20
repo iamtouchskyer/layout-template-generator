@@ -44,7 +44,7 @@ export function pyramidLayout(option, config = {}) {
         const prevWidth = level === 0 ? 0 : pyramidWidth * (level / count);
 
         const x = (pyramidWidth - levelWidth) / 2;
-        const y = inverted ? idx * itemHeight : (count - 1 - idx) * itemHeight;
+        const y = idx * itemHeight;
 
         // Pyramid shape (parent text, centered)
         shapes.push({
@@ -59,6 +59,7 @@ export function pyramidLayout(option, config = {}) {
             stroke: theme.light1,
             strokeWidth: 2,
             topWidthRatio: prevWidth / levelWidth,
+            invertedTrapezoid: inverted,  // Flip each trapezoid for inverted pyramid
             textColor: theme.light1,
             fontSize: Math.min(24, itemHeight * 0.4),
             ooxml: { prst: 'trapezoid', adj: 75000 }

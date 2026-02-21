@@ -23,6 +23,20 @@ test('smartart engine toggle updates URL and exported contract', async ({ page }
   await expect(page.locator('#smartart-engine-selector')).toBeVisible()
   await expect(page.locator('#smartart-render-target svg')).toBeVisible()
 
+  await page.getByRole('button', { name: '3' }).click()
+  const count3 = await page.evaluate(() => {
+    window.updateJsonOutput()
+    return JSON.parse(document.getElementById('json-output').textContent).smartart.items.length
+  })
+  expect(count3).toBe(3)
+
+  await page.getByRole('button', { name: '6' }).click()
+  const count6 = await page.evaluate(() => {
+    window.updateJsonOutput()
+    return JSON.parse(document.getElementById('json-output').textContent).smartart.items.length
+  })
+  expect(count6).toBe(6)
+
   await page.getByRole('button', { name: 'Legacy' }).click()
   await page.waitForURL(/smartartEngine=legacy/)
 

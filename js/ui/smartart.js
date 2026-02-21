@@ -167,8 +167,32 @@ function renderSmartartCountSelector() {
  */
 function selectSmartartCount(count) {
     state.smartartItemCount = count;
+    syncSmartartItemsToCount(count);
     renderSmartartCountSelector();
     render();
+}
+
+function syncSmartartItemsToCount(count) {
+    const typeInfo = SMARTART_TYPES[state.smartartType];
+    const category = typeInfo?.category || 'list';
+    const testData = SMARTART_TEST_DATA[state.smartartType] || SMARTART_TEST_DATA[category] || SMARTART_TEST_DATA['list'] || [];
+
+    if (!Array.isArray(state.smartartItems)) {
+        state.smartartItems = JSON.parse(JSON.stringify(testData.slice(0, count)));
+        state.smartartItemsByType[state.smartartType] = state.smartartItems;
+        return;
+    }
+
+    if (state.smartartItems.length > count) {
+        state.smartartItems = state.smartartItems.slice(0, count);
+    } else if (state.smartartItems.length < count) {
+        for (let i = state.smartartItems.length; i < count; i++) {
+            const template = testData[i] || testData[testData.length - 1] || { text: `节点${i + 1}`, children: [] };
+            state.smartartItems.push(JSON.parse(JSON.stringify(template)));
+        }
+    }
+
+    state.smartartItemsByType[state.smartartType] = state.smartartItems;
 }
 
 /**

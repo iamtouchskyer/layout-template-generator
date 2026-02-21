@@ -97,13 +97,21 @@ export function pyramidLayout(option, config = {}) {
                     textVAlign: 'top'
                 });
             } else {
-                // Normal pyramid: rectangular textbox
+                // Normal pyramid: textbox is trapezoid aligned with pyramid edge
+                // Pyramid right edge: top is narrower, bottom is wider
+                const topWidth = levelWidth * (prevWidth / levelWidth);  // = prevWidth
+                const topOffset = (levelWidth - topWidth) / 2;
+                const pyramidTopRight = x + topOffset + topWidth;
+                const pyramidBottomRight = x + levelWidth;
+                const rightEdge = width - 10;
+
                 shapes.push({
                     id: `textbox-${idx}`,
-                    type: 'roundRect',
-                    x: textboxX,
+                    type: 'trapezoidTextbox',
+                    topLeftX: pyramidTopRight,
+                    bottomLeftX: pyramidBottomRight,
+                    rightX: rightEdge,
                     y,
-                    width: textboxW,
                     height: itemHeight,
                     text: bulletText,
                     fill: theme.light1 || '#FFFFFF',
@@ -111,8 +119,6 @@ export function pyramidLayout(option, config = {}) {
                     strokeWidth: 1.5,
                     textColor: theme.dark1 || '#333333',
                     fontSize: Math.min(16, itemHeight * 0.3),
-                    rx: 6,
-                    ry: 6,
                     textAlign: 'left',
                     textVAlign: 'top'
                 });

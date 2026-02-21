@@ -69,24 +69,54 @@ export function pyramidLayout(option, config = {}) {
         const children = item.children || [];
         if (children.length > 0) {
             const bulletText = children.map(c => '• ' + (c.text || c)).join('\n');
-            shapes.push({
-                id: `textbox-${idx}`,
-                type: 'roundRect',
-                x: textboxX,
-                y,
-                width: textboxW,
-                height: itemHeight,
-                text: bulletText,
-                fill: theme.light1 || '#FFFFFF',
-                stroke: childColors[idx % childColors.length],
-                strokeWidth: 1.5,
-                textColor: theme.dark1 || '#333333',
-                fontSize: Math.min(16, itemHeight * 0.3),
-                rx: 6,
-                ry: 6,
-                textAlign: 'left',
-                textVAlign: 'top'
-            });
+
+            if (inverted) {
+                // For inverted pyramid: textbox is trapezoid aligned with pyramid edge
+                // Pyramid right edge: top at (x + levelWidth), bottom at centered narrower width
+                const bottomWidth = levelWidth * (prevWidth / levelWidth);
+                const bottomOffset = (levelWidth - bottomWidth) / 2;
+                const pyramidTopRight = x + levelWidth;
+                const pyramidBottomRight = x + bottomOffset + bottomWidth;
+                const rightEdge = width - 10;  // Fixed right edge
+
+                shapes.push({
+                    id: `textbox-${idx}`,
+                    type: 'trapezoidTextbox',
+                    topLeftX: pyramidTopRight,
+                    bottomLeftX: pyramidBottomRight,
+                    rightX: rightEdge,
+                    y,
+                    height: itemHeight,
+                    text: bulletText,
+                    fill: theme.light1 || '#FFFFFF',
+                    stroke: childColors[idx % childColors.length],
+                    strokeWidth: 1.5,
+                    textColor: theme.dark1 || '#333333',
+                    fontSize: Math.min(16, itemHeight * 0.3),
+                    textAlign: 'left',
+                    textVAlign: 'top'
+                });
+            } else {
+                // Normal pyramid: rectangular textbox
+                shapes.push({
+                    id: `textbox-${idx}`,
+                    type: 'roundRect',
+                    x: textboxX,
+                    y,
+                    width: textboxW,
+                    height: itemHeight,
+                    text: bulletText,
+                    fill: theme.light1 || '#FFFFFF',
+                    stroke: childColors[idx % childColors.length],
+                    strokeWidth: 1.5,
+                    textColor: theme.dark1 || '#333333',
+                    fontSize: Math.min(16, itemHeight * 0.3),
+                    rx: 6,
+                    ry: 6,
+                    textAlign: 'left',
+                    textVAlign: 'top'
+                });
+            }
         }
     });
 

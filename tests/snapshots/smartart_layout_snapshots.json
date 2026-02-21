@@ -1957,21 +1957,20 @@
         "y": 90
       },
       {
+        "bottomLeftX": 440,
         "fill": "#FFFFFF",
         "fontSize": 16,
         "height": 90,
         "id": "textbox-1",
-        "rx": 6,
-        "ry": 6,
+        "rightX": 950,
         "stroke": "#A5A5A5",
         "strokeWidth": 1.5,
         "text": "• B1",
         "textAlign": "left",
         "textColor": "#1F1F1F",
         "textVAlign": "top",
-        "type": "roundRect",
-        "width": 402.8,
-        "x": 547.2,
+        "topLeftX": 484,
+        "type": "trapezoidTextbox",
         "y": 90
       },
       {
@@ -1995,21 +1994,20 @@
         "y": 180
       },
       {
+        "bottomLeftX": 396,
         "fill": "#FFFFFF",
         "fontSize": 16,
         "height": 90,
         "id": "textbox-2",
-        "rx": 6,
-        "ry": 6,
+        "rightX": 950,
         "stroke": "#FFC000",
         "strokeWidth": 1.5,
         "text": "• C1\n• C2",
         "textAlign": "left",
         "textColor": "#1F1F1F",
         "textVAlign": "top",
-        "type": "roundRect",
-        "width": 402.8,
-        "x": 547.2,
+        "topLeftX": 440,
+        "type": "trapezoidTextbox",
         "y": 180
       },
       {

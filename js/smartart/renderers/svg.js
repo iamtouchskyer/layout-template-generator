@@ -129,6 +129,9 @@ function renderShape(shape) {
         case 'triangle':
             shapeEl = renderTriangle(shape);
             break;
+        case 'trapezoidTextbox':
+            shapeEl = renderTrapezoidTextbox(shape);
+            break;
         default:
             shapeEl = renderRect(shape);
     }
@@ -307,6 +310,99 @@ function renderTriangle(shape) {
     });
 }
 
+/**
+ * Trapezoid textbox: left edge is slanted (follows pyramid), right edge is vertical
+ * Used for inverted pyramid text boxes that align with the pyramid edge
+ */
+function renderTrapezoidTextbox(shape) {
+    const { topLeftX, bottomLeftX, rightX, y, height } = shape;
+
+    // Four corners: top-left, top-right, bottom-right, bottom-left
+    const points = [
+        `${topLeftX},${y}`,           // top-left (follows pyramid top-right)
+        `${rightX},${y}`,             // top-right (fixed)
+        `${rightX},${y + height}`,    // bottom-right (fixed)
+        `${bottomLeftX},${y + height}` // bottom-left (follows pyramid bottom-right)
+    ].join(' ');
+
+    return createSVGElement('polygon', {
+        points,
+        fill: shape.fill || '#FFFFFF',
+        stroke: shape.stroke || '#CCCCCC',
+        'stroke-width': shape.strokeWidth || 1
+    });
+}
+
+/**
+ * Text rendering for trapezoid textbox
+ * Uses the larger top width for text area (left-aligned)
+ */
+function renderTrapezoidTextboxText(shape) {
+    const { topLeftX, rightX, y, height } = shape;
+    const padding = 8;
+    const width = rightX - topLeftX;
+
+    const fo = createSVGElement('foreignObject', {
+        x: topLeftX + padding,
+        y: y + padding,
+        width: width - padding * 2,
+        height: height - padding * 2
+    });
+
+    const hAlign = shape.textAlign || 'left';
+    const vAlign = shape.textVAlign || 'top';
+    const justifyMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
+    const alignMap = { top: 'flex-start', center: 'center', bottom: 'flex-end' };
+
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = `
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: ${alignMap[vAlign] || 'flex-start'};
+        justify-content: ${justifyMap[hAlign] || 'flex-start'};
+        overflow: hidden;
+    `;
+
+    const div = document.createElement('div');
+    div.className = 'smartart-text-editable';
+    div.setAttribute('contenteditable', 'true');
+    div.setAttribute('data-shape-id', shape.id);
+    div.style.cssText = `
+        max-width: 100%;
+        max-height: 100%;
+        text-align: ${hAlign};
+        font-family: Inter, sans-serif;
+        color: ${shape.textColor || '#333333'};
+        font-size: ${shape.fontSize || 14}px;
+        line-height: 1.3;
+        word-wrap: break-word;
+        word-break: break-word;
+        outline: none;
+        cursor: text;
+    `;
+    div.textContent = shape.text;
+
+    div.addEventListener('input', (e) => {
+        const newText = e.target.textContent;
+        div.dispatchEvent(new CustomEvent('smartart-text-change', {
+            bubbles: true,
+            detail: { shapeId: shape.id, text: newText }
+        }));
+    });
+
+    div.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            div.blur();
+        }
+    });
+
+    wrapper.appendChild(div);
+    fo.appendChild(wrapper);
+    return fo;
+}
+
 function renderPie(shape) {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle } = shape;
 
@@ -344,6 +440,11 @@ function renderText(shape) {
     // For shapes with width/height, use foreignObject for auto-fit text
     if (shape.width && shape.height && shape.type !== 'ellipse' && shape.type !== 'pie') {
         return renderAutoFitText(shape);
+    }
+
+    // Special handling for trapezoidTextbox (no width property)
+    if (shape.type === 'trapezoidTextbox') {
+        return renderTrapezoidTextboxText(shape);
     }
 
     let x, y;

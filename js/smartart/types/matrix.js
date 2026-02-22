@@ -106,57 +106,62 @@ function matrixBasicLayout(option) {
 }
 
 /**
- * Titled Matrix (matrix2)
+ * Titled Matrix (matrix2) - 2x2 cells with center title node
+ * Data: items[0] = center (title), items[1-4] = quadrant children
+ * Similar to basic matrix but with different styling
  */
 function matrixTitledLayout(option, config) {
     const { items, size, theme } = option;
     const { width, height } = size;
 
     const shapes = [];
-    const titleHeight = height * 0.15;
-    const gridHeight = height - titleHeight;
     const gap = 8;
-
-    // Title bar uses parentColor from scheme
-    shapes.push({
-        id: 'title',
-        type: 'rect',
-        x: 0,
-        y: 0,
-        width,
-        height: titleHeight - gap,
-        text: items[0]?.text || items[0] || 'Title',
-        fill: theme.parentColor || theme.accent1,
-        stroke: 'none',
-        textColor: theme.light1,
-        fontSize: 18
-    });
-
-    // 2x2 grid cells
     const cellW = (width - gap) / 2;
-    const cellH = (gridHeight - gap) / 2;
+    const cellH = (height - gap) / 2;
 
-    // Use childColors from scheme for grid cells
+    // 4 quadrant cells (items[1-4]) - use childColors from scheme
     const childColors = theme.childColors || [theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
     for (let i = 0; i < 4; i++) {
         const row = Math.floor(i / 2);
         const col = i % 2;
-        const item = items[i + 1];
+        const item = items[i + 1]; // items[1-4] are quadrants
 
         shapes.push({
             id: `cell-${i}`,
             type: 'rect',
             x: col * (cellW + gap),
-            y: titleHeight + row * (cellH + gap),
+            y: row * (cellH + gap),
             width: cellW,
             height: cellH,
             text: item?.text || item || '',
             fill: childColors[i % childColors.length],
             stroke: 'none',
             textColor: theme.light1,
-            fontSize: Math.min(18, cellH * 0.15)
+            fontSize: Math.min(18, cellH * 0.15),
+            rx: 4,
+            ry: 4
         });
     }
+
+    // Center title node (items[0]) - uses parentColor
+    const centerW = width * 0.32;
+    const centerH = height * 0.25;
+    shapes.push({
+        id: 'center',
+        type: 'roundRect',
+        x: (width - centerW) / 2,
+        y: (height - centerH) / 2,
+        width: centerW,
+        height: centerH,
+        fill: theme.parentColor || theme.accent1,
+        stroke: theme.light1,
+        strokeWidth: 2,
+        text: items[0]?.text || items[0] || '',
+        textColor: theme.light1,
+        fontSize: Math.min(20, centerH * 0.35),
+        rx: 8,
+        ry: 8
+    });
 
     return {
         type: 'matrix',

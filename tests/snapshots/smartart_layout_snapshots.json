@@ -1234,69 +1234,80 @@
     "connectors": [],
     "shapes": [
       {
-        "fill": "#4472C4",
-        "fontSize": 18,
-        "height": 73,
-        "id": "title",
-        "stroke": "none",
-        "text": "Title",
-        "textColor": "#FFFFFF",
-        "type": "rect",
-        "width": 960,
-        "x": 0,
-        "y": 0
-      },
-      {
         "fill": "#ED7D31",
         "fontSize": 18,
-        "height": 225.5,
+        "height": 266,
         "id": "cell-0",
+        "rx": 4,
+        "ry": 4,
         "stroke": "none",
         "text": "Q1",
         "textColor": "#FFFFFF",
         "type": "rect",
         "width": 476,
         "x": 0,
-        "y": 81
+        "y": 0
       },
       {
         "fill": "#A5A5A5",
         "fontSize": 18,
-        "height": 225.5,
+        "height": 266,
         "id": "cell-1",
+        "rx": 4,
+        "ry": 4,
         "stroke": "none",
         "text": "Q2",
         "textColor": "#FFFFFF",
         "type": "rect",
         "width": 476,
         "x": 484,
-        "y": 81
+        "y": 0
       },
       {
         "fill": "#FFC000",
         "fontSize": 18,
-        "height": 225.5,
+        "height": 266,
         "id": "cell-2",
+        "rx": 4,
+        "ry": 4,
         "stroke": "none",
         "text": "Q3",
         "textColor": "#FFFFFF",
         "type": "rect",
         "width": 476,
         "x": 0,
-        "y": 314.5
+        "y": 274
       },
       {
         "fill": "#5B9BD5",
         "fontSize": 18,
-        "height": 225.5,
+        "height": 266,
         "id": "cell-3",
+        "rx": 4,
+        "ry": 4,
         "stroke": "none",
         "text": "Q4",
         "textColor": "#FFFFFF",
         "type": "rect",
         "width": 476,
         "x": 484,
-        "y": 314.5
+        "y": 274
+      },
+      {
+        "fill": "#4472C4",
+        "fontSize": 20,
+        "height": 135,
+        "id": "center",
+        "rx": 8,
+        "ry": 8,
+        "stroke": "#FFFFFF",
+        "strokeWidth": 2,
+        "text": "Title",
+        "textColor": "#FFFFFF",
+        "type": "roundRect",
+        "width": 307.2,
+        "x": 326.4,
+        "y": 202.5
       }
     ],
     "type": "matrix"

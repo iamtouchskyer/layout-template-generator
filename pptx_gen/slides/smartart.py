@@ -18,17 +18,9 @@ def generate_smartart_slide(prs, config, theme):
     slide = prs.slides.add_slide(get_blank_layout(prs))
 
     smartart_config = config.get('smartart', {})
-    smartart_engine = smartart_config.get('engine', 'next')
-    if smartart_engine not in ('legacy', 'next'):
-        logging.warning("Unknown SmartArt engine '%s', fallback to 'next'", smartart_engine)
-        smartart_engine = 'next'
     smartart_type_id = smartart_config.get('type', 'pyramid')
     placement = smartart_config.get('placement', 'full')
     color_scheme_id = smartart_config.get('colorScheme', 'colorful2')
-
-    # Frontend runtime currently provides one implementation for both engines.
-    # Keep this field in contract for gradual engine migration.
-    _ = smartart_engine
 
     items = _extract_smartart_items(smartart_config)
 

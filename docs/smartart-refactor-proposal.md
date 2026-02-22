@@ -1309,19 +1309,13 @@ npx --yes esbuild@0.25.10 js/smartart/bundle-entry.js \
 
 > 说明：已从 `cat` 拼接升级为 `esbuild`，保证依赖顺序与可重复产物。
 
-### 7.4 双轨迁移与开关策略（降低切换风险）
+### 7.4 单引擎持续迭代策略
 
-建议增加引擎开关：
+当前策略已调整为单引擎持续迭代（不保留 `legacy/next` 分轨开关）：
 
-```javascript
-state.smartartEngine = 'legacy' | 'next';
-```
-
-执行策略：
-- `legacy`：回退开关（当前映射到同一运行时实现，用于切换通路验证）
-- `next`：主路径（默认）
-- 支持 query 参数（`?smartartEngine=legacy`）和 UI 开关快速切换
-- 出问题可秒级回滚到 `legacy`
+- 统一维护一套 SmartArt 运行时实现，降低状态分叉和认知成本。
+- 通过 `catalog + pipeline + snapshot + smoke` 控制迭代风险。
+- 回滚依赖 Git commit/版本发布策略，而非运行时引擎切换。
 
 ### 7.5 已知缺陷纳入回归基线
 

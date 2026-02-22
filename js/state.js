@@ -1,15 +1,5 @@
 // Application State
 
-const initialSmartartEngine = (() => {
-    try {
-        const params = new URLSearchParams(window.location.search);
-        const engine = params.get('smartartEngine');
-        return engine === 'legacy' ? 'legacy' : 'next';
-    } catch (_) {
-        return 'next';
-    }
-})();
-
 const state = {
     activeLayer: 1,
     previewTab: 'preview',
@@ -67,7 +57,6 @@ const state = {
     smartartColorScheme: 'colorful1',  // see SMARTART_COLOR_SCHEMES in config.js
     smartartItems: null,  // current type's items (for backward compat)
     smartartItemsByType: {},  // { typeId: items[] } - each type has independent data
-    smartartEngine: initialSmartartEngine,  // 'legacy' | 'next'
     expandedSmartartCat: 'pyramid',
     // Grid Layout
     gridLayout: 'two-col-equal',

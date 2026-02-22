@@ -15,30 +15,29 @@ def _read(path: Path) -> str:
     return path.read_text(encoding='utf-8')
 
 
-def test_state_includes_engine_query_and_default():
+def test_state_does_not_include_engine_toggle():
     source = _read(STATE_JS)
-    assert "params.get('smartartEngine')" in source
-    assert "smartartEngine: initialSmartartEngine" in source
+    assert 'smartartEngine' not in source
 
 
 def test_export_includes_key_smartart_contract_fields():
     source = _read(EXPORT_JS)
     required_snippets = [
-        "engine: state.smartartEngine || 'next'",
         "type: state.smartartType",
         "colorScheme: state.smartartColorScheme",
         "items: Array.isArray(state.smartartItems)",
     ]
     for snippet in required_snippets:
         assert snippet in source
+    assert 'engine:' not in source
 
 
-def test_engine_selector_is_wired_in_ui():
+def test_engine_selector_is_removed_from_ui():
     index_source = _read(INDEX_HTML)
     page_type_source = _read(PAGE_TYPES_JS)
     smartart_ui_source = _read(SMARTART_UI_JS)
 
-    assert 'id="smartart-engine-selector"' in index_source
-    assert 'renderSmartartEngineSelector();' in page_type_source
-    assert 'function renderSmartartEngineSelector()' in smartart_ui_source
-    assert 'function selectSmartartEngine(engineId)' in smartart_ui_source
+    assert 'id="smartart-engine-selector"' not in index_source
+    assert 'renderSmartartEngineSelector();' not in page_type_source
+    assert 'function renderSmartartEngineSelector()' not in smartart_ui_source
+    assert 'function selectSmartartEngine(engineId)' not in smartart_ui_source

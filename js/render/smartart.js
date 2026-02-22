@@ -63,7 +63,6 @@ function renderSmartartPage() {
 
 function renderSmartArtChart() {
     const target = document.getElementById('smartart-render-target');
-    const smartartEngine = state.smartartEngine || 'next';
     const smartartApi = window.SmartArt;
     if (!target || !smartartApi) return;
 
@@ -103,13 +102,7 @@ function renderSmartArtChart() {
             smartArtInstance.dispose();
         }
 
-        // Current runtime only ships one engine implementation.
-        // Keep engine switch for gradual rollout / rollback strategy.
-        if (smartartEngine === 'legacy') {
-            smartArtInstance = smartartApi.init(target);
-        } else {
-            smartArtInstance = smartartApi.init(target);
-        }
+        smartArtInstance = smartartApi.init(target);
         smartArtInstance.setOption({
             type: state.smartartType,
             items: items,

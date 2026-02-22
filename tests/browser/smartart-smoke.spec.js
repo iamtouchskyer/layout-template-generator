@@ -16,11 +16,10 @@ async function openSmartartPage(page) {
   })
 }
 
-test('smartart engine toggle updates URL and exported contract', async ({ page }) => {
+test('smartart count selector updates exported contract', async ({ page }) => {
   await openSmartartPage(page)
 
   await expect(page.locator('#smartart-operation-bar')).toHaveClass(/visible/)
-  await expect(page.locator('#smartart-engine-selector')).toBeVisible()
   await expect(page.locator('#smartart-render-target svg')).toBeVisible()
 
   await page.getByRole('button', { name: '3' }).click()
@@ -37,30 +36,15 @@ test('smartart engine toggle updates URL and exported contract', async ({ page }
   })
   expect(count6).toBe(6)
 
-  await page.getByRole('button', { name: 'Legacy' }).click()
-  await page.waitForURL(/smartartEngine=legacy/)
-
-  const legacySmartart = await page.evaluate(() => {
+  const smartart = await page.evaluate(() => {
     window.updateJsonOutput()
     const config = JSON.parse(document.getElementById('json-output').textContent)
     return config.smartart
   })
 
-  expect(legacySmartart.engine).toBe('legacy')
-  expect(Array.isArray(legacySmartart.items)).toBeTruthy()
-  expect(legacySmartart.type).toBeTruthy()
-  expect(legacySmartart.colorScheme).toBeTruthy()
-
-  await page.getByRole('button', { name: 'Next' }).click()
-  await page.waitForFunction(() => !window.location.search.includes('smartartEngine=legacy'))
-
-  const nextSmartart = await page.evaluate(() => {
-    window.updateJsonOutput()
-    const config = JSON.parse(document.getElementById('json-output').textContent)
-    return config.smartart
-  })
-
-  expect(nextSmartart.engine).toBe('next')
+  expect(Array.isArray(smartart.items)).toBeTruthy()
+  expect(smartart.type).toBeTruthy()
+  expect(smartart.colorScheme).toBeTruthy()
 })
 
 test('generate pptx posts smartart payload and triggers download link', async ({ page }) => {
@@ -91,14 +75,12 @@ test('generate pptx posts smartart payload and triggers download link', async ({
   })
 
   await openSmartartPage(page)
-  await page.getByRole('button', { name: 'Legacy' }).click()
-  await page.waitForURL(/smartartEngine=legacy/)
 
   await page.getByRole('button', { name: 'Generate PPTX' }).click()
 
   await expect.poll(() => postedConfig !== null).toBeTruthy()
   expect(postedConfig.pageType).toBe('content-smartart')
-  expect(postedConfig.smartart.engine).toBe('legacy')
+  expect('engine' in postedConfig.smartart).toBeFalsy()
   expect(Array.isArray(postedConfig.smartart.items)).toBeTruthy()
   expect(postedConfig.smartart.type).toBeTruthy()
   expect(postedConfig.smartart.colorScheme).toBeTruthy()

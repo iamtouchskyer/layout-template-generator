@@ -319,12 +319,13 @@ const SMARTART_TEST_DATA = {
         { text: '战术', children: [{ text: '短期行动' }] },
         { text: '执行', children: [{ text: '日常任务' }] },
     ],
+    // Matrix: items[0] = center, items[1-4] = quadrants (no children)
     'matrix': [
-        { text: '战略矩阵', children: [{ text: 'Strategy Matrix' }] },
-        { text: '高影响/低成本', children: [{ text: '优先执行' }] },
-        { text: '高影响/高成本', children: [{ text: '谨慎投入' }] },
-        { text: '低影响/低成本', children: [{ text: '快速完成' }] },
-        { text: '低影响/高成本', children: [{ text: '避免投入' }] },
+        { text: '愿景' },        // center
+        { text: '战略' },        // top-left
+        { text: '战术' },        // top-right
+        { text: '执行' },        // bottom-left
+        { text: '运营' },        // bottom-right
     ],
     'chevron': [
         { text: '需求分析', children: [{ text: 'Requirements' }] },

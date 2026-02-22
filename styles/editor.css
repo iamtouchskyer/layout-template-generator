@@ -1262,3 +1262,40 @@ select:focus, input:focus {
     font-size: 12px;
     color: var(--text-secondary);
 }
+
+/* Matrix editor: center + quadrants layout */
+.smartart-editor-list .editor-item.matrix-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-left: none;
+}
+
+.smartart-editor-list .editor-item.matrix-item .item-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    width: 28px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.smartart-editor-list .editor-item.matrix-item.center {
+    border-left: 3px solid var(--accent-l1);
+    background: var(--bg-tertiary);
+    margin: 4px 0;
+}
+
+.smartart-editor-list .editor-item.matrix-item.center .item-label {
+    color: var(--accent-l1);
+    font-weight: 600;
+}
+
+.smartart-editor-list .editor-item.matrix-item.center .item-text {
+    font-weight: 600;
+}
+
+.smartart-editor-list .editor-item.matrix-item.quadrant {
+    border-left: 2px solid var(--border-color);
+    margin-left: 8px;
+}

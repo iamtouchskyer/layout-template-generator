@@ -404,7 +404,18 @@ function renderSmartartTextEditor() {
     }
 
     const items = state.smartartItems;
-    const itemsHtml = items.map((item, idx) => renderSmartartEditorItem(item, idx)).join('');
+
+    // Determine editor schema based on type
+    const schemaType = getSmartartEditorSchema(state.smartartType);
+    let itemsHtml;
+
+    if (schemaType === 'matrix') {
+        // Matrix: center (items[0]) + quadrants (items[1-4])
+        itemsHtml = renderMatrixEditorItems(items);
+    } else {
+        // Default: hierarchical (items with children)
+        itemsHtml = items.map((item, idx) => renderSmartartEditorItem(item, idx)).join('');
+    }
 
     container.innerHTML = `
         <div class="smartart-editor-header">
@@ -418,6 +429,39 @@ function renderSmartartTextEditor() {
     `;
 
     bindSmartartEditorEvents(container);
+}
+
+/**
+ * Determine editor schema type for SmartArt
+ */
+function getSmartartEditorSchema(typeId) {
+    const matrixTypes = ['matrix', 'matrix-titled', 'matrix-cycle'];
+    if (matrixTypes.includes(typeId)) return 'matrix';
+    return 'hierarchical';
+}
+
+/**
+ * Render matrix editor items: center + quadrants
+ */
+function renderMatrixEditorItems(items) {
+    const labels = ['中心', '左上', '右上', '左下', '右下'];
+    let html = '';
+
+    items.forEach((item, idx) => {
+        const text = typeof item === 'string' ? item : (item.text || '');
+        const label = labels[idx] || `节点${idx + 1}`;
+        const isCenter = idx === 0;
+
+        html += `
+            <div class="editor-item matrix-item ${isCenter ? 'center' : 'quadrant'}"
+                 data-index="${idx}" data-level="0">
+                <span class="item-label">${label}</span>
+                <input type="text" class="item-text" value="${escapeHtml(text)}" data-path="${idx}" />
+            </div>
+        `;
+    });
+
+    return html;
 }
 
 /**

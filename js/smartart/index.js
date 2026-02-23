@@ -10,6 +10,17 @@
 import { SMARTART_TYPES } from './types/registry.js';
 import { renderSVG } from './renderers/svg.js';
 import { toOOXML } from './exporters/ooxml.js';
+import {
+    SCHEMA_FLAT,
+    SCHEMA_HIERARCHICAL,
+    DATA_SCHEMAS,
+    getDataSchema,
+    isHierarchical,
+    getEditorMode,
+    shouldShowBullet,
+    generateDefaultData,
+    normalizeData,
+} from './types/data-schema.js';
 
 // EMU conversion constants
 const EMU_PER_INCH = 914400;
@@ -233,6 +244,19 @@ SmartArt.utils = {
     pxToEmu: (px) => Math.round(px * EMU_PER_PX),
     ptToEmu: (pt) => Math.round(pt * EMU_PER_POINT),
     emuToPt: (emu) => emu / EMU_PER_POINT
+};
+
+// Data schema utilities
+SmartArt.schema = {
+    FLAT: SCHEMA_FLAT,
+    HIERARCHICAL: SCHEMA_HIERARCHICAL,
+    definitions: DATA_SCHEMAS,
+    get: getDataSchema,
+    isHierarchical,
+    getEditorMode,
+    shouldShowBullet,
+    generateDefaultData,
+    normalizeData,
 };
 
 export default SmartArt;

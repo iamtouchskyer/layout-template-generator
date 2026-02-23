@@ -366,7 +366,7 @@ function renderSmartartTextEditor() {
         // Matrix: center (items[0]) + quadrants (items[1-4])
         itemsHtml = renderMatrixEditorItems(items);
     } else {
-        // Default: hierarchical (items with children)
+        // Default: tree editor (items with optional children)
         itemsHtml = items.map((item, idx) => renderSmartartEditorItem(item, idx)).join('');
     }
 
@@ -388,9 +388,18 @@ function renderSmartartTextEditor() {
  * Determine editor schema type for SmartArt
  */
 function getSmartartEditorSchema(typeId) {
+    try {
+        const schemaApi = window.SmartArt?.schema;
+        if (schemaApi && typeof schemaApi.getEditorMode === 'function') {
+            return schemaApi.getEditorMode(typeId);
+        }
+    } catch (_) {
+        // ignore schema API errors and fallback below
+    }
+
     const matrixTypes = ['matrix', 'matrix-titled', 'matrix-cycle'];
     if (matrixTypes.includes(typeId)) return 'matrix';
-    return 'hierarchical';
+    return 'tree';
 }
 
 /**
@@ -423,7 +432,7 @@ function renderMatrixEditorItems(items) {
 function renderSmartartEditorItem(item, index, level = 0) {
     const text = typeof item === 'string' ? item : (item.text || '');
     const children = (typeof item === 'object' && item.children) ? item.children : [];
-    const bullet = level === 0 ? '' : '•';
+    const bullet = shouldShowSmartartBullet(level) ? '•' : '';
     const indent = level * 16;
 
     let html = `
@@ -437,13 +446,25 @@ function renderSmartartEditorItem(item, index, level = 0) {
         const childText = typeof child === 'string' ? child : (child.text || '');
         html += `
             <div class="editor-item level-1" data-index="${index}-${childIdx}" data-level="1" style="padding-left: ${indent + 16}px">
-                <span class="item-bullet">•</span>
+                <span class="item-bullet">${shouldShowSmartartBullet(level + 1) ? '•' : ''}</span>
                 <input type="text" class="item-text" value="${escapeHtml(childText)}" data-path="${index}-${childIdx}" />
             </div>
         `;
     });
 
     return html;
+}
+
+function shouldShowSmartartBullet(level) {
+    try {
+        const schemaApi = window.SmartArt?.schema;
+        if (schemaApi && typeof schemaApi.shouldShowBullet === 'function') {
+            return schemaApi.shouldShowBullet(state.smartartType, level);
+        }
+    } catch (_) {
+        // ignore schema API errors and fallback below
+    }
+    return level > 0;
 }
 
 /**

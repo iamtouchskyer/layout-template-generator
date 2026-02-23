@@ -12,6 +12,19 @@ import { radialLayout } from './radial.js';
 import { listLayout } from './list.js';
 import { SMARTART_TYPE_DEFS } from './registry.generated.js';
 
+// Re-export data schema utilities
+export {
+    SCHEMA_FLAT,
+    SCHEMA_HIERARCHICAL,
+    DATA_SCHEMAS,
+    getDataSchema,
+    isHierarchical,
+    getEditorMode,
+    shouldShowBullet,
+    generateDefaultData,
+    normalizeData,
+} from './data-schema.js';
+
 const LAYOUT_IMPLS = {
     pyramid: pyramidLayout,
     matrix: matrixLayout,

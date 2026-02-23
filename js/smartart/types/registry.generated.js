@@ -221,7 +221,7 @@ export const SMARTART_TYPE_DEFS = [
     },
     "engine": {
       "name": "流程箭头",
-      "nameEn": "Process Arrows",
+      "nameEn": "Circular Bending Process",
       "category": "process",
       "layout": "chevron",
       "layoutArgs": {
@@ -233,7 +233,7 @@ export const SMARTART_TYPE_DEFS = [
       "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/arrow2"
     },
     "pptx": {
-      "smartartType": "BASIC_PROCESS"
+      "smartartType": "CIRCULAR_BENDING_PROCESS"
     }
   },
   {
@@ -289,7 +289,7 @@ export const SMARTART_TYPE_DEFS = [
     "ui": {
       "category": "others",
       "label": "组织架构",
-      "ooxmlId": "chart3"
+      "ooxmlId": "hierarchy1"
     },
     "engine": {
       "name": "组织架构",
@@ -300,7 +300,7 @@ export const SMARTART_TYPE_DEFS = [
       "shapeType": "rect"
     },
     "ooxml": {
-      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/chart3"
+      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/hierarchy1"
     },
     "pptx": {
       "smartartType": "HIERARCHY"
@@ -311,7 +311,7 @@ export const SMARTART_TYPE_DEFS = [
     "ui": {
       "category": "others",
       "label": "发散图",
-      "ooxmlId": "radial3"
+      "ooxmlId": "radial4"
     },
     "engine": {
       "name": "发散图",
@@ -322,7 +322,7 @@ export const SMARTART_TYPE_DEFS = [
       "shapeType": "ellipse"
     },
     "ooxml": {
-      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/radial3"
+      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/radial4"
     },
     "pptx": {
       "smartartType": "BASIC_RADIAL"
@@ -333,7 +333,7 @@ export const SMARTART_TYPE_DEFS = [
     "ui": {
       "category": "others",
       "label": "基础列表",
-      "ooxmlId": "default"
+      "ooxmlId": "list1"
     },
     "engine": {
       "name": "基础列表",
@@ -344,7 +344,7 @@ export const SMARTART_TYPE_DEFS = [
       "shapeType": "rect"
     },
     "ooxml": {
-      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/default"
+      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/list1"
     },
     "pptx": {
       "smartartType": "BASIC_BLOCK_LIST"
@@ -371,7 +371,7 @@ export const SMARTART_TYPE_DEFS = [
       "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/vList3"
     },
     "pptx": {
-      "smartartType": "VERTICAL_BULLET_LIST"
+      "smartartType": "VERTICAL_BLOCK_LIST"
     }
   },
   {

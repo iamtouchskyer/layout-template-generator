@@ -3,7 +3,11 @@
 import json
 from pathlib import Path
 
-from pptx_gen.smartart_map_generated import GENERATED_SMARTART_TYPE_MAP
+from pptx_gen.smartart_map_generated import (
+    GENERATED_PPTX_ENUM_AMBIGUOUS_TYPE_IDS_MAP,
+    GENERATED_PPTX_ENUM_TYPE_ID_MAP,
+    GENERATED_SMARTART_TYPE_MAP,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,3 +46,26 @@ def test_ooxml_id_matches_layout_id_tail():
         layout_id = item['ooxml']['layoutId']
         layout_tail = layout_id.rsplit('/', 1)[-1]
         assert ooxml_id == layout_tail
+
+
+def test_catalog_pptx_enum_primary_mapping_matches_generated_map():
+    catalog = load_catalog()
+    expected = {}
+    for item in catalog['types']:
+        pptx_enum = item['pptx']['smartartType']
+        expected.setdefault(pptx_enum, item['id'])
+    assert expected == GENERATED_PPTX_ENUM_TYPE_ID_MAP
+
+
+def test_catalog_pptx_enum_ambiguous_mapping_matches_generated_map():
+    catalog = load_catalog()
+    grouped = {}
+    for item in catalog['types']:
+        grouped.setdefault(item['pptx']['smartartType'], []).append(item['id'])
+
+    expected = {
+        enum_name: type_ids
+        for enum_name, type_ids in grouped.items()
+        if len(type_ids) > 1
+    }
+    assert expected == GENERATED_PPTX_ENUM_AMBIGUOUS_TYPE_IDS_MAP

@@ -321,6 +321,31 @@ class TestSmartArtContract:
         assert [n.text for n in data.root_nodes[0].children] == ['CTO', 'CFO']
         assert data.root_nodes[0].children[1].children[0].text == 'Finance'
 
+    def test_pyramid_children_are_preserved(self):
+        """Pyramid nodes should keep child bullet text when provided."""
+        items = [
+            {'text': '愿景', 'children': [{'text': '长期目标'}]},
+            {'text': '战略', 'children': [{'text': '中期规划'}]},
+        ]
+
+        data = _create_smartart_data('pyramid', items)
+        assert len(data.root_nodes) == 2
+        assert data.root_nodes[0].text == '愿景'
+        assert [n.text for n in data.root_nodes[0].children] == ['长期目标']
+        assert [n.text for n in data.root_nodes[1].children] == ['中期规划']
+
+    def test_cycle_children_are_preserved(self):
+        """Cycle nodes should keep child description text when provided."""
+        items = [
+            {'text': '计划', 'children': [{'text': 'Plan'}]},
+            {'text': '执行', 'children': [{'text': 'Do'}]},
+        ]
+
+        data = _create_smartart_data('cycle', items)
+        assert len(data.root_nodes) == 2
+        assert [n.text for n in data.root_nodes[0].children] == ['Plan']
+        assert [n.text for n in data.root_nodes[1].children] == ['Do']
+
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

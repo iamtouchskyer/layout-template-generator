@@ -137,14 +137,14 @@
       "ui": { "category": "others", "label": "流程箭头", "ooxmlId": "arrow2" },
       "engine": {
         "name": "流程箭头",
-        "nameEn": "Process Arrows",
+        "nameEn": "Circular Bending Process",
         "category": "process",
         "layout": "chevron",
         "layoutArgs": { "style": "arrow" },
         "shapeType": "arrow"
       },
       "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/arrow2" },
-      "pptx": { "smartartType": "BASIC_PROCESS" }
+      "pptx": { "smartartType": "CIRCULAR_BENDING_PROCESS" }
     },
     {
       "id": "descending-process",
@@ -176,7 +176,7 @@
     },
     {
       "id": "hierarchy",
-      "ui": { "category": "others", "label": "组织架构", "ooxmlId": "chart3" },
+      "ui": { "category": "others", "label": "组织架构", "ooxmlId": "hierarchy1" },
       "engine": {
         "name": "组织架构",
         "nameEn": "Hierarchy",
@@ -185,12 +185,12 @@
         "layoutArgs": {},
         "shapeType": "rect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/chart3" },
+      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/hierarchy1" },
       "pptx": { "smartartType": "HIERARCHY" }
     },
     {
       "id": "radial",
-      "ui": { "category": "others", "label": "发散图", "ooxmlId": "radial3" },
+      "ui": { "category": "others", "label": "发散图", "ooxmlId": "radial4" },
       "engine": {
         "name": "发散图",
         "nameEn": "Basic Radial",
@@ -199,12 +199,12 @@
         "layoutArgs": {},
         "shapeType": "ellipse"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/radial3" },
+      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/radial4" },
       "pptx": { "smartartType": "BASIC_RADIAL" }
     },
     {
       "id": "list",
-      "ui": { "category": "others", "label": "基础列表", "ooxmlId": "default" },
+      "ui": { "category": "others", "label": "基础列表", "ooxmlId": "list1" },
       "engine": {
         "name": "基础列表",
         "nameEn": "Basic Block List",
@@ -213,7 +213,7 @@
         "layoutArgs": {},
         "shapeType": "rect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/default" },
+      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/list1" },
       "pptx": { "smartartType": "BASIC_BLOCK_LIST" }
     },
     {
@@ -228,7 +228,7 @@
         "shapeType": "rect"
       },
       "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/vList3" },
-      "pptx": { "smartartType": "VERTICAL_BULLET_LIST" }
+      "pptx": { "smartartType": "VERTICAL_BLOCK_LIST" }
     },
     {
       "id": "hexagon-alternating",

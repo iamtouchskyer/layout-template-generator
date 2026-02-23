@@ -83,17 +83,17 @@
   "hierarchy": {
     "category": "others",
     "label": "组织架构",
-    "ooxmlId": "chart3"
+    "ooxmlId": "hierarchy1"
   },
   "radial": {
     "category": "others",
     "label": "发散图",
-    "ooxmlId": "radial3"
+    "ooxmlId": "radial4"
   },
   "list": {
     "category": "others",
     "label": "基础列表",
-    "ooxmlId": "default"
+    "ooxmlId": "list1"
   },
   "list-vertical": {
     "category": "others",

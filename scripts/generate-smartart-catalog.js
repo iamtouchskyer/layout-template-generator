@@ -108,7 +108,33 @@ function generatePythonMap(catalog) {
     .map((type) => `    '${type.id}': SMARTART_TYPE.${type.pptx.smartartType},`)
     .join('\n')
 
-  return `\"\"\"Auto-generated SmartArt type mappings. Do not edit manually.\"\"\"\n\nfrom pptx.enum.smartart import SMARTART_TYPE\n\nGENERATED_SMARTART_TYPE_MAP = {\n${entries}\n}\n`
+  const layoutEntries = catalog.types
+    .filter((type) => type.ooxml && type.ooxml.layoutId)
+    .map((type) => `    '${type.ooxml.layoutId}': '${type.id}',`)
+    .join('\n')
+
+  const enumToTypeIds = new Map()
+  for (const type of catalog.types) {
+    const enumName = type.pptx.smartartType
+    if (!enumToTypeIds.has(enumName)) {
+      enumToTypeIds.set(enumName, [])
+    }
+    enumToTypeIds.get(enumName).push(type.id)
+  }
+
+  const enumEntries = Array.from(enumToTypeIds.entries())
+    .map(([enumName, typeIds]) => `    '${enumName}': '${typeIds[0]}',`)
+    .join('\n')
+
+  const ambiguousEnumEntries = Array.from(enumToTypeIds.entries())
+    .filter(([, typeIds]) => typeIds.length > 1)
+    .map(([enumName, typeIds]) => {
+      const ids = typeIds.map((typeId) => `'${typeId}'`).join(', ')
+      return `    '${enumName}': [${ids}],`
+    })
+    .join('\n')
+
+  return `\"\"\"Auto-generated SmartArt type mappings. Do not edit manually.\"\"\"\n\nfrom pptx.enum.smartart import SMARTART_TYPE\n\nGENERATED_SMARTART_TYPE_MAP = {\n${entries}\n}\n\nGENERATED_LAYOUT_ID_TYPE_ID_MAP = {\n${layoutEntries}\n}\n\nGENERATED_PPTX_ENUM_TYPE_ID_MAP = {\n${enumEntries}\n}\n\nGENERATED_PPTX_ENUM_AMBIGUOUS_TYPE_IDS_MAP = {\n${ambiguousEnumEntries}\n}\n`
 }
 
 function main() {

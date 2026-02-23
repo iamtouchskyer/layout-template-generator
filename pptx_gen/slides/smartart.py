@@ -10,6 +10,11 @@ from pptx.enum.smartart import SMARTART_TYPE, SMARTART_COLORS
 from pptx.smartart import SmartArtData
 
 from ..themes import hex_to_rgb, SMARTART_TYPE_MAP, SMARTART_COLOR_SCHEME_MAP
+from ..smartart_layout_mapper import (
+    resolve_ambiguous_type_ids_from_pptx_enum,
+    resolve_type_id_from_layout_id,
+    resolve_type_id_from_pptx_enum,
+)
 from ..utils import get_blank_layout
 
 
@@ -18,7 +23,7 @@ def generate_smartart_slide(prs, config, theme):
     slide = prs.slides.add_slide(get_blank_layout(prs))
 
     smartart_config = config.get('smartart', {})
-    smartart_type_id = smartart_config.get('type', 'pyramid')
+    smartart_type_id = _resolve_smartart_type_id(smartart_config)
     placement = smartart_config.get('placement', 'full')
     color_scheme_id = smartart_config.get('colorScheme', 'colorful2')
 
@@ -53,6 +58,60 @@ def generate_smartart_slide(prs, config, theme):
         _add_fallback_placeholder(slide, x, y, cx, cy, theme)
 
     return slide
+
+
+def _resolve_smartart_type_id(smartart_config: dict) -> str:
+    """Resolve SmartArt type id with backward-compatible fallbacks.
+
+    Priority:
+    1. smartart.ooxml.layoutId
+    2. smartart.typeId (preferred external API)
+    3. smartart.type when it is internal type-id
+    4. smartart.type when it is SMARTART_TYPE enum name
+    """
+    if isinstance(smartart_config, dict):
+        ooxml_data = smartart_config.get('ooxml')
+        if isinstance(ooxml_data, dict):
+            layout_id = ooxml_data.get('layoutId')
+            mapped = resolve_type_id_from_layout_id(layout_id)
+            if mapped:
+                return mapped
+
+        explicit_type_id = smartart_config.get('typeId')
+        if isinstance(explicit_type_id, str):
+            normalized_type_id = explicit_type_id.strip()
+            if normalized_type_id in SMARTART_TYPE_MAP:
+                return normalized_type_id
+            if normalized_type_id:
+                logging.warning(
+                    "Unknown SmartArt typeId '%s'; falling back to smartart.type.",
+                    normalized_type_id,
+                )
+
+        explicit_type = smartart_config.get('type')
+        if isinstance(explicit_type, str):
+            normalized_type = explicit_type.strip()
+
+            if normalized_type in SMARTART_TYPE_MAP:
+                return normalized_type
+
+            mapped_from_enum = resolve_type_id_from_pptx_enum(normalized_type)
+            if mapped_from_enum:
+                ambiguous_candidates = resolve_ambiguous_type_ids_from_pptx_enum(normalized_type)
+                if ambiguous_candidates:
+                    logging.warning(
+                        "Ambiguous SMARTART_TYPE '%s' resolved to '%s'. Candidates: %s. "
+                        "Prefer smartart.typeId or smartart.ooxml.layoutId to disambiguate.",
+                        normalized_type,
+                        mapped_from_enum,
+                        ", ".join(ambiguous_candidates),
+                    )
+                return mapped_from_enum
+
+            if normalized_type:
+                logging.warning("Unknown SmartArt type '%s'; falling back to default.", normalized_type)
+
+    return 'pyramid'
 
 
 def _add_title_with_tag(slide, title: str, tag: str, theme: dict, title_style: str):
@@ -150,8 +209,9 @@ def _create_smartart_data(smartart_type_id: str, items: list) -> SmartArtData:
     pptx_type = SMARTART_TYPE_MAP.get(smartart_type_id)
     is_hierarchy = pptx_type in [SMARTART_TYPE.HIERARCHY, SMARTART_TYPE.ORGANIZATION_CHART]
     is_radial = pptx_type in [SMARTART_TYPE.BASIC_RADIAL, SMARTART_TYPE.RADIAL]
+    supports_nested_children = smartart_type_id in {'pyramid', 'pyramid-list', 'cycle'}
 
-    if (is_hierarchy or is_radial) and _has_nested_children(items):
+    if (is_hierarchy or is_radial or supports_nested_children) and _has_nested_children(items):
         for item in items:
             root = data.add_node(_item_text(item))
             if isinstance(item, dict):

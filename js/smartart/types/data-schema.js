@@ -55,11 +55,11 @@ export const DATA_SCHEMAS = {
     },
     'matrix-titled': {
         schema: SCHEMA_FLAT,
-        itemCount: 5,  // center + 4 quadrants
-        bulletFromLevel: Infinity,  // center + quadrants are shapes
+        itemCount: 4,  // 4 flat quadrants
+        bulletFromLevel: Infinity,  // quadrants are shapes
         editorMode: 'matrix',
-        labels: { item: '节点' },
-        description: '1 center with 4 quadrants'
+        labels: { item: '象限' },
+        description: '4 flat quadrants'
     },
     'matrix-cycle': {
         schema: SCHEMA_FLAT,

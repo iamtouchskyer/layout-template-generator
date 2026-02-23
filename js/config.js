@@ -327,6 +327,18 @@ const SMARTART_TEST_DATA = {
         { text: '执行' },        // bottom-left
         { text: '运营' },        // bottom-right
     ],
+    'matrix-titled': [
+        { text: '战略' },        // top-left
+        { text: '战术' },        // top-right
+        { text: '执行' },        // bottom-left
+        { text: '运营' },        // bottom-right
+    ],
+    'matrix-cycle': [
+        { text: '战略' },        // top-left
+        { text: '战术' },        // top-right
+        { text: '执行' },        // bottom-left
+        { text: '运营' },        // bottom-right
+    ],
     'chevron': [
         { text: '需求分析', children: [{ text: 'Requirements' }] },
         { text: '方案设计', children: [{ text: 'Design' }] },

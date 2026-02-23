@@ -37,6 +37,7 @@ console.log(JSON.stringify({
   missing,
   matrix: getDataSchema('matrix'),
   matrixTitled: getDataSchema('matrix-titled'),
+  matrixCycle: getDataSchema('matrix-cycle'),
   radial: getDataSchema('radial'),
   matrixEditorMode: getEditorMode('matrix'),
   listBulletL0: shouldShowBullet('list', 0),
@@ -49,7 +50,9 @@ console.log(JSON.stringify({
     assert result['matrix']['schema'] == 'flat'
     assert result['matrix']['itemCount'] == 5
     assert result['matrixTitled']['schema'] == 'flat'
-    assert result['matrixTitled']['itemCount'] == 5
+    assert result['matrixTitled']['itemCount'] == 4
+    assert result['matrixCycle']['schema'] == 'flat'
+    assert result['matrixCycle']['itemCount'] == 4
     assert result['radial']['schema'] == 'flat'
     assert result['radial']['itemCount'] == 5
     assert result['matrixEditorMode'] == 'matrix'
@@ -87,3 +90,54 @@ console.log(JSON.stringify(normalized[0]));
     assert result['children'][0]['tag'] == 'A'
     assert result['children'][0]['text'] == 'Child'
     assert result['children'][1]['text'] == 'Child 2'
+
+
+def test_matrix_layout_variants_match_expected_topology():
+    result = _run_node_json(
+        """
+import { matrixLayout } from './js/smartart/types/matrix.js';
+
+const size = { width: 800, height: 600 };
+const theme = {
+  accent1: '#4472C4',
+  accent2: '#ED7D31',
+  accent3: '#A5A5A5',
+  accent4: '#FFC000',
+  accent5: '#5B9BD5',
+  accent6: '#70AD47',
+  parentColor: '#4472C4',
+  childColors: ['#ED7D31', '#A5A5A5', '#FFC000', '#5B9BD5', '#70AD47'],
+  light1: '#FFFFFF',
+  dark1: '#000000',
+};
+
+const base = matrixLayout(
+  { items: [{text:'C'}, {text:'Q1'}, {text:'Q2'}, {text:'Q3'}, {text:'Q4'}], size, theme },
+  {}
+);
+const titled = matrixLayout(
+  { items: [{text:'Q1'}, {text:'Q2'}, {text:'Q3'}, {text:'Q4'}], size, theme },
+  { titled: true }
+);
+const cycle = matrixLayout(
+  { items: [{text:'Q1'}, {text:'Q2'}, {text:'Q3'}, {text:'Q4'}], size, theme },
+  { cycle: true }
+);
+
+console.log(JSON.stringify({
+  baseShapeCount: base.shapes.length,
+  baseHasCenter: base.shapes.some((s) => s.id === 'center'),
+  titledShapeCount: titled.shapes.length,
+  titledHasCenter: titled.shapes.some((s) => s.id === 'center'),
+  cycleShapeCount: cycle.shapes.length,
+  cycleHasCenter: cycle.shapes.some((s) => s.id === 'center'),
+}));
+        """
+    )
+
+    assert result['baseShapeCount'] == 5
+    assert result['baseHasCenter'] is True
+    assert result['titledShapeCount'] == 4
+    assert result['titledHasCenter'] is False
+    assert result['cycleShapeCount'] == 4
+    assert result['cycleHasCenter'] is False

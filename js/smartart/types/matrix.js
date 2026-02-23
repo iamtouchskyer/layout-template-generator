@@ -106,9 +106,8 @@ function matrixBasicLayout(option) {
 }
 
 /**
- * Titled Matrix (matrix2) - 2x2 cells with center title node
- * Data: items[0] = center (title), items[1-4] = quadrant children
- * Similar to basic matrix but with different styling
+ * Matrix2 (flat) - 2x2 cells, no center node
+ * Data: items[0-3] = quadrants
  */
 function matrixTitledLayout(option, config) {
     const { items, size, theme } = option;
@@ -119,12 +118,12 @@ function matrixTitledLayout(option, config) {
     const cellW = (width - gap) / 2;
     const cellH = (height - gap) / 2;
 
-    // 4 quadrant cells (items[1-4]) - use childColors from scheme
+    // 4 quadrant cells (items[0-3]) - use childColors from scheme
     const childColors = theme.childColors || [theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
     for (let i = 0; i < 4; i++) {
         const row = Math.floor(i / 2);
         const col = i % 2;
-        const item = items[i + 1]; // items[1-4] are quadrants
+        const item = items[i];
 
         shapes.push({
             id: `cell-${i}`,
@@ -142,26 +141,6 @@ function matrixTitledLayout(option, config) {
             ry: 4
         });
     }
-
-    // Center title node (items[0]) - uses parentColor
-    const centerW = width * 0.32;
-    const centerH = height * 0.25;
-    shapes.push({
-        id: 'center',
-        type: 'roundRect',
-        x: (width - centerW) / 2,
-        y: (height - centerH) / 2,
-        width: centerW,
-        height: centerH,
-        fill: theme.parentColor || theme.accent1,
-        stroke: theme.light1,
-        strokeWidth: 2,
-        text: items[0]?.text || items[0] || '',
-        textColor: theme.light1,
-        fontSize: Math.min(20, centerH * 0.35),
-        rx: 8,
-        ry: 8
-    });
 
     return {
         type: 'matrix',

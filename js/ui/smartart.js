@@ -406,13 +406,17 @@ function getSmartartEditorSchema(typeId) {
  * Render matrix editor items: center + quadrants
  */
 function renderMatrixEditorItems(items) {
-    const labels = ['中心', '左上', '右上', '左下', '右下'];
+    const expectedCount = window.SmartArt?.schema?.get?.(state.smartartType)?.itemCount;
+    const hasCenter = expectedCount === 5;
+    const labels = hasCenter
+        ? ['中心', '左上', '右上', '左下', '右下']
+        : ['左上', '右上', '左下', '右下'];
     let html = '';
 
     items.forEach((item, idx) => {
         const text = typeof item === 'string' ? item : (item.text || '');
         const label = labels[idx] || `节点${idx + 1}`;
-        const isCenter = idx === 0;
+        const isCenter = hasCenter && idx === 0;
 
         html += `
             <div class="editor-item matrix-item ${isCenter ? 'center' : 'quadrant'}"

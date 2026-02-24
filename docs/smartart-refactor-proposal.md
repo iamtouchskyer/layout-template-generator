@@ -1367,7 +1367,34 @@ npx --yes esbuild@0.25.10 js/smartart/bundle-entry.js \
 - 已提供可重复布局基线脚本：`npm run smartart:benchmark`（输出 `reports/smartart-layout-benchmark.json`）。
 - Phase 0/1 仍需补一次固定场景基线测量，测完后把“估算值”替换为“实测阈值”。
 
-### 7.8 迁移阶段调整（建议）
+### 7.8 统一文字颜色解析算法（已实现）
+
+为避免“预览与导出颜色解释不一致”，文字颜色采用统一解析链路：
+
+1. 从 `layout*.xml` 找文本容器对应 `styleLbl`（如 `revTx`、`alignAcc1`）。
+2. 按优先级取颜色键：`colors*.xml/txFillClrLst` 优先，缺失时回退 `quickStyle*.xml/fontRef`。
+3. 通过 `clrMap` 把 `tx1/bg1/...` 映射到 `dk1/lt1/...`。
+4. 通过 `theme1.xml/clrScheme` 解析最终 RGB。
+
+公式：
+
+```text
+finalTextColor = theme[ clrMap[ colorKeyFrom(styleLbl) ] ]
+```
+
+当前落地：
+
+- 解析实现：`pptx_gen/smartart_text_color_resolver.py`
+- 命令行分析脚本：`scripts/analyze-smartart-text-colors.py`
+- 回归测试：`tests/test_smartart_text_color_resolver.py`
+
+示例命令：
+
+```bash
+python3 scripts/analyze-smartart-text-colors.py /path/to/generated.pptx
+```
+
+### 7.9 迁移阶段调整（建议）
 
 在原有 4 阶段基础上增加一个前置阶段：
 

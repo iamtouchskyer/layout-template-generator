@@ -50,6 +50,7 @@ Common commands:
 - `npm run smartart:pipeline` - run full local pipeline (generate, build, verify, tests)
 - `npm run smartart:benchmark` - run layout benchmark and write `reports/smartart-layout-benchmark.json`
 - `npm run smartart:smoke` - run browser smoke test (count selector + mocked `/generate` payload contract)
+- `python3 scripts/analyze-smartart-text-colors.py <pptx>` - inspect SmartArt text color mapping (`styleLbl -> clrMap -> theme`)
 
 Browser-side benchmark helper:
 

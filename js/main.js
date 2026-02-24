@@ -9,14 +9,8 @@ function init() {
     renderShapesList();
     renderContentAreasConfig();  // L1 content areas (title/footer config)
     setZoom(state.zoom);
-
-    // Initialize grid operation bar if content-grid is selected
-    if (state.pageType === 'content-grid') {
-        document.getElementById('grid-operation-bar').classList.add('visible');
-        renderGridOperationBar();
-    }
-
-    render();
+    updatePageType(state.pageType, { recordHistory: false });
+    if (typeof updateHistoryButtons === 'function') updateHistoryButtons();
 }
 
 /**

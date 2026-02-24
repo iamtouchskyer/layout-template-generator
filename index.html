@@ -19,10 +19,14 @@
     <header class="app-header">
         <div class="app-logo">Layout × Theme</div>
         <div class="header-actions">
+            <button class="btn" id="btn-undo" onclick="undoDoc()" disabled>Undo</button>
+            <button class="btn" id="btn-redo" onclick="redoDoc()" disabled>Redo</button>
+            <button class="btn" onclick="triggerImportConfig()">Import JSON</button>
             <button class="btn" onclick="exportConfig()">Export JSON</button>
             <button class="btn btn-primary" onclick="generatePPTX()">Generate PPTX</button>
         </div>
     </header>
+    <input type="file" id="config-import-input" accept="application/json,.json" class="hidden" onchange="handleImportConfigFile(event)">
 
     <div class="main-content">
         <div class="editor-panel">
@@ -194,10 +198,13 @@
                 </div>
             </div>
             <div class="preview-viewport" id="preview-viewport">
-                <!-- SmartArt Text Editor (outside slide, PPT-style) -->
-                <div class="smartart-text-editor" id="smartart-text-editor"></div>
-                <div class="slide-wrapper">
-                    <div class="slide-container" id="slide"><div class="master-layer" id="master-layer"></div><div class="content-layer" id="content-layer"></div></div>
+                <div class="page-list-sidebar" id="page-list-sidebar"></div>
+                <div class="preview-canvas">
+                    <!-- SmartArt Text Editor (outside slide, PPT-style) -->
+                    <div class="smartart-text-editor" id="smartart-text-editor"></div>
+                    <div class="slide-wrapper">
+                        <div class="slide-container" id="slide"><div class="master-layer" id="master-layer"></div><div class="content-layer" id="content-layer"></div></div>
+                    </div>
                 </div>
             </div>
             <div class="code-view" id="code-view"><pre id="json-output"></pre></div>
@@ -211,6 +218,7 @@
     <script src="js/config.smartart.generated.js?v=1"></script>
     <script src="js/config.js?v=14"></script>
     <script src="js/state.js?v=15"></script>
+    <script src="js/state-selectors.js?v=1"></script>
 
     <!-- Render modules (load first - no dependencies) -->
     <script src="js/render/charts.js"></script>
@@ -228,9 +236,11 @@
     <script src="js/ui/placeholders.js"></script>
     <script src="js/ui/shapes.js"></script>
     <script src="js/ui/page-types.js"></script>
+    <script src="js/ui/pages.js"></script>
     <script src="js/ui/grid.js"></script>
     <script src="js/ui/divider.js"></script>
     <script src="js/ui/smartart.js"></script>
+    <script src="js/ui/import.js"></script>
     <script src="js/ui/export.js"></script>
 
     <!-- Legacy modules (to be migrated) -->

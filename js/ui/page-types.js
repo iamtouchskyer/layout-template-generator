@@ -3,8 +3,15 @@
 /**
  * Update current page type and show/hide corresponding operation bars
  */
-function updatePageType(type) {
+function updatePageType(type, options = {}) {
+    const shouldRecordHistory = options.recordHistory !== false;
+    if (shouldRecordHistory && type !== state.pageType && typeof recordDocHistory === 'function') {
+        recordDocHistory();
+    }
     state.pageType = type;
+    document.querySelectorAll('input[name="page-type"]').forEach(input => {
+        input.checked = input.value === type;
+    });
 
     // Show/hide cover operation bar
     const coverBar = document.getElementById('cover-operation-bar');

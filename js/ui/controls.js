@@ -67,3 +67,16 @@ function updateAspectRatio(aspectRatio) {
     // Re-render with new dimensions
     render();
 }
+
+/**
+ * Sync Undo/Redo button enabled state from history stacks.
+ */
+function updateHistoryButtons() {
+    const undoBtn = document.getElementById('btn-undo');
+    const redoBtn = document.getElementById('btn-redo');
+    if (!undoBtn || !redoBtn) return;
+
+    const history = state.ui?.history || { undoStack: [], redoStack: [] };
+    undoBtn.disabled = !Array.isArray(history.undoStack) || history.undoStack.length === 0;
+    redoBtn.disabled = !Array.isArray(history.redoStack) || history.redoStack.length === 0;
+}

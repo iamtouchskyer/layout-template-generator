@@ -25,21 +25,25 @@ test('smartart count selector updates exported contract', async ({ page }) => {
   await page.getByRole('button', { name: '3' }).click()
   const count3 = await page.evaluate(() => {
     window.updateJsonOutput()
-    return JSON.parse(document.getElementById('json-output').textContent).smartart.items.length
+    const config = JSON.parse(document.getElementById('json-output').textContent)
+    const smartart = (config.schemaVersion === 2 ? config.pages?.[0]?.data?.smartart : config.smartart) || {}
+    return Array.isArray(smartart.items) ? smartart.items.length : 0
   })
   expect(count3).toBe(3)
 
   await page.getByRole('button', { name: '6' }).click()
   const count6 = await page.evaluate(() => {
     window.updateJsonOutput()
-    return JSON.parse(document.getElementById('json-output').textContent).smartart.items.length
+    const config = JSON.parse(document.getElementById('json-output').textContent)
+    const smartart = (config.schemaVersion === 2 ? config.pages?.[0]?.data?.smartart : config.smartart) || {}
+    return Array.isArray(smartart.items) ? smartart.items.length : 0
   })
   expect(count6).toBe(6)
 
   const smartart = await page.evaluate(() => {
     window.updateJsonOutput()
     const config = JSON.parse(document.getElementById('json-output').textContent)
-    return config.smartart
+    return (config.schemaVersion === 2 ? config.pages?.[0]?.data?.smartart : config.smartart) || {}
   })
 
   expect(Array.isArray(smartart.items)).toBeTruthy()
@@ -79,14 +83,140 @@ test('generate pptx posts smartart payload and triggers download link', async ({
   await page.getByRole('button', { name: 'Generate PPTX' }).click()
 
   await expect.poll(() => postedConfig !== null).toBeTruthy()
-  expect(postedConfig.pageType).toBe('content-smartart')
-  expect('engine' in postedConfig.smartart).toBeFalsy()
-  expect(Array.isArray(postedConfig.smartart.items)).toBeTruthy()
-  expect(postedConfig.smartart.type).toBeTruthy()
-  expect(postedConfig.smartart.colorScheme).toBeTruthy()
+  expect(postedConfig.schemaVersion).toBe(2)
+  expect(Array.isArray(postedConfig.pages)).toBeTruthy()
+  expect(postedConfig.pages[0].type).toBe('content-smartart')
+  const smartartPayload = postedConfig.pages[0].data.smartart
+  expect('engine' in smartartPayload).toBeFalsy()
+  expect(Array.isArray(smartartPayload.items)).toBeTruthy()
+  expect(smartartPayload.type).toBeTruthy()
+  expect(smartartPayload.colorScheme).toBeTruthy()
 
   await page.waitForFunction(() => window.__clickedLinks.length > 0)
   const clicked = await page.evaluate(() => window.__clickedLinks[0])
   expect(clicked.download).toBe('generated.pptx')
   expect(clicked.href).toBe('/generated.pptx')
+})
+
+test('multi-page operations are reflected in exported v2 payload order', async ({ page }) => {
+  await openSmartartPage(page)
+
+  const exported = await page.evaluate(() => {
+    const firstId = window.getCurrentPageId()
+    window.patchCurrentPage({
+      smartartType: 'pyramid',
+      smartartCategory: 'pyramid',
+      smartartItems: [{ text: 'Page1' }],
+      smartartItemsByType: { pyramid: [{ text: 'Page1' }] },
+    })
+
+    const second = window.addPage('content-grid')
+    window.patchCurrentPage({
+      gridLayout: 'single',
+      zoneContents: { A: 'text' },
+    })
+
+    window.setCurrentPage(firstId)
+    window.updateJsonOutput()
+    return {
+      firstId,
+      secondId: second.id,
+      config: JSON.parse(document.getElementById('json-output').textContent),
+    }
+  })
+
+  expect(exported.config.schemaVersion).toBe(2)
+  expect(Array.isArray(exported.config.pages)).toBeTruthy()
+  expect(exported.config.pages.length).toBe(2)
+  expect(exported.config.pages[0].id).toBe(exported.firstId)
+  expect(exported.config.pages[1].id).toBe(exported.secondId)
+  expect(exported.config.pages[0].type).toBe('content-smartart')
+  expect(exported.config.pages[1].type).toBe('content-grid')
+})
+
+test('undo and redo restore page list after page operations', async ({ page }) => {
+  await openSmartartPage(page)
+
+  await page.evaluate(() => {
+    state.ui.history.undoStack = []
+    state.ui.history.redoStack = []
+    updateHistoryButtons()
+  })
+
+  await expect(page.locator('#btn-undo')).toBeDisabled()
+  await expect(page.locator('#btn-redo')).toBeDisabled()
+
+  await page.evaluate(() => {
+    window.addPage('content-grid')
+  })
+
+  await expect.poll(async () => {
+    return page.evaluate(() => window.listPages().length)
+  }).toBe(2)
+
+  await expect(page.locator('#btn-undo')).toBeEnabled()
+  await page.getByRole('button', { name: 'Undo' }).click()
+
+  await expect.poll(async () => {
+    return page.evaluate(() => window.listPages().length)
+  }).toBe(1)
+
+  await expect(page.locator('#btn-redo')).toBeEnabled()
+  await page.getByRole('button', { name: 'Redo' }).click()
+
+  await expect.poll(async () => {
+    return page.evaluate(() => window.listPages().length)
+  }).toBe(2)
+})
+
+test('imported config updates state and export payload', async ({ page }) => {
+  await page.goto('/index.html')
+  await page.waitForFunction(() => typeof window.applyImportedConfig === 'function' && typeof window.updateJsonOutput === 'function')
+
+  const imported = await page.evaluate(() => {
+    const payload = {
+      schemaVersion: 2,
+      master: {
+        theme: 'azure',
+        masterShapes: [],
+        masterPlaceholders: {},
+        masterContentAreas: {},
+      },
+      pages: [
+        {
+          id: 'import-p1',
+          type: 'cover',
+          data: {
+            coverLayout: 'cross_rectangles',
+            coverContent: { title: 'Imported Cover' },
+          },
+        },
+        {
+          id: 'import-p2',
+          type: 'content-grid',
+          data: {
+            gridLayout: 'single',
+            zoneContents: { A: 'text' },
+          },
+        },
+      ],
+    }
+
+    window.applyImportedConfig(payload)
+    window.updateJsonOutput()
+    const config = JSON.parse(document.getElementById('json-output').textContent)
+    return {
+      currentPageId: window.getCurrentPageId(),
+      pageCount: Array.isArray(config.pages) ? config.pages.length : 0,
+      firstType: config.pages?.[0]?.type,
+      secondType: config.pages?.[1]?.type,
+      firstTitle: config.pages?.[0]?.data?.coverContent?.title || '',
+    }
+  })
+
+  expect(imported.currentPageId).toBe('import-p1')
+  expect(imported.pageCount).toBe(2)
+  expect(imported.firstType).toBe('cover')
+  expect(imported.secondType).toBe('content-grid')
+  expect(imported.firstTitle).toBe('Imported Cover')
 })

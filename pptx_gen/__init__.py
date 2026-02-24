@@ -21,6 +21,7 @@ from pptx import Presentation
 
 from .themes import THEME_COLORS, get_theme
 from .slide_master import setup_slide_master
+from .adapter import normalize_input, to_legacy_config_for_page
 from .slides import (
     generate_cover_slide,
     generate_divider_slide,
@@ -36,7 +37,10 @@ def generate_pptx(config: dict, output_path: str):
         config: Configuration dict with theme, slideMaster, grid, etc.
         output_path: Path to save the generated PPTX file.
     """
-    theme_id = config.get('theme', 'soft_peach_cream')
+    doc = normalize_input(config)
+    master = doc.get('master', {})
+    pages = doc.get('pages', [])
+    theme_id = master.get('theme', 'soft_peach_cream')
     theme = get_theme(theme_id)
 
     # Build theme dict for Presentation.create() API
@@ -57,20 +61,33 @@ def generate_pptx(config: dict, output_path: str):
     # Create presentation with mitsein template (has 18 layouts) and theme applied
     prs = Presentation.create(template="mitsein", theme=pptx_theme)
 
-    # Setup slide master (decorative shapes, placeholders, content areas)
-    setup_slide_master(prs, config)
+    # Setup slide master once for the whole presentation.
+    master_config = {
+        'theme': theme_id,
+        'slide': doc.get('slide', {}),
+        'slideMaster': {
+            'decorativeShapes': master.get('masterShapes', []),
+            'placeholders': master.get('masterPlaceholders', {}),
+            'contentAreas': master.get('masterContentAreas', {}),
+        },
+    }
+    setup_slide_master(prs, master_config)
 
-    # Generate slide based on page type
-    page_type = config.get('pageType', 'content-grid')
+    if not isinstance(pages, list) or len(pages) == 0:
+        pages = [{'id': 'page-1', 'type': 'content-grid', 'data': {'grid': {'layout': 'single', 'zones': []}}}]
 
-    if page_type == 'cover':
-        generate_cover_slide(prs, config, theme)
-    elif page_type == 'divider':
-        generate_divider_slide(prs, config, theme)
-    elif page_type == 'content-smartart':
-        generate_smartart_slide(prs, config, theme)
-    else:
-        generate_grid_slide(prs, config, theme)
+    for page in pages:
+        page_config = to_legacy_config_for_page(doc, page)
+        page_type = page_config.get('pageType', 'content-grid')
+
+        if page_type == 'cover':
+            generate_cover_slide(prs, page_config, theme)
+        elif page_type == 'divider':
+            generate_divider_slide(prs, page_config, theme)
+        elif page_type == 'content-smartart':
+            generate_smartart_slide(prs, page_config, theme)
+        else:
+            generate_grid_slide(prs, page_config, theme)
 
     prs.save(output_path)
     logger.info(f"Saved PPTX: {output_path}")

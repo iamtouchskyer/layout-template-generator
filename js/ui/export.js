@@ -76,6 +76,149 @@ function updateNavValues() {
     document.getElementById('nav-l2-value').textContent = l2Value;
 }
 
+function deepClone(value) {
+    return JSON.parse(JSON.stringify(value));
+}
+
+function buildGridZones(layoutId, zoneContents) {
+    const layout = GRID_LAYOUTS[layoutId];
+    return (layout?.zones || []).map((zone, idx) => {
+        const contentType = zoneContents?.[zone.id] || 'text';
+        const zoneData = {
+            id: zone.id,
+            flex: zone.flex,
+            content: contentType
+        };
+
+        if (contentType === 'chart' && typeof CHART_SAMPLES !== 'undefined') {
+            const zoneIdx = zone.id.charCodeAt(0) - 65;
+            const chartSample = CHART_SAMPLES[zoneIdx % CHART_SAMPLES.length];
+            zoneData.chartData = {
+                title: chartSample.title,
+                chartType: chartSample.chartType,
+                categories: chartSample.categories,
+                series: chartSample.series
+            };
+        }
+        if (contentType === 'text' && typeof TEXT_SAMPLES !== 'undefined') {
+            const zoneIdx = zone.id.charCodeAt(0) - 65;
+            const textSample = TEXT_SAMPLES[zoneIdx % TEXT_SAMPLES.length];
+            zoneData.textData = {
+                title: textSample.title,
+                body: textSample.content
+            };
+        }
+        return zoneData;
+    });
+}
+
+function buildPageDataForExport(page, legacyFallback) {
+    const pageType = page?.type || legacyFallback?.pageType || 'content-grid';
+    const sourceData = deepClone(page?.data || {});
+
+    if (pageType === 'cover') {
+        return {
+            coverLayout: sourceData.coverLayout || legacyFallback?.coverLayout || 'cross_rectangles',
+            coverContent: deepClone(sourceData.coverContent || legacyFallback?.coverContent || {}),
+        };
+    }
+
+    if (pageType === 'divider') {
+        const divider = sourceData.divider || {
+            layout: sourceData.dividerLayout || legacyFallback?.divider?.layout || 'cards-highlight',
+            sectionCount: sourceData.dividerSectionCount ?? legacyFallback?.divider?.sectionCount ?? 4,
+            numberStyle: sourceData.dividerNumberStyle || legacyFallback?.divider?.numberStyle || 'arabic',
+            textLevel: sourceData.dividerTextLevel || legacyFallback?.divider?.textLevel || 'full',
+            bgStyle: sourceData.dividerBgStyle || legacyFallback?.divider?.bgStyle || 'solid',
+            sectionIndex: sourceData.dividerIndex ?? legacyFallback?.divider?.sectionIndex ?? 0,
+        };
+        return { divider };
+    }
+
+    if (pageType === 'content-smartart') {
+        const smartartType = sourceData.smartartType || sourceData.smartart?.type || legacyFallback?.smartart?.type || 'pyramid';
+        const byType = deepClone(sourceData.smartartItemsByType || {});
+        const fromSmartart = sourceData.smartart?.items;
+        const fromCurrent = sourceData.smartartItems;
+        const fromByType = byType[smartartType];
+        const items = Array.isArray(fromSmartart)
+            ? deepClone(fromSmartart)
+            : Array.isArray(fromCurrent)
+                ? deepClone(fromCurrent)
+                : Array.isArray(fromByType)
+                    ? deepClone(fromByType)
+                    : [];
+
+        byType[smartartType] = deepClone(items);
+        const smartart = {
+            type: smartartType,
+            category: sourceData.smartartCategory || sourceData.smartart?.category || legacyFallback?.smartart?.category || 'pyramid',
+            placement: sourceData.smartartPlacement || sourceData.smartart?.placement || legacyFallback?.smartart?.placement || 'left-desc',
+            colorScheme: sourceData.smartartColorScheme || sourceData.smartart?.colorScheme || legacyFallback?.smartart?.colorScheme || 'colorful1',
+            items,
+            ooxmlId: SMARTART_TYPES[smartartType]?.ooxmlId,
+        };
+
+        if (sourceData.smartart?.ooxml) {
+            smartart.ooxml = deepClone(sourceData.smartart.ooxml);
+        } else if (typeof getSmartArtOOXML === 'function' && state.ui?.currentPageId === page?.id) {
+            smartart.ooxml = getSmartArtOOXML();
+        }
+
+        return {
+            smartartCategory: smartart.category,
+            smartartType: smartart.type,
+            smartartPlacement: smartart.placement,
+            smartartColorScheme: smartart.colorScheme,
+            smartartItemCount: sourceData.smartartItemCount ?? items.length,
+            smartartItemsByType: byType,
+            smartart,
+        };
+    }
+
+    const gridLayout = sourceData.gridLayout || sourceData.grid?.layout || legacyFallback?.grid?.layout || 'two-col-equal';
+    const zoneContents = sourceData.zoneContents || {};
+    const zones = (sourceData.grid && Array.isArray(sourceData.grid.zones))
+        ? deepClone(sourceData.grid.zones)
+        : buildGridZones(gridLayout, zoneContents);
+    return {
+        gridLayout,
+        zoneContents: deepClone(zoneContents),
+        grid: {
+            layout: gridLayout,
+            zones,
+        },
+    };
+}
+
+function toV2PresentationConfig(legacyConfig) {
+    const docPages = Array.isArray(state.doc?.pages) ? state.doc.pages : [];
+    const pages = docPages.length > 0
+        ? docPages.map((page, idx) => ({
+            id: page?.id || `page-${idx + 1}`,
+            type: page?.type || 'content-grid',
+            data: buildPageDataForExport(page, null),
+        }))
+        : [{
+            id: (state.ui && state.ui.currentPageId) || 'page-1',
+            type: legacyConfig.pageType || 'content-grid',
+            data: buildPageDataForExport(null, legacyConfig),
+        }];
+
+    // Keep master payload aligned with current master editor serialization.
+    return {
+        schemaVersion: 2,
+        slide: legacyConfig.slide,
+        master: {
+            theme: legacyConfig.theme,
+            masterShapes: deepClone(state.masterShapes || []),
+            masterPlaceholders: deepClone(state.masterPlaceholders || {}),
+            masterContentAreas: deepClone(state.masterContentAreas || {}),
+        },
+        pages
+    };
+}
+
 /**
  * Generate JSON config for export
  */
@@ -163,7 +306,7 @@ function updateJsonOutput() {
         },
     };
 
-    const config = {
+    const legacyConfig = {
         slide: {
             width: SLIDE_CONFIG.width,
             height: SLIDE_CONFIG.height,
@@ -240,6 +383,7 @@ function updateJsonOutput() {
         } : {})
     };
 
+    const config = toV2PresentationConfig(legacyConfig);
     document.getElementById('json-output').textContent = JSON.stringify(config, null, 2);
 }
 

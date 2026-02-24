@@ -25,6 +25,7 @@ function render() {
     });
 
     updateNavValues();
+    if (typeof renderPageList === 'function') renderPageList();
     if (state.previewTab === 'json') updateJsonOutput();
 
     if (state.pageType === 'content-grid') {
@@ -32,6 +33,7 @@ function render() {
     }
 
     renderSmartartTextEditor();
+    if (typeof updateHistoryButtons === 'function') updateHistoryButtons();
 }
 
 function renderContentLayer() {

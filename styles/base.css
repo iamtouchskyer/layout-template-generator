@@ -69,6 +69,16 @@ body {
 
 .btn-primary:hover { background: #2b6cb0; }
 
+.btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color);
+}
+
 /* Main Content */
 .main-content {
     flex: 1;

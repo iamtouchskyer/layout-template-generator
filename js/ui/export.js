@@ -124,15 +124,26 @@ function buildPageDataForExport(page, legacyFallback) {
     }
 
     if (pageType === 'divider') {
-        const divider = sourceData.divider || {
-            layout: sourceData.dividerLayout || legacyFallback?.divider?.layout || 'cards-highlight',
-            sectionCount: sourceData.dividerSectionCount ?? legacyFallback?.divider?.sectionCount ?? 4,
-            numberStyle: sourceData.dividerNumberStyle || legacyFallback?.divider?.numberStyle || 'arabic',
-            textLevel: sourceData.dividerTextLevel || legacyFallback?.divider?.textLevel || 'full',
-            bgStyle: sourceData.dividerBgStyle || legacyFallback?.divider?.bgStyle || 'solid',
-            sectionIndex: sourceData.dividerIndex ?? legacyFallback?.divider?.sectionIndex ?? 0,
+        const dividerBase = deepClone(sourceData.divider || {});
+        const divider = {
+            ...dividerBase,
+            // Flat fields are current editor state and must take precedence.
+            layout: sourceData.dividerLayout ?? dividerBase.layout ?? legacyFallback?.divider?.layout ?? 'cards-highlight',
+            sectionCount: sourceData.dividerSectionCount ?? dividerBase.sectionCount ?? legacyFallback?.divider?.sectionCount ?? 4,
+            numberStyle: sourceData.dividerNumberStyle ?? dividerBase.numberStyle ?? legacyFallback?.divider?.numberStyle ?? 'arabic',
+            textLevel: sourceData.dividerTextLevel ?? dividerBase.textLevel ?? legacyFallback?.divider?.textLevel ?? 'full',
+            bgStyle: sourceData.dividerBgStyle ?? dividerBase.bgStyle ?? legacyFallback?.divider?.bgStyle ?? 'solid',
+            sectionIndex: sourceData.dividerIndex ?? dividerBase.sectionIndex ?? legacyFallback?.divider?.sectionIndex ?? 0,
         };
-        return { divider };
+        return {
+            dividerLayout: divider.layout,
+            dividerSectionCount: divider.sectionCount,
+            dividerNumberStyle: divider.numberStyle,
+            dividerTextLevel: divider.textLevel,
+            dividerBgStyle: divider.bgStyle,
+            dividerIndex: divider.sectionIndex,
+            divider,
+        };
     }
 
     if (pageType === 'content-smartart') {

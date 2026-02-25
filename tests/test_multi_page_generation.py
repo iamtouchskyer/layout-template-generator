@@ -8,7 +8,7 @@ import tempfile
 from pptx import Presentation
 
 from pptx_gen import generate_pptx
-from pptx_gen.adapter import normalize_input
+from pptx_gen.adapter import normalize_input, to_legacy_config_for_page
 
 
 def test_slide_count_equals_pages_count_for_v2():
@@ -78,3 +78,38 @@ def test_normalize_v1_to_v2_uses_slide_master_fields():
     assert len(v2["pages"]) == 1
     assert v2["pages"][0]["type"] == "content-smartart"
 
+
+def test_divider_flat_fields_override_nested_divider_payload():
+    doc = normalize_input(
+        {
+            "schemaVersion": 2,
+            "master": {
+                "theme": "forest_green",
+                "masterShapes": [],
+                "masterPlaceholders": {},
+                "masterContentAreas": {},
+            },
+            "pages": [
+                {
+                    "id": "p1",
+                    "type": "divider",
+                    "data": {
+                        "divider": {
+                            "layout": "cards",
+                            "sectionIndex": 2,
+                            "bgStyle": "light",
+                        },
+                        "dividerLayout": "cards-highlight",
+                        "dividerIndex": 1,
+                        "dividerBgStyle": "solid",
+                    },
+                }
+            ],
+        }
+    )
+
+    legacy = to_legacy_config_for_page(doc, doc["pages"][0])
+    divider = legacy["divider"]
+    assert divider["layout"] == "cards-highlight"
+    assert divider["sectionIndex"] == 1
+    assert divider["bgStyle"] == "solid"

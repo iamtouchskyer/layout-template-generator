@@ -195,16 +195,16 @@ def _extract_page_data_v1(config: dict, page_type: str) -> dict:
 
 
 def _extract_divider_payload(data: dict) -> dict:
-    divider = data.get("divider")
-    if isinstance(divider, dict):
-        return deepcopy(divider)
+    base = deepcopy(data.get("divider", {})) if isinstance(data.get("divider"), dict) else {}
     return {
-        "layout": data.get("dividerLayout", "cards-highlight"),
-        "sectionCount": data.get("dividerSectionCount", 4),
-        "numberStyle": data.get("dividerNumberStyle", "arabic"),
-        "textLevel": data.get("dividerTextLevel", "full"),
-        "bgStyle": data.get("dividerBgStyle", "solid"),
-        "sectionIndex": data.get("dividerIndex", 0),
+        **base,
+        # Flat fields represent current editor state; keep them authoritative.
+        "layout": data.get("dividerLayout", base.get("layout", "cards-highlight")),
+        "sectionCount": data.get("dividerSectionCount", base.get("sectionCount", 4)),
+        "numberStyle": data.get("dividerNumberStyle", base.get("numberStyle", "arabic")),
+        "textLevel": data.get("dividerTextLevel", base.get("textLevel", "full")),
+        "bgStyle": data.get("dividerBgStyle", base.get("bgStyle", "solid")),
+        "sectionIndex": data.get("dividerIndex", base.get("sectionIndex", 0)),
     }
 
 
@@ -250,4 +250,3 @@ def _derive_smartart_items(data: dict) -> list:
     if isinstance(by_type, dict) and isinstance(by_type.get(smartart_type), list):
         return deepcopy(by_type[smartart_type])
     return []
-

@@ -245,3 +245,37 @@ test('imported config updates state and export payload', async ({ page }) => {
   expect(imported.secondType).toBe('content-grid')
   expect(imported.firstTitle).toBe('Imported Cover')
 })
+
+test('divider export prefers current flat state over stale nested divider object', async ({ page }) => {
+  await page.goto('/index.html')
+  await page.waitForFunction(() => typeof window.applyImportedConfig === 'function' && typeof window.updateJsonOutput === 'function')
+
+  const exported = await page.evaluate(() => {
+    window.applyImportedConfig({
+      schemaVersion: 2,
+      master: { theme: 'forest_green', masterShapes: [], masterPlaceholders: {}, masterContentAreas: {} },
+      pages: [
+        {
+          id: 'd1',
+          type: 'divider',
+          data: {
+            divider: { layout: 'cards', sectionIndex: 2, bgStyle: 'light' },
+            dividerLayout: 'cards-highlight',
+            dividerIndex: 1,
+            dividerBgStyle: 'solid',
+            dividerSectionCount: 4,
+            dividerNumberStyle: 'arabic',
+            dividerTextLevel: 'full',
+          },
+        },
+      ],
+    })
+
+    window.updateJsonOutput()
+    return JSON.parse(document.getElementById('json-output').textContent).pages[0].data.divider
+  })
+
+  expect(exported.layout).toBe('cards-highlight')
+  expect(exported.sectionIndex).toBe(1)
+  expect(exported.bgStyle).toBe('solid')
+})

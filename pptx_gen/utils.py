@@ -24,6 +24,38 @@ def _find_layout_by_name(prs, expected_names):
     return None
 
 
+def _placeholder_type_name(shape):
+    try:
+        t = shape.placeholder_format.type
+        name = getattr(t, "name", None)
+        if isinstance(name, str) and name:
+            return name.upper()
+        txt = str(t)
+        return txt.split(" ", 1)[0].upper()
+    except Exception:
+        return "UNKNOWN"
+
+
+def remove_slide_placeholders(slide, keep_types=None):
+    """Remove layout placeholders from a slide.
+
+    Args:
+        slide: python-pptx Slide
+        keep_types: iterable of placeholder type names to keep, e.g. {'TITLE'}
+    """
+    keep = {str(x).upper() for x in (keep_types or set())}
+    for shape in list(slide.shapes):
+        if not getattr(shape, "is_placeholder", False):
+            continue
+        pht = _placeholder_type_name(shape)
+        if pht in keep:
+            continue
+        element = shape._element
+        parent = element.getparent()
+        if parent is not None:
+            parent.remove(element)
+
+
 def get_blank_layout(prs):
     """Get blank slide layout safely.
 

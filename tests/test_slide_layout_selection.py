@@ -17,6 +17,12 @@ CONTENT_PLACEHOLDER_TYPES = {
     "PICTURE (18)",
 }
 
+FOOTER_PLACEHOLDER_TYPES = {
+    "DATE (16)",
+    "FOOTER (15)",
+    "SLIDE_NUMBER (13)",
+}
+
 
 def _placeholder_types(slide) -> set[str]:
     result = set()
@@ -78,6 +84,8 @@ def test_cover_and_smartart_slides_do_not_include_content_placeholders():
         smartart_ph = _placeholder_types(prs.slides[1])
         assert cover_ph.isdisjoint(CONTENT_PLACEHOLDER_TYPES)
         assert smartart_ph.isdisjoint(CONTENT_PLACEHOLDER_TYPES)
+        assert cover_ph.isdisjoint(FOOTER_PLACEHOLDER_TYPES)
+        assert smartart_ph.isdisjoint(FOOTER_PLACEHOLDER_TYPES)
     finally:
         os.unlink(output_path)
 
@@ -122,6 +130,50 @@ def test_grid_slide_uses_title_without_object_or_chart_placeholders():
         assert "OBJECT (7)" not in ph_types
         assert "CHART (8)" not in ph_types
         assert "PICTURE (18)" not in ph_types
+        assert "DATE (16)" not in ph_types
+        assert "FOOTER (15)" not in ph_types
+        assert "SLIDE_NUMBER (13)" not in ph_types
     finally:
         os.unlink(output_path)
 
+
+def test_divider_cards_layout_uses_full_slide_width_not_4_3_box():
+    config = {
+        "schemaVersion": 2,
+        "master": {
+            "theme": "forest_green",
+            "masterShapes": [],
+            "masterPlaceholders": {},
+            "masterContentAreas": {},
+        },
+        "pages": [
+            {
+                "id": "p-divider",
+                "type": "divider",
+                "data": {
+                    "divider": {
+                        "layout": "cards-highlight",
+                        "sectionCount": 4,
+                        "sectionIndex": 0,
+                        "numberStyle": "arabic",
+                        "textLevel": "full",
+                        "bgStyle": "solid",
+                    }
+                },
+            }
+        ],
+    }
+
+    with tempfile.NamedTemporaryFile(suffix=".pptx", delete=False) as fp:
+        output_path = fp.name
+
+    try:
+        generate_pptx(config, output_path)
+        prs = Presentation.open(output_path)
+        slide = prs.slides[0]
+        slide_width = prs.slide_width
+        max_right = max(shape.left + shape.width for shape in slide.shapes)
+        # Ensure divider content stretches close to right edge on 16:9 slide.
+        assert max_right > int(slide_width * 0.9)
+    finally:
+        os.unlink(output_path)

@@ -15,12 +15,13 @@ from ..smartart_layout_mapper import (
     resolve_type_id_from_layout_id,
     resolve_type_id_from_pptx_enum,
 )
-from ..utils import get_blank_layout
+from ..utils import get_blank_layout, remove_slide_placeholders
 
 
 def generate_smartart_slide(prs, config, theme):
     """Generate SmartArt content slide."""
     slide = prs.slides.add_slide(get_blank_layout(prs))
+    remove_slide_placeholders(slide)
 
     smartart_config = config.get('smartart', {})
     smartart_type_id = _resolve_smartart_type_id(smartart_config)

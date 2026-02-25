@@ -8,7 +8,7 @@ from pptx.dml.color import RGBColor
 from ..themes import hex_to_rgb
 from ..layout import calculate_zone_positions, render_zone_content
 from ..dimensions import px_to_inches_x, px_to_inches_y
-from ..utils import get_blank_layout, get_title_only_layout
+from ..utils import get_blank_layout, get_title_only_layout, remove_slide_placeholders
 
 # Layout constants
 PILL_WIDTH = Inches(0.8)
@@ -35,8 +35,10 @@ def generate_grid_slide(prs, config, theme):
     # Choose layout based on whether we have title
     if has_title:
         slide = prs.slides.add_slide(get_title_only_layout(prs))
+        remove_slide_placeholders(slide, keep_types={"TITLE"})
     else:
         slide = prs.slides.add_slide(get_blank_layout(prs))
+        remove_slide_placeholders(slide)
 
     # Get pre-calculated bounds (in pixels)
     header_bounds = content_areas.get('headerBounds', {})

@@ -10,7 +10,7 @@ from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from ..themes import hex_to_rgb
 from ..dimensions import px_to_inches_x, px_to_inches_y
 from ..cover_layouts import get_cover_layout, COVER_LAYOUTS
-from ..utils import get_blank_layout
+from ..utils import get_blank_layout, remove_slide_placeholders
 
 
 def generate_cover_slide(prs, config, theme):
@@ -22,6 +22,7 @@ def generate_cover_slide(prs, config, theme):
         theme: Theme colors dict
     """
     slide = prs.slides.add_slide(get_blank_layout(prs))
+    remove_slide_placeholders(slide)
 
     # Get layout from config or use default
     layout_id = config.get('coverLayout', 'cross_rectangles')

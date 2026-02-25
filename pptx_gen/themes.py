@@ -91,33 +91,33 @@ THEME_COLORS = {
     },
     # 高端汇报 - Premium Report Themes (dark background)
     'bright_red_blue': {
-        'primary': '#FFFFFF', 'accent': '#E4380E', 'bg': '#313131',
-        'text': '#FFFFFF', 'text_muted': '#CCCCCC', 'card_bg': '#404040', 'card_border': '#555555',
+        'primary': '#101010', 'accent': '#E4380E', 'bg': '#F2F5F6',
+        'text': '#101010', 'text_muted': '#6F6F6F', 'card_bg': '#FFFFFF', 'card_border': '#E8E8E8',
         'accentColors': ['#E4380E', '#B32A0A', '#FE8732', '#F16128', '#6390FE', '#6F6F6F'],
     },
     'bright_blue_red': {
-        'primary': '#FFFFFF', 'accent': '#0354D7', 'bg': '#313131',
-        'text': '#FFFFFF', 'text_muted': '#CCCCCC', 'card_bg': '#404040', 'card_border': '#555555',
+        'primary': '#101010', 'accent': '#0354D7', 'bg': '#F2F5F6',
+        'text': '#101010', 'text_muted': '#6F6F6F', 'card_bg': '#FFFFFF', 'card_border': '#E8E8E8',
         'accentColors': ['#0354D7', '#0037A2', '#6592FE', '#346DF5', '#F7685C', '#6F6F6F'],
     },
     'deep_red_blue': {
-        'primary': '#FFFFFF', 'accent': '#731817', 'bg': '#313131',
-        'text': '#FFFFFF', 'text_muted': '#CCCCCC', 'card_bg': '#404040', 'card_border': '#555555',
+        'primary': '#101010', 'accent': '#731817', 'bg': '#F2F5F6',
+        'text': '#101010', 'text_muted': '#6F6F6F', 'card_bg': '#FFFFFF', 'card_border': '#E8E8E8',
         'accentColors': ['#731817', '#AA352C', '#DB6436', '#EF7E4D', '#6292C6', '#6F6F6F'],
     },
     'deep_green_gold': {
-        'primary': '#FFFFFF', 'accent': '#204023', 'bg': '#313131',
-        'text': '#FFFFFF', 'text_muted': '#CCCCCC', 'card_bg': '#404040', 'card_border': '#555555',
+        'primary': '#101010', 'accent': '#204023', 'bg': '#F2F5F6',
+        'text': '#101010', 'text_muted': '#6F6F6F', 'card_bg': '#FFFFFF', 'card_border': '#E8E8E8',
         'accentColors': ['#204023', '#316637', '#4D8A56', '#57A264', '#DDAC6F', '#6F6F6F'],
     },
     'deep_blue_gold': {
-        'primary': '#FFFFFF', 'accent': '#132D86', 'bg': '#313131',
-        'text': '#FFFFFF', 'text_muted': '#CCCCCC', 'card_bg': '#404040', 'card_border': '#555555',
+        'primary': '#101010', 'accent': '#132D86', 'bg': '#F2F5F6',
+        'text': '#101010', 'text_muted': '#6F6F6F', 'card_bg': '#FFFFFF', 'card_border': '#E8E8E8',
         'accentColors': ['#132D86', '#274DA6', '#4C81B7', '#669AD0', '#DFAA6F', '#6F6F6F'],
     },
     'blue_green_gold': {
-        'primary': '#FFFFFF', 'accent': '#122C86', 'bg': '#313131',
-        'text': '#FFFFFF', 'text_muted': '#CCCCCC', 'card_bg': '#404040', 'card_border': '#555555',
+        'primary': '#101010', 'accent': '#122C86', 'bg': '#F2F5F6',
+        'text': '#101010', 'text_muted': '#6F6F6F', 'card_bg': '#FFFFFF', 'card_border': '#E8E8E8',
         'accentColors': ['#122C86', '#274DA7', '#538C5B', '#4E81B6', '#DFAA70', '#6F6F6F'],
     },
 }

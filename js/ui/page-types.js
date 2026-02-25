@@ -5,17 +5,22 @@
  */
 function updatePageType(type, options = {}) {
     const shouldRecordHistory = options.recordHistory !== false;
-    if (shouldRecordHistory && type !== state.pageType && typeof recordDocHistory === 'function') {
+    if (typeof setCurrentPageType === 'function') {
+        setCurrentPageType(type, { recordHistory: shouldRecordHistory, render: false });
+    } else if (shouldRecordHistory && type !== state.pageType && typeof recordDocHistory === 'function') {
         recordDocHistory();
+        state.pageType = type;
+    } else {
+        state.pageType = type;
     }
-    state.pageType = type;
+    const currentType = state.pageType;
     document.querySelectorAll('input[name="page-type"]').forEach(input => {
-        input.checked = input.value === type;
+        input.checked = input.value === currentType;
     });
 
     // Show/hide cover operation bar
     const coverBar = document.getElementById('cover-operation-bar');
-    if (type === 'cover') {
+    if (currentType === 'cover') {
         coverBar.classList.add('visible');
         renderCoverLayoutSelector();
     } else {
@@ -24,7 +29,7 @@ function updatePageType(type, options = {}) {
 
     // Show/hide divider operation bar
     const dividerBar = document.getElementById('divider-operation-bar');
-    if (type === 'divider') {
+    if (currentType === 'divider') {
         dividerBar.classList.add('visible');
         renderDividerStyleSelector();
         renderDividerCountSelector();
@@ -38,7 +43,7 @@ function updatePageType(type, options = {}) {
 
     // Show/hide grid operation bar
     const gridBar = document.getElementById('grid-operation-bar');
-    if (type === 'content-grid') {
+    if (currentType === 'content-grid') {
         gridBar.classList.add('visible');
         renderGridOperationBar();
     } else {
@@ -47,7 +52,7 @@ function updatePageType(type, options = {}) {
 
     // Show/hide smartart operation bar
     const smartartBar = document.getElementById('smartart-operation-bar');
-    if (type === 'content-smartart') {
+    if (currentType === 'content-smartart') {
         smartartBar.classList.add('visible');
         renderSmartartTypeSelector();
         renderSmartartCountSelector();
@@ -83,7 +88,6 @@ function renderCoverLayoutSelector() {
  * Select cover layout
  */
 function selectCoverLayout(layoutId) {
-    state.coverLayout = layoutId;
+    patchCurrentPage({ coverLayout: layoutId });
     renderCoverLayoutSelector();
-    render();
 }

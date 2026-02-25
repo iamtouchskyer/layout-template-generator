@@ -78,8 +78,19 @@ function renderSmartArtChart() {
 
     if (!state.smartartItems || !Array.isArray(state.smartartItems)) {
         const testData = SMARTART_TEST_DATA[state.smartartType] || SMARTART_TEST_DATA[category] || SMARTART_TEST_DATA['list'];
-        state.smartartItems = JSON.parse(JSON.stringify(testData.slice(0, count)));
-        state.smartartItemsByType[state.smartartType] = state.smartartItems;
+        const initItems = JSON.parse(JSON.stringify(testData.slice(0, count)));
+        if (typeof patchCurrentPage === 'function') {
+            patchCurrentPage({
+                smartartItems: initItems,
+                smartartItemsByType: {
+                    ...(state.smartartItemsByType || {}),
+                    [state.smartartType]: JSON.parse(JSON.stringify(initItems)),
+                },
+            }, { recordHistory: false, render: false });
+        } else {
+            state.smartartItems = initItems;
+            state.smartartItemsByType[state.smartartType] = state.smartartItems;
+        }
     }
 
     const items = state.smartartItems.map(item => {
@@ -129,11 +140,42 @@ function handleSmartartTextChange(e) {
     const shapeKind = match[1];
     const idx = parseInt(match[2], 10);
     if (idx < 0 || idx >= state.smartartItems.length) return;
+    if (typeof mutateCurrentPageData === 'function') {
+        mutateCurrentPageData((draft) => {
+            const typeId = draft.smartartType || state.smartartType || 'pyramid';
+            const items = Array.isArray(draft.smartartItems)
+                ? JSON.parse(JSON.stringify(draft.smartartItems))
+                : [];
+            const current = items[idx];
+            const currentObj = (typeof current === 'object' && current !== null)
+                ? current
+                : { text: String(current || '') };
+
+            if (shapeKind === 'textbox') {
+                const lines = String(text || '')
+                    .split('\n')
+                    .map(line => line.replace(/^\s*[•·]\s*/, '').trim())
+                    .filter(Boolean);
+                currentObj.children = lines.map(line => ({ text: line }));
+                items[idx] = currentObj;
+            } else {
+                currentObj.text = text;
+                items[idx] = currentObj;
+                if (typeof current === 'string') {
+                    items[idx] = text;
+                }
+            }
+
+            const byType = JSON.parse(JSON.stringify(draft.smartartItemsByType || {}));
+            byType[typeId] = JSON.parse(JSON.stringify(items));
+            draft.smartartItems = items;
+            draft.smartartItemsByType = byType;
+        }, { render: false });
+        return;
+    }
 
     const current = state.smartartItems[idx];
     const currentObj = (typeof current === 'object' && current !== null) ? current : { text: String(current || '') };
-
-    // Child textbox edits should map to children[] instead of overwriting root item.
     if (shapeKind === 'textbox') {
         const lines = String(text || '')
             .split('\n')
@@ -143,12 +185,9 @@ function handleSmartartTextChange(e) {
         state.smartartItems[idx] = currentObj;
         return;
     }
-
-    // Root shape/list item edits map to item.text while preserving children and metadata.
     currentObj.text = text;
     state.smartartItems[idx] = currentObj;
     if (typeof current === 'string') {
-        // Keep pure-string list behavior for simple layouts.
         state.smartartItems[idx] = text;
     }
 }

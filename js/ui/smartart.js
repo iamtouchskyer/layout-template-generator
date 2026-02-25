@@ -1,5 +1,29 @@
 // SmartArt Control and Editor Functions
 
+function _saClone(value) {
+    return JSON.parse(JSON.stringify(value));
+}
+
+function _commitSmartart(partial, options = {}) {
+    if (typeof patchCurrentPage === 'function') {
+        patchCurrentPage(partial, options);
+        return;
+    }
+    Object.keys(partial || {}).forEach((key) => {
+        state[key] = partial[key];
+    });
+    if (options.render !== false && typeof render === 'function') render();
+}
+
+function _mutateSmartart(mutator, options = {}) {
+    if (typeof mutateCurrentPageData === 'function') {
+        mutateCurrentPageData(mutator, options);
+        return;
+    }
+    mutator(state);
+    if (options.render !== false && typeof render === 'function') render();
+}
+
 /**
  * Render SmartArt type selector with category tabs
  */
@@ -41,15 +65,23 @@ function renderSmartartTypeSelector() {
  * Select SmartArt category
  */
 function selectSmartartCategory(catId) {
-    state.smartartCategory = catId;
-    // Auto-select first type in this category
     const types = Object.entries(SMARTART_TYPES).filter(([_, t]) => t.category === catId);
-    if (types.length > 0) {
-        state.smartartType = types[0][0];
-    }
+    _mutateSmartart((draft) => {
+        draft.smartartCategory = catId;
+        if (types.length === 0) return;
+
+        const oldType = draft.smartartType;
+        const nextType = types[0][0];
+        const byType = _saClone(draft.smartartItemsByType || {});
+        if (oldType && Array.isArray(draft.smartartItems)) {
+            byType[oldType] = _saClone(draft.smartartItems);
+        }
+        draft.smartartType = nextType;
+        draft.smartartItemsByType = byType;
+        draft.smartartItems = Array.isArray(byType[nextType]) ? _saClone(byType[nextType]) : null;
+    });
     renderSmartartTypeSelector();
     renderSmartartColorSelector();
-    render();
 }
 
 /**
@@ -69,32 +101,28 @@ function renderSmartartPlacements() {
  * Select SmartArt type
  */
 function selectSmartartType(typeId) {
-    const oldType = state.smartartType;
-
-    // Save current items to old type (if exists)
-    if (oldType && state.smartartItems) {
-        state.smartartItemsByType[oldType] = state.smartartItems;
-    }
-
-    // Switch to new type
-    state.smartartType = typeId;
-    state.smartartCategory = SMARTART_TYPES[typeId].category;
-
-    // Load items for new type (or null to initialize from test data)
-    state.smartartItems = state.smartartItemsByType[typeId] || null;
+    _mutateSmartart((draft) => {
+        const oldType = draft.smartartType;
+        const byType = _saClone(draft.smartartItemsByType || {});
+        if (oldType && Array.isArray(draft.smartartItems)) {
+            byType[oldType] = _saClone(draft.smartartItems);
+        }
+        draft.smartartType = typeId;
+        draft.smartartCategory = SMARTART_TYPES[typeId].category;
+        draft.smartartItemsByType = byType;
+        draft.smartartItems = Array.isArray(byType[typeId]) ? _saClone(byType[typeId]) : null;
+    });
 
     renderSmartartTypeSelector();
     renderSmartartColorSelector();
-    render();
 }
 
 /**
  * Select SmartArt placement
  */
 function selectSmartartPlacement(placementId) {
-    state.smartartPlacement = placementId;
+    _commitSmartart({ smartartPlacement: placementId });
     renderSmartartPlacements();
-    render();
 }
 
 /**
@@ -119,33 +147,36 @@ function renderSmartartCountSelector() {
  * Select item count
  */
 function selectSmartartCount(count) {
-    state.smartartItemCount = count;
     syncSmartartItemsToCount(count);
     renderSmartartCountSelector();
-    render();
 }
 
 function syncSmartartItemsToCount(count) {
-    const typeInfo = SMARTART_TYPES[state.smartartType];
-    const category = typeInfo?.category || 'list';
-    const testData = SMARTART_TEST_DATA[state.smartartType] || SMARTART_TEST_DATA[category] || SMARTART_TEST_DATA['list'] || [];
+    _mutateSmartart((draft) => {
+        const typeId = draft.smartartType || 'pyramid';
+        const typeInfo = SMARTART_TYPES[typeId];
+        const category = typeInfo?.category || 'list';
+        const testData = SMARTART_TEST_DATA[typeId] || SMARTART_TEST_DATA[category] || SMARTART_TEST_DATA['list'] || [];
 
-    if (!Array.isArray(state.smartartItems)) {
-        state.smartartItems = JSON.parse(JSON.stringify(testData.slice(0, count)));
-        state.smartartItemsByType[state.smartartType] = state.smartartItems;
-        return;
-    }
+        let nextItems = Array.isArray(draft.smartartItems)
+            ? _saClone(draft.smartartItems)
+            : _saClone(testData.slice(0, count));
 
-    if (state.smartartItems.length > count) {
-        state.smartartItems = state.smartartItems.slice(0, count);
-    } else if (state.smartartItems.length < count) {
-        for (let i = state.smartartItems.length; i < count; i++) {
-            const template = testData[i] || testData[testData.length - 1] || { text: `节点${i + 1}`, children: [] };
-            state.smartartItems.push(JSON.parse(JSON.stringify(template)));
+        if (nextItems.length > count) {
+            nextItems = nextItems.slice(0, count);
+        } else if (nextItems.length < count) {
+            for (let i = nextItems.length; i < count; i++) {
+                const template = testData[i] || testData[testData.length - 1] || { text: `节点${i + 1}`, children: [] };
+                nextItems.push(_saClone(template));
+            }
         }
-    }
 
-    state.smartartItemsByType[state.smartartType] = state.smartartItems;
+        const byType = _saClone(draft.smartartItemsByType || {});
+        byType[typeId] = _saClone(nextItems);
+        draft.smartartItemCount = count;
+        draft.smartartItems = nextItems;
+        draft.smartartItemsByType = byType;
+    });
 }
 
 /**
@@ -324,11 +355,10 @@ function closeColorPickerOnOutsideClick(event) {
  * Select color scheme
  */
 function selectSmartartColorScheme(schemeId) {
-    state.smartartColorScheme = schemeId;
+    _commitSmartart({ smartartColorScheme: schemeId });
     const dropdown = document.getElementById('color-picker-dropdown');
     if (dropdown) dropdown.classList.remove('open');
     renderSmartartColorSelector();
-    render();
 }
 
 // ============= SmartArt Text Editor =============
@@ -352,8 +382,13 @@ function renderSmartartTextEditor() {
     // Initialize items from test data if needed
     if (!state.smartartItems || !Array.isArray(state.smartartItems)) {
         const testData = SMARTART_TEST_DATA[state.smartartType] || SMARTART_TEST_DATA[category] || SMARTART_TEST_DATA['list'];
-        state.smartartItems = JSON.parse(JSON.stringify(testData.slice(0, state.smartartItemCount)));
-        state.smartartItemsByType[state.smartartType] = state.smartartItems;
+        const initItems = JSON.parse(JSON.stringify(testData.slice(0, state.smartartItemCount)));
+        const byType = _saClone(state.smartartItemsByType || {});
+        byType[state.smartartType] = _saClone(initItems);
+        _commitSmartart({
+            smartartItems: initItems,
+            smartartItemsByType: byType,
+        }, { recordHistory: false, render: false });
     }
 
     const items = state.smartartItems;
@@ -495,8 +530,16 @@ function bindSmartartEditorEvents(container) {
     container.querySelector('.add-item')?.addEventListener('click', () => {
         const testData = SMARTART_TEST_DATA[state.smartartType] || SMARTART_TEST_DATA['list'];
         const template = testData[0] || { text: '新节点', children: [] };
-        state.smartartItems.push(JSON.parse(JSON.stringify(template)));
-        state.smartartItemCount = state.smartartItems.length;
+        _mutateSmartart((draft) => {
+            const typeId = draft.smartartType || 'pyramid';
+            const items = Array.isArray(draft.smartartItems) ? _saClone(draft.smartartItems) : [];
+            items.push(_saClone(template));
+            const byType = _saClone(draft.smartartItemsByType || {});
+            byType[typeId] = _saClone(items);
+            draft.smartartItems = items;
+            draft.smartartItemsByType = byType;
+            draft.smartartItemCount = items.length;
+        }, { render: false });
         renderSmartartTextEditor();
         renderSmartArtChart();
     });
@@ -504,8 +547,16 @@ function bindSmartartEditorEvents(container) {
     // Remove item
     container.querySelector('.remove-item')?.addEventListener('click', () => {
         if (state.smartartItems.length > 1) {
-            state.smartartItems.pop();
-            state.smartartItemCount = state.smartartItems.length;
+            _mutateSmartart((draft) => {
+                const typeId = draft.smartartType || 'pyramid';
+                const items = Array.isArray(draft.smartartItems) ? _saClone(draft.smartartItems) : [];
+                items.pop();
+                const byType = _saClone(draft.smartartItemsByType || {});
+                byType[typeId] = _saClone(items);
+                draft.smartartItems = items;
+                draft.smartartItemsByType = byType;
+                draft.smartartItemCount = items.length;
+            }, { render: false });
             renderSmartartTextEditor();
             renderSmartArtChart();
         }
@@ -517,24 +568,30 @@ function bindSmartartEditorEvents(container) {
  */
 function updateSmartartItemText(path, newText) {
     const parts = path.split('-').map(Number);
-    if (parts.length === 1) {
-        // Parent node
-        const item = state.smartartItems[parts[0]];
-        if (typeof item === 'string') {
-            state.smartartItems[parts[0]] = newText;
-        } else {
-            item.text = newText;
-        }
-    } else if (parts.length === 2) {
-        // Child node
-        const parent = state.smartartItems[parts[0]];
-        if (typeof parent === 'object' && parent.children && parent.children[parts[1]]) {
-            const child = parent.children[parts[1]];
-            if (typeof child === 'string') {
-                parent.children[parts[1]] = newText;
-            } else {
-                child.text = newText;
+    _mutateSmartart((draft) => {
+        const typeId = draft.smartartType || 'pyramid';
+        const items = Array.isArray(draft.smartartItems) ? _saClone(draft.smartartItems) : [];
+        if (parts.length === 1) {
+            const item = items[parts[0]];
+            if (typeof item === 'string') {
+                items[parts[0]] = newText;
+            } else if (item && typeof item === 'object') {
+                item.text = newText;
+            }
+        } else if (parts.length === 2) {
+            const parent = items[parts[0]];
+            if (typeof parent === 'object' && parent.children && parent.children[parts[1]]) {
+                const child = parent.children[parts[1]];
+                if (typeof child === 'string') {
+                    parent.children[parts[1]] = newText;
+                } else {
+                    child.text = newText;
+                }
             }
         }
-    }
+        const byType = _saClone(draft.smartartItemsByType || {});
+        byType[typeId] = _saClone(items);
+        draft.smartartItems = items;
+        draft.smartartItemsByType = byType;
+    }, { render: false });
 }

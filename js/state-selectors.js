@@ -37,6 +37,14 @@ function _renderIfReady() {
     if (typeof render === 'function') render();
 }
 
+function _postMutation(shouldRender) {
+    if (shouldRender) {
+        _renderIfReady();
+        return;
+    }
+    if (typeof updateHistoryButtons === 'function') updateHistoryButtons();
+}
+
 function _generatePageId() {
     const seed = Math.random().toString(36).slice(2, 8);
     return `page-${Date.now().toString(36)}-${seed}`;
@@ -134,19 +142,48 @@ function getTheme() {
 
 // ========== Write ==========
 
-function patchCurrentPage(partial) {
+function patchCurrentPage(partial, options = {}) {
     const page = getCurrentPage();
     if (!page || !_isPlainObject(partial)) return;
-    recordDocHistory();
+    if (options.recordHistory !== false) recordDocHistory();
     page.data = _deepMerge(page.data || {}, partial);
-    _renderIfReady();
+    _postMutation(options.render !== false);
 }
 
-function patchMaster(partial) {
+function patchMaster(partial, options = {}) {
     if (!_isPlainObject(partial)) return;
-    recordDocHistory();
+    if (options.recordHistory !== false) recordDocHistory();
     state.doc.master = _deepMerge(state.doc.master || {}, partial);
-    _renderIfReady();
+    _postMutation(options.render !== false);
+}
+
+function mutateCurrentPageData(mutator, options = {}) {
+    const page = getCurrentPage();
+    if (!page || typeof mutator !== 'function') return;
+    if (options.recordHistory !== false) recordDocHistory();
+
+    const draft = _stateDeepClone(page.data || {});
+    const result = mutator(draft);
+    if (_isPlainObject(result)) {
+        page.data = result;
+    } else {
+        page.data = draft;
+    }
+    _postMutation(options.render !== false);
+}
+
+function mutateMaster(mutator, options = {}) {
+    if (typeof mutator !== 'function') return;
+    if (options.recordHistory !== false) recordDocHistory();
+
+    const draft = _stateDeepClone(state.doc.master || {});
+    const result = mutator(draft);
+    if (_isPlainObject(result)) {
+        state.doc.master = result;
+    } else {
+        state.doc.master = draft;
+    }
+    _postMutation(options.render !== false);
 }
 
 function setCurrentPage(pageId) {
@@ -156,6 +193,16 @@ function setCurrentPage(pageId) {
     state.ui.currentPageId = pageId;
     _stateEnsureCurrentPage();
     _renderIfReady();
+}
+
+function setCurrentPageType(type, options = {}) {
+    const page = getCurrentPage();
+    const nextType = type || 'content-grid';
+    if (!page) return;
+    if (page.type === nextType) return;
+    if (options.recordHistory !== false) recordDocHistory();
+    _stateMergePageDefaults(page, nextType);
+    _postMutation(options.render !== false);
 }
 
 // ========== Page Operations ==========
@@ -247,7 +294,10 @@ window.getMaster = getMaster;
 window.getTheme = getTheme;
 window.patchCurrentPage = patchCurrentPage;
 window.patchMaster = patchMaster;
+window.mutateCurrentPageData = mutateCurrentPageData;
+window.mutateMaster = mutateMaster;
 window.setCurrentPage = setCurrentPage;
+window.setCurrentPageType = setCurrentPageType;
 window.addPage = addPage;
 window.deletePage = deletePage;
 window.duplicatePage = duplicatePage;

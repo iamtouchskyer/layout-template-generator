@@ -71,9 +71,8 @@ function renderDividerNumberSelector() {
  * Select number style
  */
 function selectDividerNumberStyle(style) {
-    state.dividerNumberStyle = style;
+    patchCurrentPage({ dividerNumberStyle: style });
     renderDividerNumberSelector();
-    render();
 }
 
 /**
@@ -95,9 +94,8 @@ function renderDividerTextSelector() {
  * Select text level
  */
 function selectDividerTextLevel(level) {
-    state.dividerTextLevel = level;
+    patchCurrentPage({ dividerTextLevel: level });
     renderDividerTextSelector();
-    render();
 }
 
 /**
@@ -119,9 +117,8 @@ function renderDividerBgSelector() {
  * Select background style
  */
 function selectDividerBgStyle(style) {
-    state.dividerBgStyle = style;
+    patchCurrentPage({ dividerBgStyle: style });
     renderDividerBgSelector();
-    render();
 }
 
 /**
@@ -146,30 +143,27 @@ function renderDividerIndexSelector() {
  * Select divider layout
  */
 function selectDividerLayout(layoutId) {
-    state.dividerLayout = layoutId;
+    patchCurrentPage({ dividerLayout: layoutId });
     renderDividerStyleSelector();
-    render();
 }
 
 /**
  * Select section count
  */
 function selectDividerCount(count) {
-    state.dividerSectionCount = count;
-    // Reset index if out of range
-    if (state.dividerIndex > count) {
-        state.dividerIndex = 0;
-    }
+    const nextIndex = state.dividerIndex > count ? 0 : state.dividerIndex;
+    patchCurrentPage({
+        dividerSectionCount: count,
+        dividerIndex: nextIndex,
+    });
     renderDividerCountSelector();
     renderDividerIndexSelector();
-    render();
 }
 
 /**
  * Select highlighted section index
  */
 function selectDividerIndex(index) {
-    state.dividerIndex = index;
+    patchCurrentPage({ dividerIndex: index });
     renderDividerIndexSelector();
-    render();
 }

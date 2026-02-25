@@ -4,39 +4,40 @@
  * Toggle placeholder on/off
  */
 function togglePlaceholder(phId) {
-    if (!state.masterPlaceholders[phId]) {
+    const nextPlaceholders = JSON.parse(JSON.stringify(state.masterPlaceholders || {}));
+    if (!nextPlaceholders[phId]) {
         const phConfig = PLACEHOLDERS_CONFIG[phId];
-        state.masterPlaceholders[phId] = {
+        nextPlaceholders[phId] = {
             enabled: true,
             position: phConfig.defaultPosition,
             size: phConfig.defaultSize || null,
             imageUrl: null
         };
     } else {
-        state.masterPlaceholders[phId].enabled = !state.masterPlaceholders[phId].enabled;
+        nextPlaceholders[phId].enabled = !nextPlaceholders[phId].enabled;
     }
+    patchMaster({ masterPlaceholders: nextPlaceholders });
     renderPlaceholderList();
-    render();
 }
 
 /**
  * Update placeholder position
  */
 function updatePlaceholderPosition(phId, position) {
-    if (state.masterPlaceholders[phId]) {
-        state.masterPlaceholders[phId].position = position;
-        render();
-    }
+    if (!state.masterPlaceholders[phId]) return;
+    const nextPlaceholders = JSON.parse(JSON.stringify(state.masterPlaceholders || {}));
+    nextPlaceholders[phId].position = position;
+    patchMaster({ masterPlaceholders: nextPlaceholders });
 }
 
 /**
  * Update placeholder size
  */
 function updatePlaceholderSize(phId, size) {
-    if (state.masterPlaceholders[phId]) {
-        state.masterPlaceholders[phId].size = size;
-        render();
-    }
+    if (!state.masterPlaceholders[phId]) return;
+    const nextPlaceholders = JSON.parse(JSON.stringify(state.masterPlaceholders || {}));
+    nextPlaceholders[phId].size = size;
+    patchMaster({ masterPlaceholders: nextPlaceholders });
 }
 
 /**
@@ -48,11 +49,11 @@ function handleLogoUpload(phId, input) {
 
     const reader = new FileReader();
     reader.onload = (e) => {
-        if (state.masterPlaceholders[phId]) {
-            state.masterPlaceholders[phId].imageUrl = e.target.result;
-            renderPlaceholderList();
-            render();
-        }
+        if (!state.masterPlaceholders[phId]) return;
+        const nextPlaceholders = JSON.parse(JSON.stringify(state.masterPlaceholders || {}));
+        nextPlaceholders[phId].imageUrl = e.target.result;
+        patchMaster({ masterPlaceholders: nextPlaceholders });
+        renderPlaceholderList();
     };
     reader.readAsDataURL(file);
 }
@@ -61,9 +62,9 @@ function handleLogoUpload(phId, input) {
  * Clear logo image
  */
 function clearLogoImage(phId) {
-    if (state.masterPlaceholders[phId]) {
-        state.masterPlaceholders[phId].imageUrl = null;
-        renderPlaceholderList();
-        render();
-    }
+    if (!state.masterPlaceholders[phId]) return;
+    const nextPlaceholders = JSON.parse(JSON.stringify(state.masterPlaceholders || {}));
+    nextPlaceholders[phId].imageUrl = null;
+    patchMaster({ masterPlaceholders: nextPlaceholders });
+    renderPlaceholderList();
 }

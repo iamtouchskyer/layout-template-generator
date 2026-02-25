@@ -36,12 +36,12 @@ function setZoom(value) {
  * Update global theme state
  */
 function updateState() {
-    state.theme = document.getElementById('theme-select').value;
+    const nextTheme = document.getElementById('theme-select').value;
+    patchMaster({ theme: nextTheme });
     // Re-render SmartArt color picker when theme changes (colors depend on theme)
     if (state.pageType === 'content-smartart') {
         renderSmartartColorSelector();
     }
-    render();
 }
 
 /**

@@ -29,7 +29,7 @@ def test_selector_api_file_exists_and_exports_key_ops():
     required = [
         "function getCurrentPageId()",
         "function getCurrentPage()",
-        "function patchCurrentPage(partial)",
+        "function patchCurrentPage(partial, options = {})",
         "function addPage(type, afterIndex = null)",
         "function deletePage(pageId)",
         "function duplicatePage(pageId)",

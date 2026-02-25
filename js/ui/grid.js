@@ -56,8 +56,7 @@ function renderContentAreasConfig() {
  * Update content area configuration
  */
 function updateContentArea(key, value) {
-    state.masterContentAreas[key] = value;
-    render();
+    patchMaster({ masterContentAreas: { [key]: value } });
 }
 
 /**
@@ -104,22 +103,27 @@ function renderZoneAssignments() {
  * Select grid layout pattern
  */
 function selectGridLayout(layoutId) {
-    state.gridLayout = layoutId;
-    // Initialize zone contents for new layout
     const layout = GRID_LAYOUTS[layoutId];
+    if (!layout) return;
     const newZoneContents = {};
     layout.zones.forEach((zone, i) => {
         newZoneContents[zone.id] = state.zoneContents[zone.id] || (i === 0 ? 'chart' : 'text');
     });
-    state.zoneContents = newZoneContents;
+    patchCurrentPage({
+        gridLayout: layoutId,
+        zoneContents: newZoneContents,
+    });
     renderGridOperationBar();
-    render();
 }
 
 /**
  * Update zone content type
  */
 function updateZoneContent(zoneId, contentType) {
-    state.zoneContents[zoneId] = contentType;
-    render();
+    patchCurrentPage({
+        zoneContents: {
+            ...(state.zoneContents || {}),
+            [zoneId]: contentType,
+        },
+    });
 }

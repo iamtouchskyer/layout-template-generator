@@ -29,22 +29,27 @@ def generate_smartart_slide(prs, config, theme):
 
     items = _extract_smartart_items(smartart_config)
 
-    # Title
-    _add_title_with_tag(slide, "流程分析", "SmartArt", theme, 'with-tag')
-    _add_source_citation(slide, "内部分析报告", theme)
-
     # SmartArt area
-    content_top = Inches(1.4)
-    content_height = Inches(5.5)
+    content_top = Inches(1.15)
+    content_height = Inches(5.7)
     text_color = hex_to_rgb(theme['text'])
 
     if placement == 'full':
-        x, y, cx, cy = Inches(0.4), content_top, Inches(9.2), content_height
+        x, y, cx, cy = Inches(0.6), content_top, Inches(9.0), content_height
     elif placement == 'left-desc':
-        x, y, cx, cy = Inches(0.4), content_top, Inches(5.5), content_height
-        _add_description_card(slide, content_top, content_height, theme, text_color)
+        x, y, cx, cy = Inches(0.5), content_top, Inches(5.4), content_height
+        _add_description_block(slide, Inches(6.15), content_top, Inches(3.2), content_height, text_color)
+    elif placement == 'right-desc':
+        x, y, cx, cy = Inches(3.45), content_top, Inches(5.4), content_height
+        _add_description_block(slide, Inches(0.55), content_top, Inches(2.8), content_height, text_color)
+    elif placement == 'top-desc':
+        x, y, cx, cy = Inches(0.65), Inches(2.1), Inches(8.9), Inches(4.7)
+        _add_description_block(slide, Inches(0.65), Inches(1.1), Inches(8.9), Inches(0.8), text_color, compact=True)
+    elif placement == 'bottom-desc':
+        x, y, cx, cy = Inches(0.65), Inches(1.1), Inches(8.9), Inches(4.7)
+        _add_description_block(slide, Inches(0.65), Inches(6.0), Inches(8.9), Inches(0.9), text_color, compact=True)
     else:
-        x, y, cx, cy = Inches(0.4), content_top, Inches(9.2), content_height
+        x, y, cx, cy = Inches(0.6), content_top, Inches(9.0), content_height
 
     # Add SmartArt with selected color scheme
     pptx_type = SMARTART_TYPE_MAP.get(smartart_type_id, SMARTART_TYPE.BASIC_PYRAMID)
@@ -166,29 +171,29 @@ def _add_source_citation(slide, source: str, theme: dict):
     p.font.color.rgb = hex_to_rgb(theme.get('text_muted', '#888888'))
 
 
-def _add_description_card(slide, content_top, content_height, theme, text_color):
-    """Add description card for left-desc placement."""
-    desc_card = slide.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE,
-        Inches(6.1), content_top, Inches(3.5), content_height
-    )
-    desc_card.fill.solid()
-    desc_card.fill.fore_color.rgb = hex_to_rgb(theme.get('card_bg', '#FFFFFF'))
-    desc_card.line.color.rgb = hex_to_rgb(theme.get('card_border', '#E0E0E0'))
-
-    header = slide.shapes.add_textbox(Inches(6.3), content_top + Inches(0.2), Inches(3.1), Inches(0.4))
+def _add_description_block(slide, x, y, w, h, text_color, compact=False):
+    """Add description text block without background card (match preview style)."""
+    header = slide.shapes.add_textbox(x, y + Inches(0.1), w, Inches(0.4))
     p = header.text_frame.paragraphs[0]
     p.text = "说明文字区域"
     p.font.size = Pt(14)
     p.font.bold = True
     p.font.color.rgb = text_color
 
-    desc = slide.shapes.add_textbox(Inches(6.3), content_top + Inches(0.7), Inches(3.1), Inches(4))
+    desc = slide.shapes.add_textbox(x, y + Inches(0.55), w, h - Inches(0.55))
     desc.text_frame.word_wrap = True
     p = desc.text_frame.paragraphs[0]
     p.text = "这里可以放置对 SmartArt 图形的描述、解释或相关数据说明。"
     p.font.size = Pt(11)
     p.font.color.rgb = text_color
+    if compact:
+        return
+
+    for line in ["要点一：关键信息", "要点二：补充说明", "要点三：总结概括"]:
+        pp = desc.text_frame.add_paragraph()
+        pp.text = f"• {line}"
+        pp.font.size = Pt(11)
+        pp.font.color.rgb = text_color
 
 
 def _add_fallback_placeholder(slide, x, y, cx, cy, theme):

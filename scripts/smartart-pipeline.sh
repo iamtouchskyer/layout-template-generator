@@ -14,6 +14,6 @@ echo "[3/4] Verify generated artifacts are committed"
 scripts/verify-smartart-catalog-sync.sh
 
 echo "[4/4] Run SmartArt tests"
-pytest tests/test_smartart_refs.py tests/test_smartart_catalog_sync.py tests/test_smartart_frontend_contract.py tests/test_smartart_layout_snapshots.py tests/test_smartart.py tests/test_smartart_text_color_resolver.py tests/test_multi_page_generation.py tests/test_multi_page_frontend_contract.py -q
+pytest tests/test_smartart_refs.py tests/test_smartart_catalog_sync.py tests/test_smartart_frontend_contract.py tests/test_smartart_layout_snapshots.py tests/test_smartart.py tests/test_smartart_text_color_resolver.py tests/test_multi_page_generation.py tests/test_multi_page_frontend_contract.py tests/test_slide_layout_selection.py -q
 
 echo "SmartArt pipeline passed."

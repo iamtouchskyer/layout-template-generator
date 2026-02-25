@@ -169,6 +169,31 @@ test('undo and redo restore page list after page operations', async ({ page }) =
   }).toBe(2)
 })
 
+test('undo and redo restore grid layout edits', async ({ page }) => {
+  await page.goto('/index.html')
+  await page.waitForFunction(() => typeof window.updatePageType === 'function')
+
+  await page.evaluate(() => {
+    updatePageType('content-grid')
+    state.ui.history.undoStack = []
+    state.ui.history.redoStack = []
+    updateHistoryButtons()
+  })
+
+  await expect(page.locator('#btn-undo')).toBeDisabled()
+  await expect(page.locator('#btn-redo')).toBeDisabled()
+
+  const before = await page.evaluate(() => state.gridLayout)
+  await page.evaluate(() => selectGridLayout('single'))
+  await expect.poll(async () => page.evaluate(() => state.gridLayout)).toBe('single')
+
+  await page.getByRole('button', { name: 'Undo' }).click()
+  await expect.poll(async () => page.evaluate(() => state.gridLayout)).toBe(before)
+
+  await page.getByRole('button', { name: 'Redo' }).click()
+  await expect.poll(async () => page.evaluate(() => state.gridLayout)).toBe('single')
+})
+
 test('imported config updates state and export payload', async ({ page }) => {
   await page.goto('/index.html')
   await page.waitForFunction(() => typeof window.applyImportedConfig === 'function' && typeof window.updateJsonOutput === 'function')

@@ -1,6 +1,8 @@
 """
 Layout calculation for PPTX generation.
 """
+import math
+import re
 
 # Re-export render_zone_content for backward compatibility
 from .zone_renderer import render_zone_content
@@ -29,7 +31,11 @@ def calculate_zone_positions(layout_id: str, zones: list, body_x: float, body_y:
     total_flex = sum(z.get('flex', 1) for z in zones)
 
     # Dispatch to appropriate layout calculator
-    if layout_id in ['single']:
+    dynamic_grid = _parse_dynamic_grid(layout_id)
+    if dynamic_grid is not None:
+        cols, rows = dynamic_grid
+        positions = _calc_dynamic_grid(zones, zone_contents, body_x, body_y, body_w, body_h, gap, cols, rows)
+    elif layout_id in ['single']:
         positions = _calc_single(zones, zone_contents, body_x, body_y, body_w, body_h)
     elif layout_id.startswith('two-col') or layout_id in ['three-col', 'four-col']:
         positions = _calc_row_layout(zones, zone_contents, body_x, body_y, body_w, body_h, gap, total_flex)
@@ -58,6 +64,20 @@ def calculate_zone_positions(layout_id: str, zones: list, body_x: float, body_y:
     return positions
 
 
+def _parse_dynamic_grid(layout_id: str):
+    """Parse layout ids like '4x6', '4*6', '4x6-dense' to (cols, rows)."""
+    if not isinstance(layout_id, str):
+        return None
+    match = re.search(r'(\d+)\s*[xX\*]\s*(\d+)', layout_id)
+    if not match:
+        return None
+    cols = int(match.group(1))
+    rows = int(match.group(2))
+    if cols <= 0 or rows <= 0:
+        return None
+    return cols, rows
+
+
 def _calc_single(zones, zone_contents, body_x, body_y, body_w, body_h):
     """Single zone - full area."""
     return [{
@@ -65,6 +85,33 @@ def _calc_single(zones, zone_contents, body_x, body_y, body_w, body_h):
         'content': zone_contents.get(zones[0]['id'], 'text'),
         'x': body_x, 'y': body_y, 'w': body_w, 'h': body_h
     }]
+
+
+def _calc_dynamic_grid(zones, zone_contents, body_x, body_y, body_w, body_h, gap, cols, rows):
+    """Dynamic CxR grid layout parsed from layout id."""
+    if cols <= 0:
+        return _calc_row_layout(zones, zone_contents, body_x, body_y, body_w, body_h, gap, sum(z.get('flex', 1) for z in zones))
+
+    # If input has more zones than declared rows can hold, expand rows automatically.
+    required_rows = math.ceil(len(zones) / cols) if zones else 1
+    actual_rows = max(rows, required_rows)
+
+    col_w = (body_w - gap * (cols - 1)) / cols if cols > 1 else body_w
+    row_h = (body_h - gap * (actual_rows - 1)) / actual_rows if actual_rows > 1 else body_h
+
+    positions = []
+    for i, z in enumerate(zones):
+        col = i % cols
+        row = i // cols
+        positions.append({
+            'id': z['id'],
+            'content': zone_contents.get(z['id'], 'text'),
+            'x': body_x + col * (col_w + gap),
+            'y': body_y + row * (row_h + gap),
+            'w': col_w,
+            'h': row_h,
+        })
+    return positions
 
 
 def _calc_row_layout(zones, zone_contents, body_x, body_y, body_w, body_h, gap, total_flex):

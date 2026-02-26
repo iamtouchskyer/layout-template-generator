@@ -85,6 +85,10 @@ def render_zone_content(slide, content_type: str, zone_id: str, x: float, y: flo
     content_w = _safe_dim(w - 2 * padding, 0.05)
     content_h = _safe_dim(h - 2 * padding, 0.05)
 
+    if _is_compact_cell(content_w, content_h):
+        _render_compact_zone(slide, zone_id, content_type, content_x, content_y, content_w, content_h, text_color, muted_color)
+        return
+
     if content_type == 'chart':
         chart_data = zone_data.get('chartData', {})
         _render_chart_zone(slide, zone_id, content_x, content_y, content_w, content_h, text_color, theme, chart_data)
@@ -286,3 +290,26 @@ def _render_text_zone(slide, zone_id, content_x, content_y, content_w, content_h
     p.text = body_text
     p.font.size = Pt(11)
     p.font.color.rgb = text_color
+
+
+def _is_compact_cell(content_w: float, content_h: float) -> bool:
+    """Whether zone cell is too small for full card rendering."""
+    return content_w < 1.25 or content_h < 1.0
+
+
+def _render_compact_zone(slide, zone_id, content_type, x, y, w, h, text_color, muted_color):
+    """Render compact cell for dense grids to avoid unreadable vertical text."""
+    title = _add_textbox(slide, x, y, w, min(0.28, h * 0.4))
+    p = title.text_frame.paragraphs[0]
+    p.text = str(zone_id)
+    p.font.size = Pt(8)
+    p.font.bold = True
+    p.font.color.rgb = text_color
+    p.alignment = PP_ALIGN.CENTER
+
+    subtitle = _add_textbox(slide, x, y + min(0.3, h * 0.45), w, max(0.2, h * 0.35))
+    p = subtitle.text_frame.paragraphs[0]
+    p.text = str(content_type).upper()[:10]
+    p.font.size = Pt(7)
+    p.font.color.rgb = muted_color
+    p.alignment = PP_ALIGN.CENTER

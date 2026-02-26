@@ -299,10 +299,12 @@ def _is_compact_cell(content_w: float, content_h: float) -> bool:
 
 def _render_compact_zone(slide, zone_id, content_type, x, y, w, h, text_color, muted_color):
     """Render compact cell for dense grids to avoid unreadable vertical text."""
+    title_size, subtitle_size = _compact_font_sizes(w, h)
+
     title = _add_textbox(slide, x, y, w, min(0.28, h * 0.4))
     p = title.text_frame.paragraphs[0]
     p.text = str(zone_id)
-    p.font.size = Pt(8)
+    p.font.size = Pt(title_size)
     p.font.bold = True
     p.font.color.rgb = text_color
     p.alignment = PP_ALIGN.CENTER
@@ -310,6 +312,18 @@ def _render_compact_zone(slide, zone_id, content_type, x, y, w, h, text_color, m
     subtitle = _add_textbox(slide, x, y + min(0.3, h * 0.45), w, max(0.2, h * 0.35))
     p = subtitle.text_frame.paragraphs[0]
     p.text = str(content_type).upper()[:10]
-    p.font.size = Pt(7)
+    p.font.size = Pt(subtitle_size)
     p.font.color.rgb = muted_color
     p.alignment = PP_ALIGN.CENTER
+
+
+def _compact_font_sizes(w: float, h: float) -> tuple[int, int]:
+    """Adaptive font sizes for dense compact cells."""
+    cell = min(_safe_dim(w), _safe_dim(h))
+    if cell < 0.35:
+        return 5, 4
+    if cell < 0.5:
+        return 6, 5
+    if cell < 0.8:
+        return 7, 6
+    return 8, 7

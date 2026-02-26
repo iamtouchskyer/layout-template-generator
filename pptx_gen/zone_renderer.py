@@ -10,6 +10,48 @@ from pptx.enum.text import PP_ALIGN
 from .themes import hex_to_rgb
 
 
+MIN_DIM_IN = 0.02
+
+
+def _safe_dim(value: float, minimum: float = MIN_DIM_IN) -> float:
+    """Ensure dimension value is positive for OOXML shape extents."""
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        numeric = minimum
+    return numeric if numeric > minimum else minimum
+
+
+def _add_shape(slide, shape_type, x, y, w, h):
+    return slide.shapes.add_shape(
+        shape_type,
+        Inches(x),
+        Inches(y),
+        Inches(_safe_dim(w)),
+        Inches(_safe_dim(h)),
+    )
+
+
+def _add_textbox(slide, x, y, w, h):
+    return slide.shapes.add_textbox(
+        Inches(x),
+        Inches(y),
+        Inches(_safe_dim(w)),
+        Inches(_safe_dim(h)),
+    )
+
+
+def _add_chart(slide, chart_type, x, y, w, h, chart_data):
+    return slide.shapes.add_chart(
+        chart_type,
+        Inches(x),
+        Inches(y),
+        Inches(_safe_dim(w, 0.1)),
+        Inches(_safe_dim(h, 0.1)),
+        chart_data,
+    )
+
+
 def render_zone_content(slide, content_type: str, zone_id: str, x: float, y: float,
                         w: float, h: float, theme: dict, zone_data: dict = None):
     """Render content in a zone based on content type.
@@ -31,20 +73,17 @@ def render_zone_content(slide, content_type: str, zone_id: str, x: float, y: flo
     muted_color = hex_to_rgb(theme.get('text_muted', '#888888'))
 
     # Add card background
-    card = slide.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE,
-        Inches(x), Inches(y), Inches(w), Inches(h)
-    )
+    card = _add_shape(slide, MSO_SHAPE.ROUNDED_RECTANGLE, x, y, w, h)
     card.fill.solid()
     card.fill.fore_color.rgb = card_bg
     card.line.color.rgb = card_border
 
     # Content padding
-    padding = 0.15
+    padding = min(0.15, max(0.02, min(_safe_dim(w), _safe_dim(h)) * 0.18))
     content_x = x + padding
     content_y = y + padding
-    content_w = w - 2 * padding
-    content_h = h - 2 * padding
+    content_w = _safe_dim(w - 2 * padding, 0.05)
+    content_h = _safe_dim(h - 2 * padding, 0.05)
 
     if content_type == 'chart':
         chart_data = zone_data.get('chartData', {})
@@ -68,7 +107,7 @@ def _render_chart_zone(slide, zone_id, content_x, content_y, content_w, content_
 
     # Chart title
     title = chart_data.get('title', f'图表 {zone_id}')
-    header = slide.shapes.add_textbox(Inches(content_x), Inches(content_y), Inches(content_w), Inches(0.35))
+    header = _add_textbox(slide, content_x, content_y, content_w, 0.35)
     p = header.text_frame.paragraphs[0]
     p.text = title
     p.font.size = Pt(12)
@@ -112,10 +151,7 @@ def _render_chart_zone(slide, zone_id, content_x, content_y, content_w, content_
         cd.add_series(series_name, series_values)
 
     # Add chart to slide
-    chart_shape = slide.shapes.add_chart(
-        xl_chart_type, Inches(chart_x), Inches(chart_y),
-        Inches(chart_w), Inches(chart_h), cd
-    )
+    chart_shape = _add_chart(slide, xl_chart_type, chart_x, chart_y, chart_w, chart_h, cd)
 
     # Style the chart
     chart = chart_shape.chart
@@ -132,17 +168,12 @@ def _render_chart_zone(slide, zone_id, content_x, content_y, content_w, content_
 
 def _render_chart_placeholder(slide, x, y, w, h):
     """Render chart placeholder when no data available."""
-    area = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE,
-        Inches(x), Inches(y), Inches(w), Inches(h)
-    )
+    area = _add_shape(slide, MSO_SHAPE.RECTANGLE, x, y, w, h)
     area.fill.solid()
     area.fill.fore_color.rgb = hex_to_rgb('#F5F5F5')
     area.line.color.rgb = hex_to_rgb('#E0E0E0')
 
-    icon = slide.shapes.add_textbox(
-        Inches(x + w/2 - 0.3), Inches(y + h/2 - 0.2), Inches(0.6), Inches(0.4)
-    )
+    icon = _add_textbox(slide, x + w/2 - 0.3, y + h/2 - 0.2, 0.6, 0.4)
     icon.text_frame.paragraphs[0].text = "📊"
     icon.text_frame.paragraphs[0].font.size = Pt(24)
     icon.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
@@ -150,25 +181,19 @@ def _render_chart_placeholder(slide, x, y, w, h):
 
 def _render_image_zone(slide, zone_id, content_x, content_y, content_w, content_h, x, y, w, h, text_color, card_border):
     """Render image placeholder zone."""
-    header = slide.shapes.add_textbox(Inches(content_x), Inches(content_y), Inches(content_w), Inches(0.35))
+    header = _add_textbox(slide, content_x, content_y, content_w, 0.35)
     p = header.text_frame.paragraphs[0]
     p.text = f"图片 {zone_id}"
     p.font.size = Pt(12)
     p.font.bold = True
     p.font.color.rgb = text_color
 
-    img_area = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE,
-        Inches(content_x + 0.2), Inches(content_y + 0.5),
-        Inches(content_w - 0.4), Inches(content_h - 0.7)
-    )
+    img_area = _add_shape(slide, MSO_SHAPE.RECTANGLE, content_x + 0.2, content_y + 0.5, content_w - 0.4, content_h - 0.7)
     img_area.fill.solid()
     img_area.fill.fore_color.rgb = hex_to_rgb('#E8E8E8')
     img_area.line.color.rgb = card_border
 
-    icon = slide.shapes.add_textbox(
-        Inches(x + w/2 - 0.3), Inches(y + h/2 - 0.2), Inches(0.6), Inches(0.4)
-    )
+    icon = _add_textbox(slide, x + w/2 - 0.3, y + h/2 - 0.2, 0.6, 0.4)
     icon.text_frame.paragraphs[0].text = "🖼️"
     icon.text_frame.paragraphs[0].font.size = Pt(24)
     icon.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
@@ -176,10 +201,7 @@ def _render_image_zone(slide, zone_id, content_x, content_y, content_w, content_
 
 def _render_metric_zone(slide, zone_id, content_x, content_y, content_w, content_h, accent_color, muted_color):
     """Render metric display zone."""
-    metric_box = slide.shapes.add_textbox(
-        Inches(content_x), Inches(content_y + content_h * 0.2),
-        Inches(content_w), Inches(content_h * 0.4)
-    )
+    metric_box = _add_textbox(slide, content_x, content_y + content_h * 0.2, content_w, content_h * 0.4)
     metric_box.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
     p = metric_box.text_frame.paragraphs[0]
     p.text = "85%"
@@ -187,10 +209,7 @@ def _render_metric_zone(slide, zone_id, content_x, content_y, content_w, content
     p.font.bold = True
     p.font.color.rgb = accent_color
 
-    label_box = slide.shapes.add_textbox(
-        Inches(content_x), Inches(content_y + content_h * 0.6),
-        Inches(content_w), Inches(0.4)
-    )
+    label_box = _add_textbox(slide, content_x, content_y + content_h * 0.6, content_w, 0.4)
     label_box.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
     p = label_box.text_frame.paragraphs[0]
     p.text = f"关键指标 {zone_id}"
@@ -200,25 +219,19 @@ def _render_metric_zone(slide, zone_id, content_x, content_y, content_w, content
 
 def _render_table_zone(slide, zone_id, content_x, content_y, content_w, content_h, x, y, w, h, text_color, card_border):
     """Render table placeholder zone."""
-    header = slide.shapes.add_textbox(Inches(content_x), Inches(content_y), Inches(content_w), Inches(0.35))
+    header = _add_textbox(slide, content_x, content_y, content_w, 0.35)
     p = header.text_frame.paragraphs[0]
     p.text = f"表格 {zone_id}"
     p.font.size = Pt(12)
     p.font.bold = True
     p.font.color.rgb = text_color
 
-    table_area = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE,
-        Inches(content_x + 0.1), Inches(content_y + 0.5),
-        Inches(content_w - 0.2), Inches(content_h - 0.7)
-    )
+    table_area = _add_shape(slide, MSO_SHAPE.RECTANGLE, content_x + 0.1, content_y + 0.5, content_w - 0.2, content_h - 0.7)
     table_area.fill.solid()
     table_area.fill.fore_color.rgb = hex_to_rgb('#FAFAFA')
     table_area.line.color.rgb = card_border
 
-    icon = slide.shapes.add_textbox(
-        Inches(x + w/2 - 0.3), Inches(y + h/2 - 0.2), Inches(0.6), Inches(0.4)
-    )
+    icon = _add_textbox(slide, x + w/2 - 0.3, y + h/2 - 0.2, 0.6, 0.4)
     icon.text_frame.paragraphs[0].text = "📋"
     icon.text_frame.paragraphs[0].font.size = Pt(24)
     icon.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
@@ -226,7 +239,7 @@ def _render_table_zone(slide, zone_id, content_x, content_y, content_w, content_
 
 def _render_bullets_zone(slide, zone_id, content_x, content_y, content_w, content_h, y, h, text_color, accent_color):
     """Render bullet list zone."""
-    header = slide.shapes.add_textbox(Inches(content_x), Inches(content_y), Inches(content_w), Inches(0.35))
+    header = _add_textbox(slide, content_x, content_y, content_w, 0.35)
     p = header.text_frame.paragraphs[0]
     p.text = f"要点 {zone_id}"
     p.font.size = Pt(12)
@@ -238,19 +251,12 @@ def _render_bullets_zone(slide, zone_id, content_x, content_y, content_w, conten
         if content_y + 0.55 + i * 0.45 > y + h - 0.3:
             break
 
-        dot = slide.shapes.add_shape(
-            MSO_SHAPE.OVAL,
-            Inches(content_x + 0.05), Inches(content_y + 0.55 + i * 0.45),
-            Inches(0.08), Inches(0.08)
-        )
+        dot = _add_shape(slide, MSO_SHAPE.OVAL, content_x + 0.05, content_y + 0.55 + i * 0.45, 0.08, 0.08)
         dot.fill.solid()
         dot.fill.fore_color.rgb = accent_color
         dot.line.fill.background()
 
-        text = slide.shapes.add_textbox(
-            Inches(content_x + 0.2), Inches(content_y + 0.45 + i * 0.45),
-            Inches(content_w - 0.3), Inches(0.4)
-        )
+        text = _add_textbox(slide, content_x + 0.2, content_y + 0.45 + i * 0.45, content_w - 0.3, 0.4)
         text.text_frame.word_wrap = True
         p = text.text_frame.paragraphs[0]
         p.text = bullet_text
@@ -267,17 +273,14 @@ def _render_text_zone(slide, zone_id, content_x, content_y, content_w, content_h
     title = text_data.get('title', f"区域 {zone_id}")
     body_text = text_data.get('body', "这里是文本内容区域，可以放置段落、描述或说明文字。")
 
-    header = slide.shapes.add_textbox(Inches(content_x), Inches(content_y), Inches(content_w), Inches(0.35))
+    header = _add_textbox(slide, content_x, content_y, content_w, 0.35)
     p = header.text_frame.paragraphs[0]
     p.text = title
     p.font.size = Pt(14)
     p.font.bold = True
     p.font.color.rgb = text_color
 
-    body = slide.shapes.add_textbox(
-        Inches(content_x), Inches(content_y + 0.45),
-        Inches(content_w), Inches(content_h - 0.6)
-    )
+    body = _add_textbox(slide, content_x, content_y + 0.45, content_w, content_h - 0.6)
     body.text_frame.word_wrap = True
     p = body.text_frame.paragraphs[0]
     p.text = body_text

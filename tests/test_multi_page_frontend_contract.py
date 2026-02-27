@@ -45,6 +45,10 @@ def test_export_uses_v2_schema_payload():
     assert "schemaVersion: 2" in source
     assert "pages" in source
     assert "buildPageDataForExport(" in source
+    assert "shell:" in source
+    assert "renderer:" in source
+    assert "pageShell:" in source
+    assert "bodyRenderer:" in source
 
 
 def test_index_loads_state_selectors_after_state():

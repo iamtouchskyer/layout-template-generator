@@ -80,6 +80,42 @@ function deepClone(value) {
     return JSON.parse(JSON.stringify(value));
 }
 
+function getPageTypeForExport(page, fallbackType = 'content-grid') {
+    const helper = window.__stateInternals || {};
+    const inferTypeFromModel = helper.inferTypeFromModel;
+    const normalizePageType = helper.normalizePageType;
+    const fromType = page?.type;
+    const fromModel = typeof inferTypeFromModel === 'function'
+        ? inferTypeFromModel(page?.shell || page?.pageShell, page?.renderer || page?.bodyRenderer)
+        : null;
+    const preferred = fromType || fromModel || fallbackType;
+    return typeof normalizePageType === 'function'
+        ? normalizePageType(preferred)
+        : String(preferred || 'content-grid');
+}
+
+function getPageModelForExport(pageType) {
+    const helper = window.__stateInternals || {};
+    if (typeof helper.getPageModelFromType === 'function') {
+        return helper.getPageModelFromType(pageType);
+    }
+    if (pageType === 'cover') return { shell: 'cover', renderer: 'cover' };
+    if (pageType === 'divider') return { shell: 'divider', renderer: 'divider' };
+    if (pageType === 'content-smartart') return { shell: 'content', renderer: 'smartart' };
+    return { shell: 'content', renderer: 'grid' };
+}
+
+function getPageLayoutForExport(pageType, pageData, fallbackLayout) {
+    const helper = window.__stateInternals || {};
+    if (typeof helper.derivePageLayout === 'function') {
+        return helper.derivePageLayout(pageType, pageData || {}, fallbackLayout);
+    }
+    if (pageType === 'cover') return pageData?.coverLayout || fallbackLayout || 'cross_rectangles';
+    if (pageType === 'divider') return pageData?.dividerLayout || pageData?.divider?.layout || fallbackLayout || 'cards-highlight';
+    if (pageType === 'content-smartart') return pageData?.smartartPlacement || pageData?.smartart?.placement || fallbackLayout || 'left-desc';
+    return pageData?.gridLayout || pageData?.grid?.layout || fallbackLayout || 'two-col-equal';
+}
+
 function buildGridZones(layoutId, zoneContents) {
     const layout = GRID_LAYOUTS[layoutId];
     return (layout?.zones || []).map((zone, idx) => {
@@ -113,7 +149,7 @@ function buildGridZones(layoutId, zoneContents) {
 }
 
 function buildPageDataForExport(page, legacyFallback) {
-    const pageType = page?.type || legacyFallback?.pageType || 'content-grid';
+    const pageType = getPageTypeForExport(page, legacyFallback?.pageType || 'content-grid');
     const sourceData = deepClone(page?.data || {});
 
     if (pageType === 'cover') {
@@ -205,14 +241,31 @@ function buildPageDataForExport(page, legacyFallback) {
 function toV2PresentationConfig(legacyConfig) {
     const docPages = Array.isArray(state.doc?.pages) ? state.doc.pages : [];
     const pages = docPages.length > 0
-        ? docPages.map((page, idx) => ({
-            id: page?.id || `page-${idx + 1}`,
-            type: page?.type || 'content-grid',
-            data: buildPageDataForExport(page, null),
-        }))
+        ? docPages.map((page, idx) => {
+            const type = getPageTypeForExport(page, 'content-grid');
+            const data = buildPageDataForExport(page, null);
+            const model = getPageModelForExport(type);
+            return {
+                id: page?.id || `page-${idx + 1}`,
+                type,
+                shell: model.shell,
+                renderer: model.renderer,
+                layout: getPageLayoutForExport(type, data, page?.layout),
+                pageShell: model.shell,
+                bodyRenderer: model.renderer,
+                bodyLayout: getPageLayoutForExport(type, data, page?.layout),
+                data,
+            };
+        })
         : [{
             id: (state.ui && state.ui.currentPageId) || 'page-1',
             type: legacyConfig.pageType || 'content-grid',
+            shell: getPageModelForExport(legacyConfig.pageType || 'content-grid').shell,
+            renderer: getPageModelForExport(legacyConfig.pageType || 'content-grid').renderer,
+            layout: getPageLayoutForExport(legacyConfig.pageType || 'content-grid', legacyConfig, null),
+            pageShell: getPageModelForExport(legacyConfig.pageType || 'content-grid').shell,
+            bodyRenderer: getPageModelForExport(legacyConfig.pageType || 'content-grid').renderer,
+            bodyLayout: getPageLayoutForExport(legacyConfig.pageType || 'content-grid', legacyConfig, null),
             data: buildPageDataForExport(null, legacyConfig),
         }];
 

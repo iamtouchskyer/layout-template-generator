@@ -77,6 +77,10 @@ def test_normalize_v1_to_v2_uses_slide_master_fields():
     assert v2["master"]["masterContentAreas"] == {"titleStyle": "with-tag"}
     assert len(v2["pages"]) == 1
     assert v2["pages"][0]["type"] == "content-smartart"
+    assert v2["pages"][0]["shell"] == "content"
+    assert v2["pages"][0]["renderer"] == "smartart"
+    assert v2["pages"][0]["pageShell"] == "content"
+    assert v2["pages"][0]["bodyRenderer"] == "smartart"
 
 
 def test_divider_flat_fields_override_nested_divider_payload():
@@ -113,3 +117,61 @@ def test_divider_flat_fields_override_nested_divider_payload():
     assert divider["layout"] == "cards-highlight"
     assert divider["sectionIndex"] == 1
     assert divider["bgStyle"] == "solid"
+
+
+def test_normalize_v2_supports_page_shell_body_renderer_without_type():
+    v2 = normalize_input(
+        {
+            "schemaVersion": 2,
+            "master": {
+                "theme": "forest_green",
+                "masterShapes": [],
+                "masterPlaceholders": {},
+                "masterContentAreas": {},
+            },
+            "pages": [
+                {
+                    "id": "p1",
+                    "pageShell": "content",
+                    "bodyRenderer": "smartart",
+                    "bodyLayout": "left-desc",
+                    "data": {
+                        "smartartType": "pyramid",
+                        "smartartItemsByType": {"pyramid": [{"text": "A"}]},
+                    },
+                }
+            ],
+        }
+    )
+
+    page = v2["pages"][0]
+    assert page["type"] == "content-smartart"
+    assert page["shell"] == "content"
+    assert page["renderer"] == "smartart"
+    assert page["layout"] == "left-desc"
+
+
+def test_to_legacy_config_resolves_type_from_page_model():
+    doc = normalize_input(
+        {
+            "schemaVersion": 2,
+            "master": {
+                "theme": "forest_green",
+                "masterShapes": [],
+                "masterPlaceholders": {},
+                "masterContentAreas": {},
+            },
+            "pages": [
+                {
+                    "id": "p1",
+                    "shell": "content",
+                    "renderer": "grid",
+                    "layout": "single",
+                    "data": {"grid": {"layout": "single", "zones": []}},
+                }
+            ],
+        }
+    )
+
+    legacy = to_legacy_config_for_page(doc, doc["pages"][0])
+    assert legacy["pageType"] == "content-grid"

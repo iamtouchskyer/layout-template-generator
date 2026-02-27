@@ -33,6 +33,14 @@ function _stateMergePageDefaults(page, type) {
     }
 }
 
+function _stateNormalizePageRecord(page, fallbackType) {
+    const helper = window.__stateInternals;
+    if (helper && typeof helper.normalizePageRecord === 'function') {
+        return helper.normalizePageRecord(page, fallbackType);
+    }
+    return page;
+}
+
 function _renderIfReady() {
     if (typeof render === 'function') render();
 }
@@ -147,6 +155,7 @@ function patchCurrentPage(partial, options = {}) {
     if (!page || !_isPlainObject(partial)) return;
     if (options.recordHistory !== false) recordDocHistory();
     page.data = _deepMerge(page.data || {}, partial);
+    _stateNormalizePageRecord(page, page.type || 'content-grid');
     _postMutation(options.render !== false);
 }
 
@@ -169,6 +178,7 @@ function mutateCurrentPageData(mutator, options = {}) {
     } else {
         page.data = draft;
     }
+    _stateNormalizePageRecord(page, page.type || 'content-grid');
     _postMutation(options.render !== false);
 }
 
@@ -190,6 +200,7 @@ function setCurrentPage(pageId) {
     if (!pageId || !Array.isArray(state.doc?.pages)) return;
     const hit = state.doc.pages.find(p => p.id === pageId);
     if (!hit) return;
+    _stateNormalizePageRecord(hit, hit.type || 'content-grid');
     state.ui.currentPageId = pageId;
     _stateEnsureCurrentPage();
     _renderIfReady();
@@ -260,6 +271,12 @@ function duplicatePage(pageId) {
     const copy = {
         id: _generatePageId(),
         type: page.type || 'content-grid',
+        shell: page.shell,
+        renderer: page.renderer,
+        layout: page.layout,
+        pageShell: page.pageShell,
+        bodyRenderer: page.bodyRenderer,
+        bodyLayout: page.bodyLayout,
         data: _stateDeepClone(page.data || {}),
     };
     _stateMergePageDefaults(copy, copy.type);

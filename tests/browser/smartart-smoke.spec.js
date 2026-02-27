@@ -86,6 +86,10 @@ test('generate pptx posts smartart payload and triggers download link', async ({
   expect(postedConfig.schemaVersion).toBe(2)
   expect(Array.isArray(postedConfig.pages)).toBeTruthy()
   expect(postedConfig.pages[0].type).toBe('content-smartart')
+  expect(postedConfig.pages[0].shell).toBe('content')
+  expect(postedConfig.pages[0].renderer).toBe('smartart')
+  expect(postedConfig.pages[0].pageShell).toBe('content')
+  expect(postedConfig.pages[0].bodyRenderer).toBe('smartart')
   const smartartPayload = postedConfig.pages[0].data.smartart
   expect('engine' in smartartPayload).toBeFalsy()
   expect(Array.isArray(smartartPayload.items)).toBeTruthy()
@@ -132,6 +136,10 @@ test('multi-page operations are reflected in exported v2 payload order', async (
   expect(exported.config.pages[1].id).toBe(exported.secondId)
   expect(exported.config.pages[0].type).toBe('content-smartart')
   expect(exported.config.pages[1].type).toBe('content-grid')
+  expect(exported.config.pages[0].shell).toBe('content')
+  expect(exported.config.pages[0].renderer).toBe('smartart')
+  expect(exported.config.pages[1].shell).toBe('content')
+  expect(exported.config.pages[1].renderer).toBe('grid')
 })
 
 test('undo and redo restore page list after page operations', async ({ page }) => {
@@ -278,4 +286,40 @@ test('divider export prefers current flat state over stale nested divider object
   expect(exported.layout).toBe('cards-highlight')
   expect(exported.sectionIndex).toBe(1)
   expect(exported.bgStyle).toBe('solid')
+})
+
+test('imported page shell/body renderer model is normalized to legacy type', async ({ page }) => {
+  await page.goto('/index.html')
+  await page.waitForFunction(() => typeof window.applyImportedConfig === 'function' && typeof window.updateJsonOutput === 'function')
+
+  const imported = await page.evaluate(() => {
+    window.applyImportedConfig({
+      schemaVersion: 2,
+      master: { theme: 'forest_green', masterShapes: [], masterPlaceholders: {}, masterContentAreas: {} },
+      pages: [
+        {
+          id: 's1',
+          shell: 'content',
+          renderer: 'smartart',
+          layout: 'left-desc',
+          data: {
+            smartartType: 'pyramid',
+            smartartItemsByType: { pyramid: [{ text: 'A' }] },
+          },
+        },
+      ],
+    })
+
+    window.updateJsonOutput()
+    const config = JSON.parse(document.getElementById('json-output').textContent)
+    return {
+      type: config.pages?.[0]?.type,
+      shell: config.pages?.[0]?.shell,
+      renderer: config.pages?.[0]?.renderer,
+    }
+  })
+
+  expect(imported.type).toBe('content-smartart')
+  expect(imported.shell).toBe('content')
+  expect(imported.renderer).toBe('smartart')
 })

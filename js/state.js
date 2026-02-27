@@ -32,6 +32,66 @@ const DEFAULT_COVER_CONTENT = {
     }
 };
 
+const PAGE_MODEL_BY_TYPE = {
+    cover: { shell: 'cover', renderer: 'cover' },
+    divider: { shell: 'divider', renderer: 'divider' },
+    'content-grid': { shell: 'content', renderer: 'grid' },
+    'content-smartart': { shell: 'content', renderer: 'smartart' },
+};
+
+function normalizePageType(value) {
+    const type = String(value || '').trim();
+    return PAGE_MODEL_BY_TYPE[type] ? type : 'content-grid';
+}
+
+function inferTypeFromModel(shell, renderer) {
+    const normalizedShell = String(shell || '').trim();
+    const normalizedRenderer = String(renderer || '').trim();
+
+    if (normalizedShell === 'cover') return 'cover';
+    if (normalizedShell === 'divider') return 'divider';
+    if (normalizedShell === 'content' && normalizedRenderer === 'smartart') return 'content-smartart';
+    if (normalizedShell === 'content' && normalizedRenderer === 'grid') return 'content-grid';
+    if (normalizedShell === 'content') return 'content-grid';
+    return null;
+}
+
+function getPageModelFromType(type) {
+    const normalizedType = normalizePageType(type);
+    const model = PAGE_MODEL_BY_TYPE[normalizedType] || PAGE_MODEL_BY_TYPE['content-grid'];
+    return { ...model };
+}
+
+function derivePageLayout(type, data, fallbackLayout) {
+    const pageData = (data && typeof data === 'object') ? data : {};
+    if (type === 'cover') return pageData.coverLayout || (typeof fallbackLayout === 'string' && fallbackLayout.trim()) || 'cross_rectangles';
+    if (type === 'divider') {
+        return pageData.dividerLayout || pageData.divider?.layout || (typeof fallbackLayout === 'string' && fallbackLayout.trim()) || 'cards-highlight';
+    }
+    if (type === 'content-smartart') {
+        return pageData.smartartPlacement || pageData.smartart?.placement || (typeof fallbackLayout === 'string' && fallbackLayout.trim()) || 'left-desc';
+    }
+    return pageData.gridLayout || pageData.grid?.layout || (typeof fallbackLayout === 'string' && fallbackLayout.trim()) || 'two-col-equal';
+}
+
+function normalizePageRecord(pageLike, fallbackType = 'content-grid') {
+    const page = (pageLike && typeof pageLike === 'object') ? pageLike : {};
+    const rawType = page.type;
+    const inferredType = inferTypeFromModel(page.shell || page.pageShell, page.renderer || page.bodyRenderer);
+    const nextType = normalizePageType(rawType || inferredType || fallbackType);
+    const model = getPageModelFromType(nextType);
+
+    page.type = nextType;
+    page.shell = model.shell;
+    page.renderer = model.renderer;
+    page.pageShell = model.shell;
+    page.bodyRenderer = model.renderer;
+    if (!page.data || typeof page.data !== 'object') page.data = {};
+    page.layout = derivePageLayout(nextType, page.data, page.layout || page.bodyLayout);
+    page.bodyLayout = page.layout;
+    return page;
+}
+
 function createDefaultPageData(type) {
     if (type === 'cover') {
         return {
@@ -71,21 +131,38 @@ function createDefaultPageData(type) {
 }
 
 function createDefaultPage(type = 'content-grid', id = 'page-1') {
+    const normalizedType = normalizePageType(type);
+    const model = getPageModelFromType(normalizedType);
+    const data = createDefaultPageData(normalizedType);
     return {
         id,
-        type,
-        data: createDefaultPageData(type),
+        type: normalizedType,
+        shell: model.shell,
+        renderer: model.renderer,
+        layout: derivePageLayout(normalizedType, data),
+        pageShell: model.shell,
+        bodyRenderer: model.renderer,
+        bodyLayout: derivePageLayout(normalizedType, data),
+        data,
     };
 }
 
 function mergePageDefaults(page, type) {
-    const defaults = createDefaultPageData(type);
+    const nextType = normalizePageType(type);
+    const defaults = createDefaultPageData(nextType);
     const currentData = (page && page.data && typeof page.data === 'object') ? page.data : {};
-    page.type = type;
+    const model = getPageModelFromType(nextType);
+    page.type = nextType;
+    page.shell = model.shell;
+    page.renderer = model.renderer;
+    page.pageShell = model.shell;
+    page.bodyRenderer = model.renderer;
     page.data = {
         ...deepClone(defaults),
         ...currentData,
     };
+    page.layout = derivePageLayout(nextType, page.data);
+    page.bodyLayout = page.layout;
 }
 
 function ensureCurrentPage(stateObj) {
@@ -105,8 +182,7 @@ function ensureCurrentPage(stateObj) {
         stateObj.ui.currentPageId = page.id;
     }
 
-    if (!page.type) page.type = 'content-grid';
-    if (!page.data || typeof page.data !== 'object') page.data = {};
+    normalizePageRecord(page, 'content-grid');
     mergePageDefaults(page, page.type);
     return page;
 }
@@ -245,6 +321,11 @@ definePageDataAlias('zoneContents', 'zoneContents', () => ({ A: 'chart', B: 'tex
 // Internal helpers exposed for selector API module.
 window.__stateInternals = {
     deepClone,
+    normalizePageType,
+    inferTypeFromModel,
+    getPageModelFromType,
+    derivePageLayout,
+    normalizePageRecord,
     createDefaultPageData,
     createDefaultPage,
     ensureCurrentPage,

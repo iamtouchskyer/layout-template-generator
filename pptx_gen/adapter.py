@@ -11,6 +11,91 @@ from copy import deepcopy
 
 DEFAULT_THEME = "soft_peach_cream"
 DEFAULT_PAGE_TYPE = "content-grid"
+TYPE_TO_MODEL = {
+    "cover": {"shell": "cover", "renderer": "cover"},
+    "divider": {"shell": "divider", "renderer": "divider"},
+    "content-grid": {"shell": "content", "renderer": "grid"},
+    "content-smartart": {"shell": "content", "renderer": "smartart"},
+}
+
+
+def _normalize_page_type(value: str | None) -> str:
+    page_type = str(value or "").strip()
+    return page_type if page_type in TYPE_TO_MODEL else DEFAULT_PAGE_TYPE
+
+
+def _resolve_page_type(page: dict, fallback: str = DEFAULT_PAGE_TYPE) -> str:
+    if not isinstance(page, dict):
+        return _normalize_page_type(fallback)
+
+    raw_type = page.get("type")
+    if raw_type in TYPE_TO_MODEL:
+        return str(raw_type)
+
+    shell = str(page.get("shell") or page.get("pageShell") or "").strip()
+    renderer = str(page.get("renderer") or page.get("bodyRenderer") or "").strip()
+
+    if shell == "cover":
+        return "cover"
+    if shell == "divider":
+        return "divider"
+    if shell == "content" and renderer == "smartart":
+        return "content-smartart"
+    if shell == "content":
+        return "content-grid"
+
+    return _normalize_page_type(fallback)
+
+
+def _page_model_for_type(page_type: str) -> dict:
+    normalized = _normalize_page_type(page_type)
+    model = TYPE_TO_MODEL.get(normalized, TYPE_TO_MODEL[DEFAULT_PAGE_TYPE])
+    return deepcopy(model)
+
+
+def _derive_page_layout(page_type: str, data: dict, raw_layout: str | None = None) -> str:
+    fallback_layout = raw_layout.strip() if isinstance(raw_layout, str) and raw_layout.strip() else None
+
+    payload = data if isinstance(data, dict) else {}
+    normalized_type = _normalize_page_type(page_type)
+
+    if normalized_type == "cover":
+        return str(payload.get("coverLayout") or fallback_layout or "cross_rectangles")
+    if normalized_type == "divider":
+        divider = payload.get("divider", {}) if isinstance(payload.get("divider"), dict) else {}
+        return str(payload.get("dividerLayout") or divider.get("layout") or fallback_layout or "cards-highlight")
+    if normalized_type == "content-smartart":
+        smartart = payload.get("smartart", {}) if isinstance(payload.get("smartart"), dict) else {}
+        return str(payload.get("smartartPlacement") or smartart.get("placement") or fallback_layout or "left-desc")
+
+    grid = payload.get("grid", {}) if isinstance(payload.get("grid"), dict) else {}
+    return str(payload.get("gridLayout") or grid.get("layout") or fallback_layout or "two-col-equal")
+
+
+def _normalize_page_record(page: dict, index: int = 0, fallback_type: str = DEFAULT_PAGE_TYPE) -> dict:
+    page = page if isinstance(page, dict) else {}
+    page_id = str(page.get("id") or f"page-{index + 1}")
+    page_type = _resolve_page_type(page, fallback_type)
+    data = page.get("data", {}) if isinstance(page.get("data"), dict) else {}
+    model = _page_model_for_type(page_type)
+    layout = _derive_page_layout(
+        page_type,
+        data,
+        page.get("layout") or page.get("bodyLayout"),
+    )
+
+    return {
+        "id": page_id,
+        "type": page_type,
+        "shell": model["shell"],
+        "renderer": model["renderer"],
+        "layout": layout,
+        # Explicit aliases for the page-shell model contract.
+        "pageShell": model["shell"],
+        "bodyRenderer": model["renderer"],
+        "bodyLayout": layout,
+        "data": deepcopy(data),
+    }
 
 
 def normalize_input(config: dict) -> dict:
@@ -26,7 +111,14 @@ def normalize_input(config: dict) -> dict:
         "masterPlaceholders": {...},
         "masterContentAreas": {...},
       },
-      "pages": [{"id": "...", "type": "...", "data": {...}}, ...]
+      "pages": [{
+        "id": "...",
+        "type": "...",
+        "shell": "...",
+        "renderer": "...",
+        "layout": "...",
+        "data": {...}
+      }, ...]
     }
     """
     if not isinstance(config, dict):
@@ -41,7 +133,7 @@ def normalize_input(config: dict) -> dict:
 def to_legacy_config_for_page(doc: dict, page: dict) -> dict:
     """Convert normalized v2 doc + page into existing single-page config shape."""
     master = doc.get("master", {})
-    page_type = str(page.get("type") or DEFAULT_PAGE_TYPE)
+    page_type = _resolve_page_type(page, DEFAULT_PAGE_TYPE)
     data = page.get("data", {}) if isinstance(page.get("data"), dict) else {}
 
     legacy = {
@@ -78,8 +170,10 @@ def _normalize_v1(config: dict) -> dict:
         "masterContentAreas": deepcopy(slide_master.get("contentAreas", {})),
     }
 
-    page_type = config.get("pageType", DEFAULT_PAGE_TYPE)
+    page_type = _normalize_page_type(config.get("pageType", DEFAULT_PAGE_TYPE))
     data = _extract_page_data_v1(config, page_type)
+    model = _page_model_for_type(page_type)
+    layout = _derive_page_layout(page_type, data, config.get("layout"))
 
     return {
         "schemaVersion": 2,
@@ -89,6 +183,12 @@ def _normalize_v1(config: dict) -> dict:
             {
                 "id": "legacy-page-1",
                 "type": page_type,
+                "shell": model["shell"],
+                "renderer": model["renderer"],
+                "layout": layout,
+                "pageShell": model["shell"],
+                "bodyRenderer": model["renderer"],
+                "bodyLayout": layout,
                 "data": data,
             }
         ],
@@ -126,23 +226,23 @@ def _normalize_v2(config: dict) -> dict:
     for idx, page in enumerate(pages):
         if not isinstance(page, dict):
             continue
-        page_id = str(page.get("id") or f"page-{idx + 1}")
-        page_type = str(page.get("type") or DEFAULT_PAGE_TYPE)
-        data = page.get("data", {}) if isinstance(page.get("data"), dict) else {}
-        normalized_pages.append(
-            {
-                "id": page_id,
-                "type": page_type,
-                "data": deepcopy(data),
-            }
-        )
+        normalized_pages.append(_normalize_page_record(page, idx, DEFAULT_PAGE_TYPE))
 
     if len(normalized_pages) == 0:
+        fallback_data = _extract_page_data_v1(config, DEFAULT_PAGE_TYPE)
+        fallback_model = _page_model_for_type(DEFAULT_PAGE_TYPE)
+        fallback_layout = _derive_page_layout(DEFAULT_PAGE_TYPE, fallback_data, config.get("layout"))
         normalized_pages.append(
             {
                 "id": "page-1",
                 "type": DEFAULT_PAGE_TYPE,
-                "data": _extract_page_data_v1(config, DEFAULT_PAGE_TYPE),
+                "shell": fallback_model["shell"],
+                "renderer": fallback_model["renderer"],
+                "layout": fallback_layout,
+                "pageShell": fallback_model["shell"],
+                "bodyRenderer": fallback_model["renderer"],
+                "bodyLayout": fallback_layout,
+                "data": fallback_data,
             }
         )
 
@@ -155,6 +255,7 @@ def _normalize_v2(config: dict) -> dict:
 
 
 def _extract_page_data_v1(config: dict, page_type: str) -> dict:
+    page_type = _normalize_page_type(page_type)
     if page_type == "cover":
         return {
             "coverLayout": config.get("coverLayout", "cross_rectangles"),

@@ -4,6 +4,40 @@ function _importDeepClone(value) {
     return JSON.parse(JSON.stringify(value));
 }
 
+function _importResolvePageType(pageLike, fallbackType = 'content-grid') {
+    const helper = window.__stateInternals || {};
+    const inferTypeFromModel = helper.inferTypeFromModel;
+    const normalizePageType = helper.normalizePageType;
+    const page = pageLike || {};
+    const inferred = typeof inferTypeFromModel === 'function'
+        ? inferTypeFromModel(page.shell || page.pageShell, page.renderer || page.bodyRenderer)
+        : null;
+    const preferred = page.type || inferred || fallbackType;
+    return typeof normalizePageType === 'function'
+        ? normalizePageType(preferred)
+        : String(preferred || 'content-grid');
+}
+
+function _importResolvePageModel(pageType) {
+    const helper = window.__stateInternals || {};
+    if (typeof helper.getPageModelFromType === 'function') return helper.getPageModelFromType(pageType);
+    if (pageType === 'cover') return { shell: 'cover', renderer: 'cover' };
+    if (pageType === 'divider') return { shell: 'divider', renderer: 'divider' };
+    if (pageType === 'content-smartart') return { shell: 'content', renderer: 'smartart' };
+    return { shell: 'content', renderer: 'grid' };
+}
+
+function _importResolvePageLayout(pageType, data, rawLayout) {
+    const helper = window.__stateInternals || {};
+    if (typeof helper.derivePageLayout === 'function') {
+        return helper.derivePageLayout(pageType, data || {}, rawLayout);
+    }
+    if (pageType === 'cover') return data?.coverLayout || rawLayout || 'cross_rectangles';
+    if (pageType === 'divider') return data?.dividerLayout || data?.divider?.layout || rawLayout || 'cards-highlight';
+    if (pageType === 'content-smartart') return data?.smartartPlacement || data?.smartart?.placement || rawLayout || 'left-desc';
+    return data?.gridLayout || data?.grid?.layout || rawLayout || 'two-col-equal';
+}
+
 function _importNormalizeInput(raw) {
     if (!raw || typeof raw !== 'object') {
         return {
@@ -14,7 +48,17 @@ function _importNormalizeInput(raw) {
                 masterPlaceholders: _importDeepClone(state.masterPlaceholders || {}),
                 masterContentAreas: _importDeepClone(state.masterContentAreas || {}),
             },
-            pages: [{ id: 'page-1', type: 'content-grid', data: {} }],
+            pages: [{
+                id: 'page-1',
+                type: 'content-grid',
+                shell: 'content',
+                renderer: 'grid',
+                layout: 'two-col-equal',
+                pageShell: 'content',
+                bodyRenderer: 'grid',
+                bodyLayout: 'two-col-equal',
+                data: {}
+            }],
         };
     }
 
@@ -28,11 +72,22 @@ function _importNormalizeInput(raw) {
                 masterPlaceholders: _importDeepClone(master.masterPlaceholders || raw.slideMaster?.placeholders || {}),
                 masterContentAreas: _importDeepClone(master.masterContentAreas || raw.slideMaster?.contentAreas || {}),
             },
-            pages: raw.pages.map((page, idx) => ({
-                id: String(page?.id || `page-${idx + 1}`),
-                type: String(page?.type || 'content-grid'),
-                data: _importDeepClone(page?.data || {}),
-            })),
+            pages: raw.pages.map((page, idx) => {
+                const data = _importDeepClone(page?.data || {});
+                const type = _importResolvePageType(page, 'content-grid');
+                const model = _importResolvePageModel(type);
+                return {
+                    id: String(page?.id || `page-${idx + 1}`),
+                    type,
+                    shell: model.shell,
+                    renderer: model.renderer,
+                    layout: _importResolvePageLayout(type, data, page?.layout || page?.bodyLayout),
+                    pageShell: model.shell,
+                    bodyRenderer: model.renderer,
+                    bodyLayout: _importResolvePageLayout(type, data, page?.layout || page?.bodyLayout),
+                    data,
+                };
+            }),
         };
     }
 
@@ -79,6 +134,12 @@ function _importNormalizeInput(raw) {
             {
                 id: 'legacy-page-1',
                 type: pageType,
+                shell: _importResolvePageModel(pageType).shell,
+                renderer: _importResolvePageModel(pageType).renderer,
+                layout: _importResolvePageLayout(pageType, data, raw.layout),
+                pageShell: _importResolvePageModel(pageType).shell,
+                bodyRenderer: _importResolvePageModel(pageType).renderer,
+                bodyLayout: _importResolvePageLayout(pageType, data, raw.layout),
                 data,
             }
         ],
@@ -101,7 +162,19 @@ function applyImportedConfig(rawConfig) {
     state.doc = {
         schemaVersion: 2,
         master: normalized.master,
-        pages: normalized.pages.length > 0 ? normalized.pages : [{ id: 'page-1', type: 'content-grid', data: {} }],
+        pages: normalized.pages.length > 0
+            ? normalized.pages
+            : [{
+                id: 'page-1',
+                type: 'content-grid',
+                shell: 'content',
+                renderer: 'grid',
+                layout: 'two-col-equal',
+                pageShell: 'content',
+                bodyRenderer: 'grid',
+                bodyLayout: 'two-col-equal',
+                data: {}
+            }],
     };
 
     state.ui.currentPageId = state.doc.pages[0].id;

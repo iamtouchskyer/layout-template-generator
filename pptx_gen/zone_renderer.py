@@ -86,7 +86,18 @@ def render_zone_content(slide, content_type: str, zone_id: str, x: float, y: flo
     content_h = _safe_dim(h - 2 * padding, 0.05)
 
     if _is_compact_cell(content_w, content_h):
-        _render_compact_zone(slide, zone_id, content_type, content_x, content_y, content_w, content_h, text_color, muted_color)
+        _render_compact_zone(
+            slide,
+            zone_id,
+            content_type,
+            content_x,
+            content_y,
+            content_w,
+            content_h,
+            text_color,
+            muted_color,
+            zone_data,
+        )
         return
 
     if content_type == 'chart':
@@ -297,21 +308,24 @@ def _is_compact_cell(content_w: float, content_h: float) -> bool:
     return content_w < 1.25 or content_h < 1.0
 
 
-def _render_compact_zone(slide, zone_id, content_type, x, y, w, h, text_color, muted_color):
-    """Render compact cell for dense grids to avoid unreadable vertical text."""
+def _render_compact_zone(slide, zone_id, content_type, x, y, w, h, text_color, muted_color, zone_data=None):
+    """Render compact cell while preserving real UI text payload."""
+    zone_data = zone_data or {}
+    title_text, body_text = _compact_text_payload(zone_id, content_type, zone_data)
     title_size, subtitle_size = _compact_font_sizes(w, h)
 
     title = _add_textbox(slide, x, y, w, min(0.28, h * 0.4))
     p = title.text_frame.paragraphs[0]
-    p.text = str(zone_id)
+    p.text = title_text
     p.font.size = Pt(title_size)
     p.font.bold = True
     p.font.color.rgb = text_color
     p.alignment = PP_ALIGN.CENTER
 
     subtitle = _add_textbox(slide, x, y + min(0.3, h * 0.45), w, max(0.2, h * 0.35))
+    subtitle.text_frame.word_wrap = True
     p = subtitle.text_frame.paragraphs[0]
-    p.text = str(content_type).upper()[:10]
+    p.text = body_text
     p.font.size = Pt(subtitle_size)
     p.font.color.rgb = muted_color
     p.alignment = PP_ALIGN.CENTER
@@ -327,3 +341,34 @@ def _compact_font_sizes(w: float, h: float) -> tuple[int, int]:
     if cell < 0.8:
         return 7, 6
     return 8, 7
+
+
+def _compact_text_payload(zone_id: str, content_type: str, zone_data: dict) -> tuple[str, str]:
+    """Extract meaningful compact text from zone payload."""
+    if content_type == 'text':
+        text_data = zone_data.get('textData', {})
+        title = str(text_data.get('title') or zone_id)
+        body = str(text_data.get('body') or '')
+        return title, body
+
+    if content_type == 'chart':
+        chart_data = zone_data.get('chartData', {})
+        title = str(chart_data.get('title') or f'图表 {zone_id}')
+        series = chart_data.get('series') or []
+        if isinstance(series, list) and len(series) > 0:
+            first = series[0] if isinstance(series[0], dict) else {}
+            series_name = str(first.get('name') or '').strip()
+            if series_name:
+                return title, series_name
+        return title, 'Chart'
+
+    if content_type == 'bullets':
+        return f'要点 {zone_id}', '• 关键要点'
+    if content_type == 'table':
+        return f'表格 {zone_id}', '数据表'
+    if content_type == 'image':
+        return f'图片 {zone_id}', '图像内容'
+    if content_type == 'metric':
+        return f'指标 {zone_id}', '关键指标'
+
+    return str(zone_id), str(content_type)

@@ -71,3 +71,52 @@ def test_dense_row_layout_does_not_generate_negative_shape_extents():
     finally:
         os.unlink(output_path)
 
+
+def test_dense_compact_cells_preserve_text_payload():
+    zones = []
+    for idx in range(24):
+        zones.append(
+            {
+                "id": f"Z{idx}",
+                "content": "text",
+                "flex": 1,
+                "textData": {
+                    "title": f"标题{idx}",
+                    "body": f"正文内容{idx}",
+                },
+            }
+        )
+
+    config = {
+        "schemaVersion": 2,
+        "master": {
+            "theme": "forest_green",
+            "masterShapes": [],
+            "masterPlaceholders": {},
+            "masterContentAreas": {"titleStyle": "none", "sourceStyle": "none"},
+        },
+        "pages": [
+            {
+                "id": "dense-grid",
+                "type": "content-grid",
+                "data": {
+                    "grid": {
+                        "layout": "4x6",
+                        "zones": zones,
+                    }
+                },
+            }
+        ],
+    }
+
+    with tempfile.NamedTemporaryFile(suffix=".pptx", delete=False) as fp:
+        output_path = fp.name
+
+    try:
+        generate_pptx(config, output_path)
+        with zipfile.ZipFile(output_path) as zf:
+            xml = zf.read("ppt/slides/slide1.xml").decode("utf-8")
+        assert "标题0" in xml
+        assert "正文内容0" in xml
+    finally:
+        os.unlink(output_path)

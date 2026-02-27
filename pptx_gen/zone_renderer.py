@@ -5,7 +5,7 @@ Zone content rendering for PPTX generation.
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
-from pptx.enum.text import PP_ALIGN
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 
 from .themes import hex_to_rgb
 
@@ -311,10 +311,23 @@ def _is_compact_cell(content_w: float, content_h: float) -> bool:
 def _render_compact_zone(slide, zone_id, content_type, x, y, w, h, text_color, muted_color, zone_data=None):
     """Render compact cell while preserving real UI text payload."""
     zone_data = zone_data or {}
-    title_text, body_text = _compact_text_payload(zone_id, content_type, zone_data)
+    raw_title_text, raw_body_text = _compact_text_payload(zone_id, content_type, zone_data)
     title_size, subtitle_size = _compact_font_sizes(w, h)
+    title_lines, body_lines = _compact_line_budget(w, h)
+    title_chars = _compact_chars_per_line(w, title_size)
+    body_chars = _compact_chars_per_line(w, subtitle_size)
 
-    title = _add_textbox(slide, x, y, w, min(0.28, h * 0.4))
+    title_text = _truncate_compact_text(raw_title_text, title_lines, title_chars)
+    body_text = _truncate_compact_text(raw_body_text, body_lines, body_chars)
+
+    title_h = _compact_title_height(h, title_size, title_lines, has_body=bool(body_text))
+    title = _add_textbox(slide, x, y, w, title_h)
+    title.text_frame.word_wrap = True
+    title.text_frame.margin_left = 0
+    title.text_frame.margin_right = 0
+    title.text_frame.margin_top = 0
+    title.text_frame.margin_bottom = 0
+    title.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     p = title.text_frame.paragraphs[0]
     p.text = title_text
     p.font.size = Pt(title_size)
@@ -322,8 +335,20 @@ def _render_compact_zone(slide, zone_id, content_type, x, y, w, h, text_color, m
     p.font.color.rgb = text_color
     p.alignment = PP_ALIGN.CENTER
 
-    subtitle = _add_textbox(slide, x, y + min(0.3, h * 0.45), w, max(0.2, h * 0.35))
+    if not body_text:
+        return
+
+    body_gap = min(0.04, h * 0.08)
+    body_y = y + title_h + body_gap
+    body_h = max(0.1, h - title_h - body_gap)
+
+    subtitle = _add_textbox(slide, x, body_y, w, body_h)
     subtitle.text_frame.word_wrap = True
+    subtitle.text_frame.margin_left = 0
+    subtitle.text_frame.margin_right = 0
+    subtitle.text_frame.margin_top = 0
+    subtitle.text_frame.margin_bottom = 0
+    subtitle.text_frame.vertical_anchor = MSO_ANCHOR.TOP
     p = subtitle.text_frame.paragraphs[0]
     p.text = body_text
     p.font.size = Pt(subtitle_size)
@@ -341,6 +366,50 @@ def _compact_font_sizes(w: float, h: float) -> tuple[int, int]:
     if cell < 0.8:
         return 7, 6
     return 8, 7
+
+
+def _compact_line_budget(w: float, h: float) -> tuple[int, int]:
+    """Estimate max lines for (title, body) in compact mode."""
+    cell = min(_safe_dim(w), _safe_dim(h))
+    if h < 0.4 or cell < 0.28:
+        return 1, 0
+    if h < 0.62 or w < 0.62:
+        return 1, 1
+    if h < 0.9:
+        return 2, 1
+    return 2, 2
+
+
+def _compact_chars_per_line(w: float, font_size: int) -> int:
+    """Approximate character capacity per line for compact text box width."""
+    width_pts = _safe_dim(w) * 72.0
+    avg_char_width = max(4.0, font_size * 0.9)
+    chars = int(width_pts / avg_char_width)
+    return max(2, min(28, chars))
+
+
+def _truncate_compact_text(text: str, max_lines: int, chars_per_line: int) -> str:
+    """Clamp compact text length and append ellipsis when overflow."""
+    if max_lines <= 0:
+        return ""
+    value = str(text or "").strip()
+    if not value:
+        return ""
+    cap = max_lines * max(1, chars_per_line)
+    if len(value) <= cap:
+        return value
+    if cap <= 3:
+        return value[:cap]
+    return f"{value[: cap - 3].rstrip()}..."
+
+
+def _compact_title_height(h: float, font_size: int, max_lines: int, has_body: bool) -> float:
+    """Reserve enough vertical room for title, keeping body visible when present."""
+    line_height = max(0.1, (font_size * 1.3) / 72.0)
+    text_h = max(0.12, line_height * max(1, max_lines))
+    if not has_body:
+        return max(0.12, min(h, text_h + 0.04))
+    return max(0.12, min(h * 0.7, max(h * 0.45, text_h + 0.02)))
 
 
 def _compact_text_payload(zone_id: str, content_type: str, zone_data: dict) -> tuple[str, str]:

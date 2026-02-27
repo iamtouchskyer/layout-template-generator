@@ -9,6 +9,12 @@ import zipfile
 from lxml import etree
 
 from pptx_gen import generate_pptx
+from pptx_gen.zone_renderer import (
+    _compact_chars_per_line,
+    _compact_font_sizes,
+    _compact_line_budget,
+    _truncate_compact_text,
+)
 
 
 NS = {
@@ -120,3 +126,28 @@ def test_dense_compact_cells_preserve_text_payload():
         assert "正文内容0" in xml
     finally:
         os.unlink(output_path)
+
+
+def test_compact_budget_hides_body_on_tiny_cells():
+    title_lines, body_lines = _compact_line_budget(0.48, 0.36)
+    assert title_lines == 1
+    assert body_lines == 0
+
+
+def test_compact_text_truncates_with_ellipsis():
+    title_size, body_size = _compact_font_sizes(0.72, 0.78)
+    title_lines, body_lines = _compact_line_budget(0.72, 0.78)
+
+    long_title = "非常非常非常非常非常非常长的标题用于紧凑网格回归测试"
+    long_body = "这是一个很长很长的正文内容，用于验证在空间不足时会被智能截断，而不是溢出到不可读状态。"
+
+    title_cap = _compact_chars_per_line(0.72, title_size)
+    body_cap = _compact_chars_per_line(0.72, body_size)
+
+    compact_title = _truncate_compact_text(long_title, title_lines, title_cap)
+    compact_body = _truncate_compact_text(long_body, body_lines, body_cap)
+
+    assert compact_title.endswith("...")
+    assert compact_body.endswith("...")
+    assert len(compact_title) <= (title_lines * title_cap)
+    assert len(compact_body) <= (body_lines * body_cap)

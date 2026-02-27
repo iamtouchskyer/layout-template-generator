@@ -59,6 +59,11 @@ def generate_grid_slide(prs, config, theme):
     body_y = px_to_inches_y(body_bounds.get('y', 88))
     body_w = px_to_inches_x(body_bounds.get('width', 1200))
     body_h = px_to_inches_y(body_bounds.get('height', 592))
+    # Header bounds
+    header_x = px_to_inches_x(header_bounds.get('x', 40))
+    header_y = px_to_inches_y(header_bounds.get('y', 20))
+    header_w = px_to_inches_x(header_bounds.get('width', 1200))
+    header_h = px_to_inches_y(header_bounds.get('height', 60))
 
     # Footer bounds
     footer_x = px_to_inches_x(footer_bounds.get('x', 40))
@@ -70,8 +75,22 @@ def generate_grid_slide(prs, config, theme):
     # Set title using placeholder (inherits position from slide master)
     if has_title:
         title_placeholder = slide.shapes.title
-        if title_placeholder:
-            set_title_with_style(slide, title_placeholder, "市场趋势分析", "分析报告", theme, title_style)
+        if title_placeholder is not None:
+            # Force slide-level placeholder bounds to match frontend header bounds.
+            # Layout placeholders can diverge from master; we align directly here.
+            title_placeholder.left = Inches(header_x)
+            title_placeholder.top = Inches(header_y)
+            title_placeholder.width = Inches(header_w)
+            title_placeholder.height = Inches(header_h)
+        set_title_with_style(
+            slide,
+            title_placeholder,
+            "市场趋势分析",
+            "分析报告",
+            theme,
+            title_style,
+            bounds=(header_x, header_y, header_w, header_h),
+        )
 
     # Add source citation if enabled
     has_source = source_style == 'citation'
@@ -99,7 +118,15 @@ def generate_grid_slide(prs, config, theme):
     return slide
 
 
-def set_title_with_style(slide, title_placeholder, title: str, tag: str, theme: dict, title_style: str):
+def set_title_with_style(
+    slide,
+    title_placeholder,
+    title: str,
+    tag: str,
+    theme: dict,
+    title_style: str,
+    bounds: tuple[float, float, float, float] | None = None,
+):
     """Set title with optional pill-shaped tag.
 
     For 'with-tag' style, adds a rounded rectangle pill before the title.
@@ -110,14 +137,27 @@ def set_title_with_style(slide, title_placeholder, title: str, tag: str, theme: 
     text_color = hex_to_rgb(theme['primary'])
     accent_color = hex_to_rgb(theme['accent'])
 
-    # Get placeholder position
-    ph_left = title_placeholder.left
-    ph_top = title_placeholder.top
-    ph_width = title_placeholder.width
-    ph_height = title_placeholder.height
+    if bounds is not None:
+        bx, by, bw, bh = bounds
+        ph_left = Inches(bx)
+        ph_top = Inches(by)
+        ph_width = Inches(bw)
+        ph_height = Inches(bh)
+    elif title_placeholder is not None:
+        ph_left = title_placeholder.left
+        ph_top = title_placeholder.top
+        ph_width = title_placeholder.width
+        ph_height = title_placeholder.height
+    else:
+        # Fallback to default header area
+        ph_left = Inches(0.42)
+        ph_top = Inches(0.2)
+        ph_width = Inches(12.5)
+        ph_height = Inches(0.62)
 
-    tf = title_placeholder.text_frame
-    tf.clear()
+    tf = title_placeholder.text_frame if title_placeholder is not None else None
+    if tf is not None:
+        tf.clear()
 
     if title_style == 'with-tag' and tag:
         # Add pill-shaped tag as a separate shape
@@ -146,20 +186,29 @@ def set_title_with_style(slide, title_placeholder, title: str, tag: str, theme: 
 
         # Create title textbox (don't use placeholder since we need custom positioning)
         title_box = slide.shapes.add_textbox(title_left, ph_top, title_width, ph_height)
-        title_box.text_frame.paragraphs[0].text = title
-        title_box.text_frame.paragraphs[0].font.size = TITLE_FONT_SIZE
-        title_box.text_frame.paragraphs[0].font.bold = True
-        title_box.text_frame.paragraphs[0].font.color.rgb = text_color
-        title_box.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
-
-        # Clear the original placeholder (we're using custom shapes)
-        tf.paragraphs[0].text = ""
-    else:
-        p = tf.paragraphs[0]
+        title_box.text_frame.word_wrap = True
+        p = title_box.text_frame.paragraphs[0]
         p.text = title
         p.font.size = TITLE_FONT_SIZE
         p.font.bold = True
         p.font.color.rgb = text_color
+        title_box.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
+
+        # Clear the original placeholder (we're using custom shapes)
+        if tf is not None:
+            tf.paragraphs[0].text = ""
+    else:
+        # Use custom text box so geometry is always controlled by headerBounds.
+        title_box = slide.shapes.add_textbox(ph_left, ph_top, ph_width, ph_height)
+        title_box.text_frame.word_wrap = True
+        title_box.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
+        p = title_box.text_frame.paragraphs[0]
+        p.text = title
+        p.font.size = TITLE_FONT_SIZE
+        p.font.bold = True
+        p.font.color.rgb = text_color
+        if tf is not None:
+            tf.paragraphs[0].text = ""
 
 
 def add_source_citation_dynamic(slide, source: str, theme: dict, x: float, y: float, width: float):

@@ -6,6 +6,7 @@ import os
 import tempfile
 
 from pptx import Presentation
+from pptx.util import Inches
 
 from pptx_gen import generate_pptx
 
@@ -34,6 +35,17 @@ def _placeholder_types(slide) -> set[str]:
         except Exception:
             result.add("UNKNOWN")
     return result
+
+
+def _find_shape_by_exact_text(slide, text: str):
+    for shape in slide.shapes:
+        if not getattr(shape, "has_text_frame", False):
+            continue
+        if shape.text_frame is None:
+            continue
+        if shape.text_frame.text.strip() == text:
+            return shape
+    return None
 
 
 def test_cover_and_smartart_slides_do_not_include_content_placeholders():
@@ -175,5 +187,49 @@ def test_divider_cards_layout_uses_full_slide_width_not_4_3_box():
         max_right = max(shape.left + shape.width for shape in slide.shapes)
         # Ensure divider content stretches close to right edge on 16:9 slide.
         assert max_right > int(slide_width * 0.9)
+    finally:
+        os.unlink(output_path)
+
+
+def test_grid_title_uses_header_bounds_position():
+    config = {
+        "schemaVersion": 2,
+        "master": {
+            "theme": "forest_green",
+            "masterShapes": [],
+            "masterPlaceholders": {},
+            "masterContentAreas": {
+                "titleStyle": "with-tag",
+                "sourceStyle": "citation",
+                "headerBounds": {"x": 40, "y": 20, "width": 1200, "height": 60},
+            },
+        },
+        "pages": [
+            {
+                "id": "p-grid",
+                "type": "content-grid",
+                "data": {
+                    "grid": {
+                        "layout": "single",
+                        "zones": [{"id": "A", "content": "text", "flex": 1}],
+                    }
+                },
+            }
+        ],
+    }
+
+    with tempfile.NamedTemporaryFile(suffix=".pptx", delete=False) as fp:
+        output_path = fp.name
+
+    try:
+        generate_pptx(config, output_path)
+        prs = Presentation.open(output_path)
+        slide = prs.slides[0]
+        title_shape = _find_shape_by_exact_text(slide, "市场趋势分析")
+        assert title_shape is not None
+
+        expected_top = Inches(20 * (7.5 / 720))
+        # allow minor rounding differences in EMU
+        assert abs(title_shape.top - expected_top) < 20000
     finally:
         os.unlink(output_path)

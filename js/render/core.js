@@ -45,6 +45,44 @@ function renderContentLayer() {
     return '';
 }
 
+function renderContentShell(options = {}) {
+    const shellOptions = options || {};
+    const titleStyle = state.masterContentAreas.titleStyle || 'with-tag';
+    const sourceStyle = state.masterContentAreas.sourceStyle || 'citation';
+    const hasTitle = shellOptions.hasTitle !== undefined ? shellOptions.hasTitle : titleStyle !== 'none';
+    const hasSourceCitation = shellOptions.hasSourceCitation !== undefined
+        ? shellOptions.hasSourceCitation
+        : sourceStyle === 'citation';
+
+    let html = '';
+
+    if (hasTitle) {
+        const headerBounds = getHeaderBoundsFromConfig(state);
+        const headerStyle = `position: absolute; top: ${headerBounds.top}px; left: ${headerBounds.left}px; right: ${headerBounds.right}px; height: ${headerBounds.height}px; display: flex; flex-direction: column; justify-content: flex-end;`;
+
+        if (titleStyle === 'simple') {
+            html += `<div class="header-area" style="${headerStyle}"><div class="title-zone"><h1>市场趋势分析</h1></div></div>`;
+        } else if (titleStyle === 'with-tag') {
+            html += `<div class="header-area" style="${headerStyle}"><div class="title-zone"><span class="title-tag">分析报告</span><h1>市场趋势分析</h1></div></div>`;
+        }
+    }
+
+    const bodyBounds = getBodyBoundsFromConfig(state, hasTitle);
+    const bodyStyle = `position: absolute; top: ${bodyBounds.top}px; left: ${bodyBounds.left}px; right: ${bodyBounds.right}px; bottom: ${bodyBounds.bottom}px; display: flex; flex-direction: column; overflow: hidden;`;
+    html += `<div class="body-area" style="${bodyStyle}">${shellOptions.bodyHtml || ''}</div>`;
+
+    if (hasSourceCitation) {
+        const contentBounds = getContentBoundsFromConfig(state);
+        const footerHeight = CONTENT_AREAS.footer.getHeight(state.masterContentAreas.footerHeight || 'compact');
+        const footerBottom = 10;
+        const footerAreaStyle = `position: absolute; left: ${contentBounds.left}px; right: ${contentBounds.right}px; bottom: ${footerBottom}px; height: ${footerHeight}px;`;
+        const sourceText = shellOptions.sourceText || '数据来源：行业研究报告 2024';
+        html += `<div class="footer-area" style="${footerAreaStyle}"><div class="source-zone">${sourceText}</div></div>`;
+    }
+
+    return html;
+}
+
 function renderLayoutContent() {
     let html = '';
     if (state.masterContentAreas.titleStyle === 'simple') html += `<div class="title-zone"><h1>市场趋势分析</h1></div>`;
@@ -108,3 +146,5 @@ function renderLayoutPreviewZones(layout) {
         return `<div class="zone ${zoneClass}"></div>`;
     }).join('');
 }
+
+window.renderContentShell = renderContentShell;

@@ -10,12 +10,14 @@ from pptx.enum.smartart import SMARTART_TYPE, SMARTART_COLORS
 from pptx.smartart import SmartArtData
 
 from ..themes import hex_to_rgb, SMARTART_TYPE_MAP, SMARTART_COLOR_SCHEME_MAP
+from ..dimensions import px_to_inches_x, px_to_inches_y
 from ..smartart_layout_mapper import (
     resolve_ambiguous_type_ids_from_pptx_enum,
     resolve_type_id_from_layout_id,
     resolve_type_id_from_pptx_enum,
 )
 from ..utils import get_blank_layout, remove_slide_placeholders
+from .grid import set_title_with_style, add_source_citation_dynamic
 
 
 def generate_smartart_slide(prs, config, theme):
@@ -30,27 +32,92 @@ def generate_smartart_slide(prs, config, theme):
 
     items = _extract_smartart_items(smartart_config)
 
-    # SmartArt area
-    content_top = Inches(1.15)
-    content_height = Inches(5.7)
+    # Shared content shell bounds (same model used by content-grid).
+    content_areas = config.get('slideMaster', {}).get('contentAreas', {})
+    title_style = content_areas.get('titleStyle', 'with-tag')
+    source_style = content_areas.get('sourceStyle', 'citation')
+    has_title = title_style != 'none'
+    has_source = source_style == 'citation'
+
+    header_bounds = content_areas.get('headerBounds', {})
+    body_bounds = content_areas.get('bodyBounds', {})
+    footer_bounds = content_areas.get('footerBounds', {})
+
+    header_x = px_to_inches_x(header_bounds.get('x', 40))
+    header_y = px_to_inches_y(header_bounds.get('y', 20))
+    header_w = px_to_inches_x(header_bounds.get('width', 1200))
+    header_h = px_to_inches_y(header_bounds.get('height', 60))
+
+    body_x = px_to_inches_x(body_bounds.get('x', 40))
+    body_y = px_to_inches_y(body_bounds.get('y', 88))
+    body_w = px_to_inches_x(body_bounds.get('width', 1200))
+    body_h = px_to_inches_y(body_bounds.get('height', 592))
+
+    footer_x = px_to_inches_x(footer_bounds.get('x', 40))
+    footer_y = px_to_inches_y(footer_bounds.get('y', 680))
+    footer_w = px_to_inches_x(footer_bounds.get('width', 1200))
+
+    if has_title:
+        set_title_with_style(
+            slide,
+            None,
+            "市场趋势分析",
+            "分析报告",
+            theme,
+            title_style,
+            bounds=(header_x, header_y, header_w, header_h),
+        )
+
+    if has_source:
+        add_source_citation_dynamic(
+            slide,
+            "行业研究报告 2024",
+            theme,
+            x=footer_x,
+            y=footer_y,
+            width=footer_w,
+        )
+
+    # SmartArt area (inside body bounds)
+    gap = px_to_inches_x(32)
+    desc_width = max(px_to_inches_x(260), min(px_to_inches_x(360), body_w * 0.34))
+    desc_height = max(px_to_inches_y(72), min(px_to_inches_y(100), body_h * 0.24))
+    min_chart_w = px_to_inches_x(180)
+    min_chart_h = px_to_inches_y(160)
     text_color = hex_to_rgb(theme['text'])
 
     if placement == 'full':
-        x, y, cx, cy = Inches(0.6), content_top, Inches(9.0), content_height
+        x, y, cx, cy = Inches(body_x), Inches(body_y), Inches(body_w), Inches(body_h)
     elif placement == 'left-desc':
-        x, y, cx, cy = Inches(0.5), content_top, Inches(5.4), content_height
-        _add_description_block(slide, Inches(6.15), content_top, Inches(3.2), content_height, text_color)
+        max_desc_w = max(px_to_inches_x(80), body_w - gap - min_chart_w)
+        desc_w = min(desc_width, max_desc_w)
+        chart_w = max(min_chart_w, body_w - desc_w - gap)
+        desc_x = body_x + chart_w + gap
+        x, y, cx, cy = Inches(body_x), Inches(body_y), Inches(chart_w), Inches(body_h)
+        _add_description_block(slide, Inches(desc_x), Inches(body_y), Inches(desc_w), Inches(body_h), text_color)
     elif placement == 'right-desc':
-        x, y, cx, cy = Inches(3.45), content_top, Inches(5.4), content_height
-        _add_description_block(slide, Inches(0.55), content_top, Inches(2.8), content_height, text_color)
+        max_desc_w = max(px_to_inches_x(80), body_w - gap - min_chart_w)
+        desc_w = min(desc_width, max_desc_w)
+        chart_w = max(min_chart_w, body_w - desc_w - gap)
+        chart_x = body_x + desc_w + gap
+        x, y, cx, cy = Inches(chart_x), Inches(body_y), Inches(chart_w), Inches(body_h)
+        _add_description_block(slide, Inches(body_x), Inches(body_y), Inches(desc_w), Inches(body_h), text_color)
     elif placement == 'top-desc':
-        x, y, cx, cy = Inches(0.65), Inches(2.1), Inches(8.9), Inches(4.7)
-        _add_description_block(slide, Inches(0.65), Inches(1.1), Inches(8.9), Inches(0.8), text_color, compact=True)
+        max_desc_h = max(px_to_inches_y(40), body_h - gap - min_chart_h)
+        desc_h = min(desc_height, max_desc_h)
+        chart_h = max(min_chart_h, body_h - desc_h - gap)
+        chart_y = body_y + desc_h + gap
+        x, y, cx, cy = Inches(body_x), Inches(chart_y), Inches(body_w), Inches(chart_h)
+        _add_description_block(slide, Inches(body_x), Inches(body_y), Inches(body_w), Inches(desc_h), text_color, compact=True)
     elif placement == 'bottom-desc':
-        x, y, cx, cy = Inches(0.65), Inches(1.1), Inches(8.9), Inches(4.7)
-        _add_description_block(slide, Inches(0.65), Inches(6.0), Inches(8.9), Inches(0.9), text_color, compact=True)
+        max_desc_h = max(px_to_inches_y(40), body_h - gap - min_chart_h)
+        desc_h = min(desc_height, max_desc_h)
+        chart_h = max(min_chart_h, body_h - desc_h - gap)
+        desc_y = body_y + chart_h + gap
+        x, y, cx, cy = Inches(body_x), Inches(body_y), Inches(body_w), Inches(chart_h)
+        _add_description_block(slide, Inches(body_x), Inches(desc_y), Inches(body_w), Inches(desc_h), text_color, compact=True)
     else:
-        x, y, cx, cy = Inches(0.6), content_top, Inches(9.0), content_height
+        x, y, cx, cy = Inches(body_x), Inches(body_y), Inches(body_w), Inches(body_h)
 
     # Add SmartArt with selected color scheme
     pptx_type = SMARTART_TYPE_MAP.get(smartart_type_id, SMARTART_TYPE.BASIC_PYRAMID)

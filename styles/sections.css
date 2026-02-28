@@ -277,7 +277,7 @@
 }
 
 /* === SmartArt Page Styles === */
-.page-type-smartart .content-layer { padding: 60px; }
+.page-type-smartart .content-layer { padding: 0; }
 
 .smartart-layout { width: 100%; height: 100%; display: flex; gap: 32px; }
 

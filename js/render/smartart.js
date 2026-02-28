@@ -58,6 +58,9 @@ function renderSmartartPage() {
         renderSmartArtChart();
         renderSmartartTextEditor();
     });
+    if (typeof renderContentShell === 'function') {
+        return renderContentShell({ bodyHtml: html });
+    }
     return html;
 }
 
@@ -101,10 +104,9 @@ function renderSmartArtChart() {
         return item;
     });
 
-    const isVertical = state.smartartPlacement === 'top-desc' || state.smartartPlacement === 'bottom-desc';
-    const isFull = state.smartartPlacement === 'full';
-    const width = isFull ? 1000 : (isVertical ? 1000 : 600);
-    const height = isFull ? 500 : (isVertical ? 300 : 450);
+    const targetRect = target.getBoundingClientRect();
+    const width = Math.max(320, Math.round(targetRect.width || target.clientWidth || 1000));
+    const height = Math.max(220, Math.round(targetRect.height || target.clientHeight || 450));
 
     const themeColors = getSmartArtColorsFromScheme(state.smartartColorScheme);
 

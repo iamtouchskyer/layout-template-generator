@@ -101,6 +101,52 @@ class TestSmartArtGeneration:
         finally:
             os.unlink(output_path)
 
+    def test_smartart_uses_content_shell_title_and_footer(self):
+        """SmartArt slide should honor content-shell header/footer fields."""
+        config = {
+            'theme': 'forest_green',
+            'pageType': 'content-smartart',
+            'slide': {'width': 1280, 'height': 720, 'widthInches': 13.333, 'heightInches': 7.5},
+            'slideMaster': {
+                'decorativeShapes': [],
+                'placeholders': {},
+                'contentAreas': {
+                    'titleStyle': 'with-tag',
+                    'sourceStyle': 'citation',
+                    'headerBounds': {'x': 40, 'y': 20, 'width': 1200, 'height': 60},
+                    'bodyBounds': {'x': 40, 'y': 88, 'width': 1200, 'height': 592},
+                    'footerBounds': {'x': 40, 'y': 680, 'width': 1200, 'height': 24},
+                },
+            },
+            'smartart': {
+                'type': 'pyramid',
+                'category': 'pyramid',
+                'placement': 'left-desc',
+                'colorScheme': 'colorful1',
+            },
+        }
+
+        with tempfile.NamedTemporaryFile(suffix='.pptx', delete=False) as f:
+            output_path = f.name
+
+        try:
+            generate_pptx(config, output_path)
+            prs = Presentation.open(output_path)
+            slide = prs.slides[0]
+            text_values = []
+            for shape in slide.shapes:
+                if not getattr(shape, 'has_text_frame', False):
+                    continue
+                text = shape.text_frame.text.strip()
+                if text:
+                    text_values.append(text)
+
+            joined = '\n'.join(text_values)
+            assert '市场趋势分析' in joined
+            assert '数据来源：行业研究报告 2024' in joined
+        finally:
+            os.unlink(output_path)
+
 
 class TestSmartArtAPI:
     """Test python-pptx SmartArt API directly."""

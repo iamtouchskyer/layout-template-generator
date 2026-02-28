@@ -383,3 +383,33 @@ test('addPageByModel creates page with compatible legacy type', async ({ page })
   expect(created.renderer).toBe('smartart')
   expect(created.layout).toBe('left-desc')
 })
+
+test('content-grid and content-smartart share header/body/footer shell', async ({ page }) => {
+  await page.goto('/index.html')
+  await page.waitForFunction(() => typeof window.updatePageType === 'function')
+
+  const shell = await page.evaluate(() => {
+    window.updatePageType('content-grid')
+    const grid = {
+      header: !!document.querySelector('#content-layer .header-area .title-zone'),
+      body: !!document.querySelector('#content-layer .body-area .grid-content'),
+      footer: !!document.querySelector('#content-layer .footer-area .source-zone'),
+    }
+
+    window.updatePageType('content-smartart')
+    const smartart = {
+      header: !!document.querySelector('#content-layer .header-area .title-zone'),
+      body: !!document.querySelector('#content-layer .body-area .smartart-layout'),
+      footer: !!document.querySelector('#content-layer .footer-area .source-zone'),
+    }
+
+    return { grid, smartart }
+  })
+
+  expect(shell.grid.header).toBeTruthy()
+  expect(shell.grid.body).toBeTruthy()
+  expect(shell.grid.footer).toBeTruthy()
+  expect(shell.smartart.header).toBeTruthy()
+  expect(shell.smartart.body).toBeTruthy()
+  expect(shell.smartart.footer).toBeTruthy()
+})

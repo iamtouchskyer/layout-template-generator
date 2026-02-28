@@ -37,30 +37,6 @@ function renderGridContent() {
     const gridLayout = GRID_LAYOUTS[state.gridLayout];
     if (!gridLayout) return '';
 
-    const hasTitle = state.masterContentAreas.titleStyle !== 'none';
-    const hasSourceCitation = state.masterContentAreas.sourceStyle === 'citation';
-    const hasPageNumber = state.masterPlaceholders['page-number']?.enabled;
-    const hasDate = state.masterPlaceholders['date']?.enabled;
-    const hasFooter = hasSourceCitation || hasPageNumber || hasDate;
-
-    let html = '';
-
-    // Header area
-    if (hasTitle) {
-        const headerBounds = getHeaderBoundsFromConfig(state);
-        const headerStyle = `position: absolute; top: ${headerBounds.top}px; left: ${headerBounds.left}px; right: ${headerBounds.right}px; height: ${headerBounds.height}px; display: flex; flex-direction: column; justify-content: flex-end;`;
-
-        if (state.masterContentAreas.titleStyle === 'simple') {
-            html += `<div class="header-area" style="${headerStyle}"><div class="title-zone"><h1>市场趋势分析</h1></div></div>`;
-        } else if (state.masterContentAreas.titleStyle === 'with-tag') {
-            html += `<div class="header-area" style="${headerStyle}"><div class="title-zone"><span class="title-tag">分析报告</span><h1>市场趋势分析</h1></div></div>`;
-        }
-    }
-
-    // Body area
-    const bodyBounds = getBodyBoundsFromConfig(state, hasTitle);
-    const bodyStyle = `position: absolute; top: ${bodyBounds.top}px; left: ${bodyBounds.left}px; right: ${bodyBounds.right}px; bottom: ${bodyBounds.bottom}px; display: flex; flex-direction: column; overflow: hidden;`;
-
     const direction = gridLayout.direction === 'column' ? 'column' : 'row';
     let layoutClass;
     let customDataAttr = '';
@@ -85,18 +61,9 @@ function renderGridContent() {
     });
     bodyHtml += `</div>`;
 
-    html += `<div class="body-area" style="${bodyStyle}">${bodyHtml}</div>`;
-
-    // Footer area
-    if (hasSourceCitation) {
-        const contentBounds = getContentBoundsFromConfig(state);
-        const footerHeight = CONTENT_AREAS.footer.getHeight(state.masterContentAreas.footerHeight || 'compact');
-        const footerBottom = 10;
-        const footerAreaStyle = `position: absolute; left: ${contentBounds.left}px; right: ${contentBounds.right}px; bottom: ${footerBottom}px; height: ${footerHeight}px;`;
-        html += `<div class="footer-area" style="${footerAreaStyle}"><div class="source-zone">数据来源：行业研究报告 2024</div></div>`;
-    }
-
-    return html;
+    return (typeof renderContentShell === 'function')
+        ? renderContentShell({ bodyHtml })
+        : bodyHtml;
 }
 
 function renderZoneContent(contentType, zoneId) {

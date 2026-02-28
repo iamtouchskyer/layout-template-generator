@@ -100,7 +100,29 @@
                 </div>
                 <div class="section-group-content" id="content-l2">
                     <div class="editor-section">
-                        <div class="editor-section-title">页面类型</div>
+                        <div class="editor-section-title">页面模型</div>
+                        <div class="control-group">
+                            <label>Page Shell</label>
+                            <select id="page-shell-select" onchange="updatePageModelFromControls()">
+                                <option value="cover">cover</option>
+                                <option value="divider">divider</option>
+                                <option value="content" selected>content</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Body Renderer</label>
+                            <select id="page-renderer-select" onchange="updatePageModelFromControls()">
+                                <option value="grid" selected>grid</option>
+                                <option value="smartart">smartart</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Body Layout</label>
+                            <select id="page-layout-select" onchange="updatePageModelFromControls()"></select>
+                        </div>
+                    </div>
+                    <div class="editor-section">
+                        <div class="editor-section-title">页面类型 (兼容)</div>
                         <div class="checkbox-group">
                             <label class="checkbox-item"><input type="radio" name="page-type" value="cover" onchange="updatePageType(this.value)"><span class="item-label">封面</span><span class="item-desc">Cover</span></label>
                             <label class="checkbox-item"><input type="radio" name="page-type" value="divider" onchange="updatePageType(this.value)"><span class="item-label">目录/章节</span><span class="item-desc">Divider</span></label>

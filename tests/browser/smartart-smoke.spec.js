@@ -323,3 +323,39 @@ test('imported page shell/body renderer model is normalized to legacy type', asy
   expect(imported.shell).toBe('content')
   expect(imported.renderer).toBe('smartart')
 })
+
+test('page model controls drive shell/renderer/layout and keep type compatible', async ({ page }) => {
+  await page.goto('/index.html')
+  await page.waitForFunction(() => typeof window.updatePageModelFromControls === 'function' && typeof window.updateJsonOutput === 'function')
+
+  const output = await page.evaluate(() => {
+    window.updatePageType('content-grid')
+
+    const shell = document.getElementById('page-shell-select')
+    const renderer = document.getElementById('page-renderer-select')
+    const layout = document.getElementById('page-layout-select')
+
+    shell.value = 'content'
+    renderer.value = 'smartart'
+    window.updatePageModelFromControls()
+
+    layout.value = 'right-desc'
+    window.updatePageModelFromControls()
+
+    window.updateJsonOutput()
+    const exported = JSON.parse(document.getElementById('json-output').textContent)
+    return {
+      type: exported.pages?.[0]?.type,
+      shell: exported.pages?.[0]?.shell,
+      renderer: exported.pages?.[0]?.renderer,
+      layout: exported.pages?.[0]?.layout,
+      smartartPlacement: exported.pages?.[0]?.data?.smartartPlacement,
+    }
+  })
+
+  expect(output.type).toBe('content-smartart')
+  expect(output.shell).toBe('content')
+  expect(output.renderer).toBe('smartart')
+  expect(output.layout).toBe('right-desc')
+  expect(output.smartartPlacement).toBe('right-desc')
+})

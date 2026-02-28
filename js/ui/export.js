@@ -55,23 +55,31 @@ function updateNavValues() {
     const themeName = document.getElementById('theme-select').selectedOptions[0].text;
     document.getElementById('nav-l1-value').textContent = `${themeName.split(' ')[0]} + ${shapeCount} shapes`;
 
-    // L2 value
-    let l2Value = state.pageType;
+    const page = (typeof getCurrentPage === 'function') ? getCurrentPage() : null;
+    const model = (window.__stateInternals && typeof window.__stateInternals.getPageModelFromType === 'function')
+        ? window.__stateInternals.getPageModelFromType(state.pageType)
+        : { shell: 'content', renderer: state.pageType === 'content-smartart' ? 'smartart' : 'grid' };
+    const shell = page?.shell || page?.pageShell || model.shell;
+    const renderer = page?.renderer || page?.bodyRenderer || model.renderer;
+    const layoutFromPage = page?.layout || page?.bodyLayout;
+
+    // L2 summary
+    let l2Value = `${shell}/${renderer}`;
     if (state.pageType === 'divider') {
         const dividerLayout = DIVIDER_LAYOUTS[state.dividerLayout];
         const indexLabel = state.dividerIndex === 0 ? '全部' : state.dividerIndex;
-        l2Value = `${dividerLayout?.label || state.dividerLayout} (${indexLabel})`;
+        l2Value = `${shell}/${renderer} · ${dividerLayout?.label || state.dividerLayout || layoutFromPage} (${indexLabel})`;
     } else if (state.pageType === 'content-smartart') {
         const smartartType = SMARTART_TYPES[state.smartartType];
         const placement = SMARTART_PLACEMENTS[state.smartartPlacement];
-        l2Value = `${smartartType?.label || state.smartartType} · ${placement?.label || ''}`;
+        l2Value = `${shell}/${renderer} · ${smartartType?.label || state.smartartType} · ${placement?.label || layoutFromPage || ''}`;
     } else if (state.pageType === 'content-grid') {
         const gridLayout = GRID_LAYOUTS[state.gridLayout];
         const zoneTypes = Object.values(state.zoneContents).join('+');
-        l2Value = `${gridLayout?.label || state.gridLayout} (${zoneTypes})`;
+        l2Value = `${shell}/${renderer} · ${gridLayout?.label || state.gridLayout || layoutFromPage} (${zoneTypes})`;
     } else if (state.pageType === 'cover') {
         const coverLayout = COVER_LAYOUTS[state.coverLayout];
-        l2Value = `封面 · ${coverLayout?.name || state.coverLayout}`;
+        l2Value = `${shell}/${renderer} · ${coverLayout?.name || state.coverLayout || layoutFromPage}`;
     }
     document.getElementById('nav-l2-value').textContent = l2Value;
 }

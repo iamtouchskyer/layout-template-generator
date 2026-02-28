@@ -25,6 +25,7 @@ function render() {
     });
 
     updateNavValues();
+    if (typeof refreshPageModelControls === 'function') refreshPageModelControls();
     if (typeof renderPageList === 'function') renderPageList();
     if (state.previewTab === 'json') updateJsonOutput();
 

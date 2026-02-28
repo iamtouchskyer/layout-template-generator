@@ -7,18 +7,50 @@ const PAGE_TYPE_LABELS = {
     'content-smartart': '内容-SmartArt',
 };
 
+function resolvePageType(page) {
+    const helper = window.__stateInternals || {};
+    const inferred = typeof helper.inferTypeFromModel === 'function'
+        ? helper.inferTypeFromModel(page?.shell || page?.pageShell, page?.renderer || page?.bodyRenderer)
+        : null;
+    const normalize = helper.normalizePageType;
+    const raw = page?.type || inferred || 'content-grid';
+    return typeof normalize === 'function' ? normalize(raw) : raw;
+}
+
+function resolvePageModel(page) {
+    const type = resolvePageType(page);
+    const helper = window.__stateInternals || {};
+    const model = typeof helper.getPageModelFromType === 'function'
+        ? helper.getPageModelFromType(type)
+        : type === 'cover'
+            ? { shell: 'cover', renderer: 'cover' }
+            : type === 'divider'
+                ? { shell: 'divider', renderer: 'divider' }
+                : type === 'content-smartart'
+                    ? { shell: 'content', renderer: 'smartart' }
+                    : { shell: 'content', renderer: 'grid' };
+    return {
+        type,
+        shell: page?.shell || page?.pageShell || model.shell,
+        renderer: page?.renderer || page?.bodyRenderer || model.renderer,
+        layout: page?.layout || page?.bodyLayout,
+    };
+}
+
 function getPageThumbTitle(page) {
     const data = page?.data || {};
-    if (page.type === 'cover') return data.coverContent?.title || '封面';
-    if (page.type === 'divider') return `章节 ${data.divider?.sectionIndex || data.dividerIndex || 1}`;
-    if (page.type === 'content-smartart') return data.smartartType || 'smartart';
-    if (page.type === 'content-grid') return data.gridLayout || 'grid';
-    return page.type || 'page';
+    const model = resolvePageModel(page);
+    if (model.type === 'cover') return data.coverContent?.title || model.layout || 'cover';
+    if (model.type === 'divider') return model.layout || `章节 ${data.divider?.sectionIndex || data.dividerIndex || 1}`;
+    if (model.type === 'content-smartart') return model.layout || data.smartartType || 'smartart';
+    if (model.type === 'content-grid') return model.layout || data.gridLayout || 'grid';
+    return `${model.shell}/${model.renderer}`;
 }
 
 function renderPageThumbnail(page) {
+    const model = resolvePageModel(page);
     const data = page?.data || {};
-    if (page.type === 'cover') {
+    if (model.type === 'cover') {
         const title = getPageThumbTitle(page);
         return `
             <div class="page-thumb page-thumb-cover">
@@ -28,7 +60,7 @@ function renderPageThumbnail(page) {
         `;
     }
 
-    if (page.type === 'divider') {
+    if (model.type === 'divider') {
         const n = data.divider?.sectionIndex || data.dividerIndex || 1;
         return `
             <div class="page-thumb page-thumb-divider">
@@ -38,7 +70,7 @@ function renderPageThumbnail(page) {
         `;
     }
 
-    if (page.type === 'content-smartart') {
+    if (model.type === 'content-smartart') {
         return `
             <div class="page-thumb page-thumb-smartart">
                 <div class="thumb-sa-row">
@@ -131,7 +163,8 @@ function renderPageList() {
     const currentId = (typeof getCurrentPageId === 'function') ? getCurrentPageId() : state.ui?.currentPageId;
 
     const itemsHtml = pages.map((page, idx) => {
-        const label = PAGE_TYPE_LABELS[page.type] || page.type;
+        const model = resolvePageModel(page);
+        const label = `${model.shell}/${model.renderer}`;
         const subtitle = getPageThumbTitle(page);
         const active = page.id === currentId ? 'active' : '';
         return `

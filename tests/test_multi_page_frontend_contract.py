@@ -30,11 +30,14 @@ def test_selector_api_file_exists_and_exports_key_ops():
         "function getCurrentPageId()",
         "function getCurrentPage()",
         "function patchCurrentPage(partial, options = {})",
+        "function setCurrentPageModel(shell, renderer, layout = null, options = {})",
         "function addPage(type, afterIndex = null)",
+        "function addPageByModel(shell, renderer, layout = null, afterIndex = null, options = {})",
         "function deletePage(pageId)",
         "function duplicatePage(pageId)",
         "function movePage(fromIndex, toIndex)",
         "window.addPage = addPage",
+        "window.addPageByModel = addPageByModel",
     ]
     for item in required:
         assert item in source

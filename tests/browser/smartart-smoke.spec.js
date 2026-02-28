@@ -359,3 +359,27 @@ test('page model controls drive shell/renderer/layout and keep type compatible',
   expect(output.layout).toBe('right-desc')
   expect(output.smartartPlacement).toBe('right-desc')
 })
+
+test('addPageByModel creates page with compatible legacy type', async ({ page }) => {
+  await page.goto('/index.html')
+  await page.waitForFunction(() => typeof window.addPageByModel === 'function' && typeof window.updateJsonOutput === 'function')
+
+  const created = await page.evaluate(() => {
+    window.updatePageType('cover')
+    const page = window.addPageByModel('content', 'smartart', 'left-desc')
+    window.updateJsonOutput()
+    const exported = JSON.parse(document.getElementById('json-output').textContent)
+    const hit = exported.pages.find(p => p.id === page.id)
+    return {
+      type: hit?.type,
+      shell: hit?.shell,
+      renderer: hit?.renderer,
+      layout: hit?.layout,
+    }
+  })
+
+  expect(created.type).toBe('content-smartart')
+  expect(created.shell).toBe('content')
+  expect(created.renderer).toBe('smartart')
+  expect(created.layout).toBe('left-desc')
+})

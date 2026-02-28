@@ -117,13 +117,23 @@ function selectPageById(pageId) {
 }
 
 function addPageAfterCurrent(type) {
-    if (typeof addPage !== 'function' || typeof listPages !== 'function' || typeof getCurrentPageId !== 'function') {
+    const model = resolvePageModel({ type });
+    addPageAfterCurrentByModel(model.shell, model.renderer, null);
+}
+
+function addPageAfterCurrentByModel(shell, renderer, layout = null) {
+    if (typeof listPages !== 'function' || typeof getCurrentPageId !== 'function') {
         return;
     }
     const pages = listPages();
     const currentId = getCurrentPageId();
     const currentIndex = pages.findIndex(p => p.id === currentId);
-    addPage(type, currentIndex >= 0 ? currentIndex : null);
+    if (typeof addPageByModel === 'function') {
+        addPageByModel(shell, renderer, layout, currentIndex >= 0 ? currentIndex : null);
+    } else if (typeof addPage === 'function') {
+        const type = resolvePageType({ shell, renderer });
+        addPage(type, currentIndex >= 0 ? currentIndex : null);
+    }
     refreshCurrentPageTypeUI();
 }
 
@@ -193,10 +203,10 @@ function renderPageList() {
         <div class="page-list-header">Pages (${pages.length})</div>
         <div class="page-list-items">${itemsHtml}</div>
         <div class="page-list-footer">
-            <button class="page-add-btn" onclick="addPageAfterCurrent('cover')">+ 封面</button>
-            <button class="page-add-btn" onclick="addPageAfterCurrent('divider')">+ 目录</button>
-            <button class="page-add-btn" onclick="addPageAfterCurrent('content-grid')">+ Grid</button>
-            <button class="page-add-btn" onclick="addPageAfterCurrent('content-smartart')">+ SmartArt</button>
+            <button class="page-add-btn" onclick="addPageAfterCurrentByModel('cover','cover')">+ 封面</button>
+            <button class="page-add-btn" onclick="addPageAfterCurrentByModel('divider','divider')">+ 目录</button>
+            <button class="page-add-btn" onclick="addPageAfterCurrentByModel('content','grid')">+ Grid</button>
+            <button class="page-add-btn" onclick="addPageAfterCurrentByModel('content','smartart')">+ SmartArt</button>
         </div>
     `;
 }
@@ -204,6 +214,7 @@ function renderPageList() {
 window.renderPageList = renderPageList;
 window.selectPageById = selectPageById;
 window.addPageAfterCurrent = addPageAfterCurrent;
+window.addPageAfterCurrentByModel = addPageAfterCurrentByModel;
 window.duplicatePageById = duplicatePageById;
 window.deletePageById = deletePageById;
 window.movePageUp = movePageUp;

@@ -41,6 +41,59 @@ function _stateNormalizePageRecord(page, fallbackType) {
     return page;
 }
 
+function _stateResolveModelFromType(type) {
+    const helper = window.__stateInternals;
+    if (helper && typeof helper.getPageModelFromType === 'function') {
+        return helper.getPageModelFromType(type);
+    }
+    if (type === 'cover') return { shell: 'cover', renderer: 'cover' };
+    if (type === 'divider') return { shell: 'divider', renderer: 'divider' };
+    if (type === 'content-smartart') return { shell: 'content', renderer: 'smartart' };
+    return { shell: 'content', renderer: 'grid' };
+}
+
+function _stateResolveTypeFromModel(shell, renderer, fallbackType = 'content-grid') {
+    const helper = window.__stateInternals;
+    const inferTypeFromModel = helper && helper.inferTypeFromModel;
+    const normalizePageType = helper && helper.normalizePageType;
+    const inferred = typeof inferTypeFromModel === 'function'
+        ? inferTypeFromModel(shell, renderer)
+        : null;
+    const preferred = inferred || fallbackType;
+    return typeof normalizePageType === 'function'
+        ? normalizePageType(preferred)
+        : (preferred || 'content-grid');
+}
+
+function _stateApplyLayoutToPageData(page, pageType, layoutValue) {
+    if (!page || !layoutValue) return;
+    page.layout = layoutValue;
+    page.bodyLayout = layoutValue;
+    if (!page.data || typeof page.data !== 'object') page.data = {};
+    if (pageType === 'cover') {
+        page.data.coverLayout = layoutValue;
+        return;
+    }
+    if (pageType === 'divider') {
+        page.data.dividerLayout = layoutValue;
+        if (page.data.divider && typeof page.data.divider === 'object') {
+            page.data.divider.layout = layoutValue;
+        }
+        return;
+    }
+    if (pageType === 'content-smartart') {
+        page.data.smartartPlacement = layoutValue;
+        if (page.data.smartart && typeof page.data.smartart === 'object') {
+            page.data.smartart.placement = layoutValue;
+        }
+        return;
+    }
+    page.data.gridLayout = layoutValue;
+    if (page.data.grid && typeof page.data.grid === 'object') {
+        page.data.grid.layout = layoutValue;
+    }
+}
+
 function _renderIfReady() {
     if (typeof render === 'function') render();
 }
@@ -216,13 +269,64 @@ function setCurrentPageType(type, options = {}) {
     _postMutation(options.render !== false);
 }
 
+function setCurrentPageModel(shell, renderer, layout = null, options = {}) {
+    const page = getCurrentPage();
+    if (!page) return;
+    const nextType = _stateResolveTypeFromModel(shell, renderer, page.type || 'content-grid');
+    const shouldRecordHistory = options.recordHistory !== false;
+    const typeChanged = page.type !== nextType;
+
+    const pageModel = _stateResolveModelFromType(nextType);
+    const nextLayout = layout || page.layout || page.bodyLayout || null;
+    const layoutChanged = Boolean(nextLayout) && nextLayout !== page.layout;
+
+    if (!typeChanged && !layoutChanged) {
+        page.shell = pageModel.shell;
+        page.renderer = pageModel.renderer;
+        page.pageShell = pageModel.shell;
+        page.bodyRenderer = pageModel.renderer;
+        _postMutation(options.render !== false);
+        return;
+    }
+
+    if (shouldRecordHistory) recordDocHistory();
+
+    if (typeChanged) {
+        _stateMergePageDefaults(page, nextType);
+    } else {
+        page.shell = pageModel.shell;
+        page.renderer = pageModel.renderer;
+        page.pageShell = pageModel.shell;
+        page.bodyRenderer = pageModel.renderer;
+    }
+    _stateNormalizePageRecord(page, nextType);
+
+    if (nextLayout) {
+        _stateApplyLayoutToPageData(page, nextType, nextLayout);
+        _stateNormalizePageRecord(page, nextType);
+    }
+
+    _postMutation(options.render !== false);
+}
+
 // ========== Page Operations ==========
 
 function addPage(type, afterIndex = null) {
-    recordDocHistory();
     const pageType = type || 'content-grid';
+    const model = _stateResolveModelFromType(pageType);
+    return addPageByModel(model.shell, model.renderer, null, afterIndex, { recordHistory: true });
+}
+
+function addPageByModel(shell, renderer, layout = null, afterIndex = null, options = {}) {
+    if (options.recordHistory !== false) recordDocHistory();
+    const pageType = _stateResolveTypeFromModel(shell, renderer, 'content-grid');
     const id = _generatePageId();
     const newPage = _stateCreateDefaultPage(pageType, id);
+    _stateNormalizePageRecord(newPage, pageType);
+    if (layout) {
+        _stateApplyLayoutToPageData(newPage, pageType, layout);
+        _stateNormalizePageRecord(newPage, pageType);
+    }
     if (!Array.isArray(state.doc.pages)) state.doc.pages = [];
 
     let insertIndex = state.doc.pages.length;
@@ -233,7 +337,7 @@ function addPage(type, afterIndex = null) {
     state.doc.pages.splice(insertIndex, 0, newPage);
     state.ui.currentPageId = newPage.id;
     _stateEnsureCurrentPage();
-    _renderIfReady();
+    _postMutation(options.render !== false);
     return newPage;
 }
 
@@ -315,7 +419,9 @@ window.mutateCurrentPageData = mutateCurrentPageData;
 window.mutateMaster = mutateMaster;
 window.setCurrentPage = setCurrentPage;
 window.setCurrentPageType = setCurrentPageType;
+window.setCurrentPageModel = setCurrentPageModel;
 window.addPage = addPage;
+window.addPageByModel = addPageByModel;
 window.deletePage = deletePage;
 window.duplicatePage = duplicatePage;
 window.movePage = movePage;

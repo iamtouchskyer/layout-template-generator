@@ -196,31 +196,37 @@ function updatePageModelFromControls(options = {}) {
     const shell = shellSelect.value || 'content';
     const normalizedRenderer = shell === 'cover' ? 'cover' : shell === 'divider' ? 'divider' : (rendererSelect.value || 'grid');
     const nextType = _resolveTypeFromModel(shell, normalizedRenderer);
-    const typeChanged = nextType !== state.pageType;
-
-    if (typeChanged) {
-        if (typeof setCurrentPageType === 'function') {
-            setCurrentPageType(nextType, { recordHistory: shouldRecordHistory, render: false });
-        } else if (shouldRecordHistory && typeof recordDocHistory === 'function') {
-            recordDocHistory();
-            state.pageType = nextType;
-        } else {
-            state.pageType = nextType;
-        }
-    }
-
-    const page = _getCurrentPageRecord();
-    const currentLayout = _currentLayoutByType(nextType, page);
     const nextLayoutOptions = _layoutOptionsForType(nextType);
     const selectedLayout = layoutSelect.value;
     const nextLayout = nextLayoutOptions.some(opt => opt.value === selectedLayout)
         ? selectedLayout
         : (nextLayoutOptions[0]?.value || '');
-    if (nextLayout && nextLayout !== currentLayout) {
-        if (!typeChanged && shouldRecordHistory && typeof recordDocHistory === 'function') {
-            recordDocHistory();
+
+    if (typeof setCurrentPageModel === 'function') {
+        setCurrentPageModel(shell, normalizedRenderer, nextLayout, {
+            recordHistory: shouldRecordHistory,
+            render: false,
+        });
+    } else {
+        const typeChanged = nextType !== state.pageType;
+        if (typeChanged) {
+            if (typeof setCurrentPageType === 'function') {
+                setCurrentPageType(nextType, { recordHistory: shouldRecordHistory, render: false });
+            } else if (shouldRecordHistory && typeof recordDocHistory === 'function') {
+                recordDocHistory();
+                state.pageType = nextType;
+            } else {
+                state.pageType = nextType;
+            }
         }
-        _applyLayoutToCurrentPage(nextType, nextLayout);
+        const page = _getCurrentPageRecord();
+        const currentLayout = _currentLayoutByType(nextType, page);
+        if (nextLayout && nextLayout !== currentLayout) {
+            if (!typeChanged && shouldRecordHistory && typeof recordDocHistory === 'function') {
+                recordDocHistory();
+            }
+            _applyLayoutToCurrentPage(nextType, nextLayout);
+        }
     }
 
     refreshPageModelControls();

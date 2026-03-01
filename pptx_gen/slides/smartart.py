@@ -17,7 +17,11 @@ from ..smartart_layout_mapper import (
     resolve_type_id_from_pptx_enum,
 )
 from ..utils import get_blank_layout, remove_slide_placeholders
-from .grid import set_title_with_style, add_source_citation_dynamic
+from .grid import (
+    add_source_citation_dynamic,
+    resolve_content_shell_geometry,
+    set_title_with_style,
+)
 
 
 def generate_smartart_slide(prs, config, theme):
@@ -32,33 +36,24 @@ def generate_smartart_slide(prs, config, theme):
 
     items = _extract_smartart_items(smartart_config)
 
-    # Shared content shell bounds (same model used by content-grid).
-    content_areas = config.get('slideMaster', {}).get('contentAreas', {})
-    title_style = content_areas.get('titleStyle', 'with-tag')
-    source_style = content_areas.get('sourceStyle', 'citation')
-    has_title = title_style != 'none'
-    has_source = source_style == 'citation'
-
-    header_bounds = content_areas.get('headerBounds', {})
-    body_bounds = content_areas.get('bodyBounds', {})
-    footer_bounds = content_areas.get('footerBounds', {})
-
-    header_x = px_to_inches_x(header_bounds.get('x', 40))
-    header_y = px_to_inches_y(header_bounds.get('y', 20))
-    header_w = px_to_inches_x(header_bounds.get('width', 1200))
-    header_h = px_to_inches_y(header_bounds.get('height', 60))
-
-    body_x = px_to_inches_x(body_bounds.get('x', 40))
-    body_y = px_to_inches_y(body_bounds.get('y', 88))
-    body_w = px_to_inches_x(body_bounds.get('width', 1200))
-    body_h = px_to_inches_y(body_bounds.get('height', 592))
-
-    footer_x = px_to_inches_x(footer_bounds.get('x', 40))
-    footer_y = px_to_inches_y(footer_bounds.get('y', 680))
-    footer_w = px_to_inches_x(footer_bounds.get('width', 1200))
-    content_title = str(config.get('contentTitle') or '市场趋势分析')
-    content_tag = str(config.get('contentTag') or '分析报告')
-    content_source = str(config.get('contentSource') or '行业研究报告 2024')
+    shell = resolve_content_shell_geometry(config)
+    title_style = shell["title_style"]
+    has_title = shell["has_title"]
+    has_source = shell["has_source"]
+    header_x = shell["header_in"]["x"]
+    header_y = shell["header_in"]["y"]
+    header_w = shell["header_in"]["w"]
+    header_h = shell["header_in"]["h"]
+    body_x = shell["body_in"]["x"]
+    body_y = shell["body_in"]["y"]
+    body_w = shell["body_in"]["w"]
+    body_h = shell["body_in"]["h"]
+    footer_x = shell["footer_in"]["x"]
+    footer_y = shell["footer_in"]["y"]
+    footer_w = shell["footer_in"]["w"]
+    content_title = shell["content_title"]
+    content_tag = shell["content_tag"]
+    content_source = shell["content_source"]
 
     if has_title:
         set_title_with_style(

@@ -156,6 +156,35 @@ function buildGridZones(layoutId, zoneContents) {
     });
 }
 
+function buildContentAreasWithBounds() {
+    const hasTitle = state.masterContentAreas.titleStyle !== 'none';
+    const headerBounds = getHeaderBoundsFromConfig(state);
+    const bodyBounds = getBodyBoundsFromConfig(state, hasTitle);
+    const contentBounds = getContentBoundsFromConfig(state);
+
+    return {
+        ...deepClone(state.masterContentAreas || {}),
+        headerBounds: {
+            x: headerBounds.left,
+            y: headerBounds.top,
+            width: SLIDE_CONFIG.width - headerBounds.left - headerBounds.right,
+            height: headerBounds.height,
+        },
+        bodyBounds: {
+            x: bodyBounds.left,
+            y: bodyBounds.top,
+            width: SLIDE_CONFIG.width - bodyBounds.left - bodyBounds.right,
+            height: SLIDE_CONFIG.height - bodyBounds.top - bodyBounds.bottom,
+        },
+        footerBounds: {
+            x: contentBounds.left,
+            y: SLIDE_CONFIG.height - contentBounds.bottom,
+            width: SLIDE_CONFIG.width - contentBounds.left - contentBounds.right,
+            height: CONTENT_AREAS.footer.getHeight(state.masterContentAreas.footerHeight || 'compact'),
+        },
+    };
+}
+
 function buildPageDataForExport(page, legacyFallback) {
     const pageType = getPageTypeForExport(page, legacyFallback?.pageType || 'content-grid');
     const sourceData = deepClone(page?.data || {});
@@ -285,6 +314,9 @@ function toV2PresentationConfig(legacyConfig) {
         }];
 
     // Keep master payload aligned with current master editor serialization.
+    const masterContentAreas = deepClone(
+        legacyConfig?.slideMaster?.contentAreas || buildContentAreasWithBounds()
+    );
     return {
         schemaVersion: 2,
         slide: legacyConfig.slide,
@@ -292,7 +324,7 @@ function toV2PresentationConfig(legacyConfig) {
             theme: legacyConfig.theme,
             masterShapes: deepClone(state.masterShapes || []),
             masterPlaceholders: deepClone(state.masterPlaceholders || {}),
-            masterContentAreas: deepClone(state.masterContentAreas || {}),
+            masterContentAreas,
         },
         pages
     };
@@ -357,33 +389,7 @@ function updateJsonOutput() {
         };
     });
 
-    // Calculate bounds
-    const hasTitle = state.masterContentAreas.titleStyle !== 'none';
-    const headerBounds = getHeaderBoundsFromConfig(state);
-    const bodyBounds = getBodyBoundsFromConfig(state, hasTitle);
-    const contentBounds = getContentBoundsFromConfig(state);
-
-    const contentAreasWithBounds = {
-        ...state.masterContentAreas,
-        headerBounds: {
-            x: headerBounds.left,
-            y: headerBounds.top,
-            width: SLIDE_CONFIG.width - headerBounds.left - headerBounds.right,
-            height: headerBounds.height,
-        },
-        bodyBounds: {
-            x: bodyBounds.left,
-            y: bodyBounds.top,
-            width: SLIDE_CONFIG.width - bodyBounds.left - bodyBounds.right,
-            height: SLIDE_CONFIG.height - bodyBounds.top - bodyBounds.bottom,
-        },
-        footerBounds: {
-            x: contentBounds.left,
-            y: SLIDE_CONFIG.height - contentBounds.bottom,
-            width: SLIDE_CONFIG.width - contentBounds.left - contentBounds.right,
-            height: CONTENT_AREAS.footer.getHeight(state.masterContentAreas.footerHeight || 'compact'),
-        },
-    };
+    const contentAreasWithBounds = buildContentAreasWithBounds();
 
     const legacyConfig = {
         slide: {
@@ -391,6 +397,7 @@ function updateJsonOutput() {
             height: SLIDE_CONFIG.height,
             widthInches: SLIDE_CONFIG.widthInches,
             heightInches: SLIDE_CONFIG.heightInches,
+            baseMargin: deepClone(SLIDE_CONFIG.baseMargin || {}),
         },
         theme: state.theme,
         slideMaster: {

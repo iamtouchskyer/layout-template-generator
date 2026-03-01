@@ -90,6 +90,9 @@ test('generate pptx posts smartart payload and triggers download link', async ({
   expect(postedConfig.pages[0].renderer).toBe('smartart')
   expect(postedConfig.pages[0].pageShell).toBe('content')
   expect(postedConfig.pages[0].bodyRenderer).toBe('smartart')
+  expect(postedConfig.master?.masterContentAreas?.headerBounds?.width).toBeGreaterThan(0)
+  expect(postedConfig.master?.masterContentAreas?.bodyBounds?.height).toBeGreaterThan(0)
+  expect(postedConfig.master?.masterContentAreas?.footerBounds?.y).toBeGreaterThan(0)
   const smartartPayload = postedConfig.pages[0].data.smartart
   expect('engine' in smartartPayload).toBeFalsy()
   expect(Array.isArray(smartartPayload.items)).toBeTruthy()

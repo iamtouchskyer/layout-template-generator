@@ -15,9 +15,127 @@ PILL_WIDTH = Inches(0.8)
 PILL_HEIGHT = Inches(0.3)
 PILL_SPACING = Inches(0.15)
 PILL_FONT_SIZE = Pt(10)
-TITLE_FONT_SIZE = Pt(28)
-SOURCE_FONT_SIZE = Pt(9)
+TITLE_FONT_SIZE = Pt(32)
+SOURCE_FONT_SIZE = Pt(11)
 SOURCE_HEIGHT = Inches(0.25)
+
+DEFAULT_SLIDE_WIDTH_PX = 1280.0
+DEFAULT_SLIDE_HEIGHT_PX = 720.0
+DEFAULT_MARGINS_PX = {"top": 20.0, "right": 40.0, "bottom": 40.0, "left": 40.0}
+DEFAULT_BODY_GAP_PX = 8.0
+HEADER_HEIGHT_PX = {"compact": 60.0, "normal": 75.0, "spacious": 90.0}
+FOOTER_HEIGHT_PX = {"compact": 15.0, "normal": 20.0, "spacious": 25.0}
+
+
+def _to_float(value, default):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return float(default)
+
+
+def _read_bounds(bounds: dict, defaults: dict) -> dict:
+    raw = bounds if isinstance(bounds, dict) else {}
+    return {
+        "x": _to_float(raw.get("x"), defaults["x"]),
+        "y": _to_float(raw.get("y"), defaults["y"]),
+        "width": _to_float(raw.get("width"), defaults["width"]),
+        "height": _to_float(raw.get("height"), defaults["height"]),
+    }
+
+
+def resolve_content_shell_geometry(config: dict) -> dict:
+    """Resolve shared content-shell geometry for content-grid and smartart slides.
+
+    Uses frontend-exported bounds when present, and computes dynamic defaults from
+    current slide ratio when bounds are missing.
+    """
+    slide_cfg = config.get("slide", {}) if isinstance(config.get("slide"), dict) else {}
+    slide_w = _to_float(slide_cfg.get("width"), DEFAULT_SLIDE_WIDTH_PX)
+    slide_h = _to_float(slide_cfg.get("height"), DEFAULT_SLIDE_HEIGHT_PX)
+
+    base_margin_cfg = slide_cfg.get("baseMargin", {}) if isinstance(slide_cfg.get("baseMargin"), dict) else {}
+    margins = {
+        "top": _to_float(base_margin_cfg.get("top"), DEFAULT_MARGINS_PX["top"]),
+        "right": _to_float(base_margin_cfg.get("right"), DEFAULT_MARGINS_PX["right"]),
+        "bottom": _to_float(base_margin_cfg.get("bottom"), DEFAULT_MARGINS_PX["bottom"]),
+        "left": _to_float(base_margin_cfg.get("left"), DEFAULT_MARGINS_PX["left"]),
+    }
+
+    slide_master = config.get("slideMaster", {}) if isinstance(config.get("slideMaster"), dict) else {}
+    content_areas = slide_master.get("contentAreas", {})
+    if not isinstance(content_areas, dict):
+        content_areas = {}
+
+    title_style = str(content_areas.get("titleStyle", "with-tag"))
+    source_style = str(content_areas.get("sourceStyle", "citation"))
+    has_title = title_style != "none"
+    has_source = source_style == "citation"
+
+    header_style = str(content_areas.get("headerHeight", "compact"))
+    footer_style = str(content_areas.get("footerHeight", "compact"))
+    header_h = HEADER_HEIGHT_PX.get(header_style, HEADER_HEIGHT_PX["compact"])
+    footer_h = FOOTER_HEIGHT_PX.get(footer_style, FOOTER_HEIGHT_PX["compact"])
+    body_gap = _to_float(content_areas.get("bodyGap"), DEFAULT_BODY_GAP_PX)
+
+    default_header = {
+        "x": margins["left"],
+        "y": margins["top"],
+        "width": max(0.0, slide_w - margins["left"] - margins["right"]),
+        "height": header_h,
+    }
+    body_y = margins["top"] + header_h + body_gap if has_title else margins["top"]
+    default_body = {
+        "x": margins["left"],
+        "y": body_y,
+        "width": max(0.0, slide_w - margins["left"] - margins["right"]),
+        "height": max(0.0, slide_h - body_y - margins["bottom"]),
+    }
+    default_footer = {
+        "x": margins["left"],
+        "y": max(0.0, slide_h - margins["bottom"]),
+        "width": max(0.0, slide_w - margins["left"] - margins["right"]),
+        "height": footer_h,
+    }
+
+    header_px = _read_bounds(content_areas.get("headerBounds"), default_header)
+    body_px = _read_bounds(content_areas.get("bodyBounds"), default_body)
+    footer_px = _read_bounds(content_areas.get("footerBounds"), default_footer)
+
+    content_title = str(config.get("contentTitle") or "市场趋势分析")
+    content_tag = str(config.get("contentTag") or "分析报告")
+    content_source = str(config.get("contentSource") or "行业研究报告 2024")
+
+    return {
+        "title_style": title_style,
+        "source_style": source_style,
+        "has_title": has_title,
+        "has_source": has_source,
+        "header_px": header_px,
+        "body_px": body_px,
+        "footer_px": footer_px,
+        "header_in": {
+            "x": px_to_inches_x(header_px["x"]),
+            "y": px_to_inches_y(header_px["y"]),
+            "w": px_to_inches_x(header_px["width"]),
+            "h": px_to_inches_y(header_px["height"]),
+        },
+        "body_in": {
+            "x": px_to_inches_x(body_px["x"]),
+            "y": px_to_inches_y(body_px["y"]),
+            "w": px_to_inches_x(body_px["width"]),
+            "h": px_to_inches_y(body_px["height"]),
+        },
+        "footer_in": {
+            "x": px_to_inches_x(footer_px["x"]),
+            "y": px_to_inches_y(footer_px["y"]),
+            "w": px_to_inches_x(footer_px["width"]),
+            "h": px_to_inches_y(footer_px["height"]),
+        },
+        "content_title": content_title,
+        "content_tag": content_tag,
+        "content_source": content_source,
+    }
 
 
 def generate_grid_slide(prs, config, theme):
@@ -26,11 +144,9 @@ def generate_grid_slide(prs, config, theme):
     Uses slide layout with placeholders to inherit from slide master.
     Uses pre-calculated bounds from frontend for WYSIWYG accuracy.
     """
-    # Get content area config from slideMaster (with pre-calculated bounds)
-    content_areas = config.get('slideMaster', {}).get('contentAreas', {})
-    title_style = content_areas.get('titleStyle', 'with-tag')
-    source_style = content_areas.get('sourceStyle', 'citation')
-    has_title = title_style != 'none'
+    shell = resolve_content_shell_geometry(config)
+    title_style = shell["title_style"]
+    has_title = shell["has_title"]
 
     # Choose layout based on whether we have title
     if has_title:
@@ -40,41 +156,28 @@ def generate_grid_slide(prs, config, theme):
         slide = prs.slides.add_slide(get_blank_layout(prs))
         remove_slide_placeholders(slide)
 
-    # Get pre-calculated bounds (in pixels)
-    header_bounds = content_areas.get('headerBounds', {})
-    body_bounds = content_areas.get('bodyBounds', {})
-    footer_bounds = content_areas.get('footerBounds', {})
-
     # Get grid config
     grid_config = config.get('grid', {})
     layout_id = grid_config.get('layout', 'two-col-equal')
     zones = grid_config.get('zones', [])
 
-    # Convert pre-calculated bounds from pixels to inches
-    # NOTE: Frontend uses 1280x720 px, PowerPoint uses 10"x7.5"
-    # See slide_master.py docstring for coordinate conversion details
-
-    # Body bounds
-    body_x = px_to_inches_x(body_bounds.get('x', 40))
-    body_y = px_to_inches_y(body_bounds.get('y', 88))
-    body_w = px_to_inches_x(body_bounds.get('width', 1200))
-    body_h = px_to_inches_y(body_bounds.get('height', 592))
-    # Header bounds
-    header_x = px_to_inches_x(header_bounds.get('x', 40))
-    header_y = px_to_inches_y(header_bounds.get('y', 20))
-    header_w = px_to_inches_x(header_bounds.get('width', 1200))
-    header_h = px_to_inches_y(header_bounds.get('height', 60))
-
-    # Footer bounds
-    footer_x = px_to_inches_x(footer_bounds.get('x', 40))
-    footer_y = px_to_inches_y(footer_bounds.get('y', 680))
-    footer_w = px_to_inches_x(footer_bounds.get('width', 1200))
+    body_x = shell["body_in"]["x"]
+    body_y = shell["body_in"]["y"]
+    body_w = shell["body_in"]["w"]
+    body_h = shell["body_in"]["h"]
+    header_x = shell["header_in"]["x"]
+    header_y = shell["header_in"]["y"]
+    header_w = shell["header_in"]["w"]
+    header_h = shell["header_in"]["h"]
+    footer_x = shell["footer_in"]["x"]
+    footer_y = shell["footer_in"]["y"]
+    footer_w = shell["footer_in"]["w"]
 
     ZONE_GAP = px_to_inches_x(24)  # Gap between zones (24px)
 
-    content_title = str(config.get('contentTitle') or '市场趋势分析')
-    content_tag = str(config.get('contentTag') or '分析报告')
-    content_source = str(config.get('contentSource') or '行业研究报告 2024')
+    content_title = shell["content_title"]
+    content_tag = shell["content_tag"]
+    content_source = shell["content_source"]
 
     # Set title using placeholder (inherits position from slide master)
     if has_title:
@@ -97,7 +200,7 @@ def generate_grid_slide(prs, config, theme):
         )
 
     # Add source citation if enabled
-    has_source = source_style == 'citation'
+    has_source = shell["has_source"]
     if has_source:
         add_source_citation_dynamic(slide, content_source, theme,
                                      x=footer_x, y=footer_y, width=footer_w)

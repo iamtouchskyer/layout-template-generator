@@ -9,6 +9,7 @@ from pptx import Presentation
 
 from pptx_gen import generate_pptx
 from pptx_gen.adapter import normalize_input, to_legacy_config_for_page
+from pptx_gen.slides.grid import resolve_content_shell_geometry
 
 
 def test_slide_count_equals_pages_count_for_v2():
@@ -206,3 +207,26 @@ def test_to_legacy_config_carries_content_shell_fields():
     assert legacy["contentTitle"] == "自定义标题"
     assert legacy["contentTag"] == "专题"
     assert legacy["contentSource"] == "内部系统"
+
+
+def test_content_shell_geometry_fallback_uses_current_slide_ratio():
+    config = {
+        "slide": {
+            "width": 960,
+            "height": 720,
+            "widthInches": 10.0,
+            "heightInches": 7.5,
+            "baseMargin": {"top": 20, "right": 40, "bottom": 40, "left": 40},
+        },
+        "slideMaster": {
+            "contentAreas": {
+                "titleStyle": "with-tag",
+                "sourceStyle": "citation",
+            }
+        },
+    }
+    geometry = resolve_content_shell_geometry(config)
+
+    assert geometry["header_px"] == {"x": 40.0, "y": 20.0, "width": 880.0, "height": 60.0}
+    assert geometry["body_px"] == {"x": 40.0, "y": 88.0, "width": 880.0, "height": 592.0}
+    assert geometry["footer_px"] == {"x": 40.0, "y": 680.0, "width": 880.0, "height": 15.0}

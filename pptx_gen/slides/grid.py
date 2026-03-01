@@ -8,7 +8,7 @@ from pptx.dml.color import RGBColor
 from ..themes import hex_to_rgb
 from ..layout import calculate_zone_positions, render_zone_content
 from ..dimensions import px_to_inches_x, px_to_inches_y
-from ..utils import get_blank_layout, get_title_only_layout, remove_slide_placeholders
+from ..utils import get_blank_layout, remove_slide_placeholders
 
 # Layout constants
 PILL_WIDTH = Inches(0.8)
@@ -148,13 +148,10 @@ def generate_grid_slide(prs, config, theme):
     title_style = shell["title_style"]
     has_title = shell["has_title"]
 
-    # Choose layout based on whether we have title
-    if has_title:
-        slide = prs.slides.add_slide(get_title_only_layout(prs))
-        remove_slide_placeholders(slide, keep_types={"TITLE"})
-    else:
-        slide = prs.slides.add_slide(get_blank_layout(prs))
-        remove_slide_placeholders(slide)
+    # Always start from blank layout to avoid accidental template placeholders
+    # like "Click to add title/object" leaking into exported slides.
+    slide = prs.slides.add_slide(get_blank_layout(prs))
+    remove_slide_placeholders(slide)
 
     # Get grid config
     grid_config = config.get('grid', {})
@@ -179,19 +176,11 @@ def generate_grid_slide(prs, config, theme):
     content_tag = shell["content_tag"]
     content_source = shell["content_source"]
 
-    # Set title using placeholder (inherits position from slide master)
+    # Render title directly into shell header bounds.
     if has_title:
-        title_placeholder = slide.shapes.title
-        if title_placeholder is not None:
-            # Force slide-level placeholder bounds to match frontend header bounds.
-            # Layout placeholders can diverge from master; we align directly here.
-            title_placeholder.left = Inches(header_x)
-            title_placeholder.top = Inches(header_y)
-            title_placeholder.width = Inches(header_w)
-            title_placeholder.height = Inches(header_h)
         set_title_with_style(
             slide,
-            title_placeholder,
+            None,
             content_title,
             content_tag,
             theme,

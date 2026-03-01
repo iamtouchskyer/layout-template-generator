@@ -13,6 +13,9 @@ from pptx_gen import generate_pptx
 
 CONTENT_PLACEHOLDER_TYPES = {
     "TITLE (1)",
+    "CENTER_TITLE (3)",
+    "SUBTITLE (4)",
+    "BODY (2)",
     "OBJECT (7)",
     "CHART (8)",
     "PICTURE (18)",
@@ -102,7 +105,7 @@ def test_cover_and_smartart_slides_do_not_include_content_placeholders():
         os.unlink(output_path)
 
 
-def test_grid_slide_uses_title_without_object_or_chart_placeholders():
+def test_grid_slide_does_not_leave_template_placeholders():
     config = {
         "schemaVersion": 2,
         "master": {
@@ -138,10 +141,7 @@ def test_grid_slide_uses_title_without_object_or_chart_placeholders():
         generate_pptx(config, output_path)
         prs = Presentation.open(output_path)
         ph_types = _placeholder_types(prs.slides[0])
-        assert "TITLE (1)" in ph_types
-        assert "OBJECT (7)" not in ph_types
-        assert "CHART (8)" not in ph_types
-        assert "PICTURE (18)" not in ph_types
+        assert ph_types.isdisjoint(CONTENT_PLACEHOLDER_TYPES)
         assert "DATE (16)" not in ph_types
         assert "FOOTER (15)" not in ph_types
         assert "SLIDE_NUMBER (13)" not in ph_types

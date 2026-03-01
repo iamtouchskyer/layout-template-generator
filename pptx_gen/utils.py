@@ -15,6 +15,32 @@ def _layout_placeholder_types(layout):
     return types
 
 
+def _normalize_placeholder_type_name(value):
+    text = str(value or "").strip().upper()
+    if " " in text:
+        text = text.split(" ", 1)[0]
+    return text
+
+
+def _is_content_placeholder_type(value):
+    name = _normalize_placeholder_type_name(value)
+    return name in {
+        "TITLE",
+        "CENTER_TITLE",
+        "VERTICAL_TITLE",
+        "SUBTITLE",
+        "BODY",
+        "VERTICAL_BODY",
+        "OBJECT",
+        "CHART",
+        "PICTURE",
+        "TABLE",
+        "MEDIA_CLIP",
+        "ORG_CHART",
+        "SMART_ART",
+    }
+
+
 def _find_layout_by_name(prs, expected_names):
     """Find layout by case-insensitive name match."""
     name_set = {name.lower() for name in expected_names}
@@ -60,7 +86,7 @@ def get_blank_layout(prs):
     """Get blank slide layout safely.
 
     Prefers a layout explicitly named 'Blank'. Falls back to a layout
-    without TITLE/OBJECT/CHART placeholders, then to the sparsest layout.
+    without content placeholders, then to the sparsest layout.
     """
     layouts = prs.slide_layouts
     named = _find_layout_by_name(prs, {"blank"})
@@ -71,7 +97,7 @@ def get_blank_layout(prs):
     best_score = None
     for layout in layouts:
         types = _layout_placeholder_types(layout)
-        has_content_ph = any(t in {"TITLE", "OBJECT", "CHART", "PICTURE"} for t in types)
+        has_content_ph = any(_is_content_placeholder_type(t) for t in types)
         if has_content_ph:
             continue
         score = len(types)
@@ -89,7 +115,7 @@ def get_title_only_layout(prs):
     """Get title-only slide layout safely.
 
     Prefers a layout explicitly named 'Title Only'. Falls back to a layout
-    that includes TITLE but no OBJECT/CHART/PICTURE placeholders.
+    that includes TITLE but no BODY/OBJECT/CHART/PICTURE placeholders.
     """
     layouts = prs.slide_layouts
 
@@ -100,9 +126,13 @@ def get_title_only_layout(prs):
     candidate = None
     for layout in layouts:
         types = _layout_placeholder_types(layout)
-        has_title = "TITLE" in types
-        has_content = any(t in {"OBJECT", "CHART", "PICTURE"} for t in types)
-        if has_title and not has_content:
+        normalized = {_normalize_placeholder_type_name(t) for t in types}
+        has_title = "TITLE" in normalized or "CENTER_TITLE" in normalized or "VERTICAL_TITLE" in normalized
+        has_body_like = any(
+            t in {"BODY", "VERTICAL_BODY", "OBJECT", "CHART", "PICTURE", "TABLE", "MEDIA_CLIP", "ORG_CHART", "SMART_ART"}
+            for t in normalized
+        )
+        if has_title and not has_body_like:
             candidate = layout
             break
     if candidate is not None:

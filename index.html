@@ -143,6 +143,23 @@
                 </div>
             </div>
             <!-- Cover Operation Bar (visible only for cover) -->
+            <div class="content-shell-operation-bar" id="content-shell-operation-bar">
+                <div class="content-shell-row">
+                    <div class="content-shell-field">
+                        <label for="content-shell-title-input">标题</label>
+                        <input id="content-shell-title-input" type="text" onchange="updateCurrentPageShellText('contentTitle', this.value)">
+                    </div>
+                    <div class="content-shell-field">
+                        <label for="content-shell-tag-input">标签</label>
+                        <input id="content-shell-tag-input" type="text" onchange="updateCurrentPageShellText('contentTag', this.value)">
+                    </div>
+                    <div class="content-shell-field content-shell-source">
+                        <label for="content-shell-source-input">来源</label>
+                        <input id="content-shell-source-input" type="text" onchange="updateCurrentPageShellText('contentSource', this.value)">
+                    </div>
+                </div>
+            </div>
+            <!-- Cover Operation Bar (visible only for cover) -->
             <div class="cover-operation-bar" id="cover-operation-bar">
                 <div class="grid-op-row">
                     <div class="grid-op-section">

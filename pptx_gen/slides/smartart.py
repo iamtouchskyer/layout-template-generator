@@ -56,13 +56,16 @@ def generate_smartart_slide(prs, config, theme):
     footer_x = px_to_inches_x(footer_bounds.get('x', 40))
     footer_y = px_to_inches_y(footer_bounds.get('y', 680))
     footer_w = px_to_inches_x(footer_bounds.get('width', 1200))
+    content_title = str(config.get('contentTitle') or '市场趋势分析')
+    content_tag = str(config.get('contentTag') or '分析报告')
+    content_source = str(config.get('contentSource') or '行业研究报告 2024')
 
     if has_title:
         set_title_with_style(
             slide,
             None,
-            "市场趋势分析",
-            "分析报告",
+            content_title,
+            content_tag,
             theme,
             title_style,
             bounds=(header_x, header_y, header_w, header_h),
@@ -71,7 +74,7 @@ def generate_smartart_slide(prs, config, theme):
     if has_source:
         add_source_citation_dynamic(
             slide,
-            "行业研究报告 2024",
+            content_source,
             theme,
             x=footer_x,
             y=footer_y,

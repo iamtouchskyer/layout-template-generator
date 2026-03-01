@@ -413,3 +413,37 @@ test('content-grid and content-smartart share header/body/footer shell', async (
   expect(shell.smartart.body).toBeTruthy()
   expect(shell.smartart.footer).toBeTruthy()
 })
+
+test('content shell text is editable and exported', async ({ page }) => {
+  await page.goto('/index.html')
+  await page.waitForFunction(() =>
+    typeof window.updatePageType === 'function' &&
+    typeof window.updateCurrentPageShellText === 'function' &&
+    typeof window.updateJsonOutput === 'function'
+  )
+
+  const result = await page.evaluate(() => {
+    window.updatePageType('content-grid')
+    window.updateCurrentPageShellText('contentTitle', '自定义分析标题')
+    window.updateCurrentPageShellText('contentTag', '季度复盘')
+    window.updateCurrentPageShellText('contentSource', '内部数据平台')
+    window.updateJsonOutput()
+
+    const exported = JSON.parse(document.getElementById('json-output').textContent)
+    const header = document.querySelector('#content-layer .header-area .title-zone')
+    const source = document.querySelector('#content-layer .footer-area .source-zone')
+    return {
+      titleInDom: header?.querySelector('h1')?.textContent?.trim(),
+      tagInDom: header?.querySelector('.title-tag')?.textContent?.trim(),
+      sourceInDom: source?.textContent?.trim(),
+      data: exported.pages?.[0]?.data || {},
+    }
+  })
+
+  expect(result.titleInDom).toBe('自定义分析标题')
+  expect(result.tagInDom).toBe('季度复盘')
+  expect(result.sourceInDom).toBe('数据来源：内部数据平台')
+  expect(result.data.contentTitle).toBe('自定义分析标题')
+  expect(result.data.contentTag).toBe('季度复盘')
+  expect(result.data.contentSource).toBe('内部数据平台')
+})

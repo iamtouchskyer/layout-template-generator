@@ -17,6 +17,9 @@ TYPE_TO_MODEL = {
     "content-grid": {"shell": "content", "renderer": "grid"},
     "content-smartart": {"shell": "content", "renderer": "smartart"},
 }
+DEFAULT_CONTENT_TITLE = "市场趋势分析"
+DEFAULT_CONTENT_TAG = "分析报告"
+DEFAULT_CONTENT_SOURCE = "行业研究报告 2024"
 
 
 def _normalize_page_type(value: str | None) -> str:
@@ -153,8 +156,10 @@ def to_legacy_config_for_page(doc: dict, page: dict) -> dict:
     elif page_type == "divider":
         legacy["divider"] = _extract_divider_payload(data)
     elif page_type == "content-smartart":
+        legacy.update(_extract_content_shell_payload(data))
         legacy["smartart"] = _extract_smartart_payload(data)
     else:
+        legacy.update(_extract_content_shell_payload(data))
         legacy["grid"] = _extract_grid_payload(data)
 
     return legacy
@@ -278,8 +283,12 @@ def _extract_page_data_v1(config: dict, page_type: str) -> dict:
     if page_type == "content-smartart":
         smartart = config.get("smartart")
         if isinstance(smartart, dict):
-            return {"smartart": deepcopy(smartart)}
+            return {
+                "smartart": deepcopy(smartart),
+                **_extract_content_shell_payload(config),
+            }
         return {
+            **_extract_content_shell_payload(config),
             "smartart": {
                 "type": config.get("smartartType", "pyramid"),
                 "category": config.get("smartartCategory", "pyramid"),
@@ -291,8 +300,23 @@ def _extract_page_data_v1(config: dict, page_type: str) -> dict:
 
     grid = config.get("grid")
     if isinstance(grid, dict):
-        return {"grid": deepcopy(grid)}
-    return {"grid": {"layout": "two-col-equal", "zones": []}}
+        return {
+            "grid": deepcopy(grid),
+            **_extract_content_shell_payload(config),
+        }
+    return {
+        "grid": {"layout": "two-col-equal", "zones": []},
+        **_extract_content_shell_payload(config),
+    }
+
+
+def _extract_content_shell_payload(data: dict) -> dict:
+    payload = data if isinstance(data, dict) else {}
+    return {
+        "contentTitle": payload.get("contentTitle", DEFAULT_CONTENT_TITLE),
+        "contentTag": payload.get("contentTag", DEFAULT_CONTENT_TAG),
+        "contentSource": payload.get("contentSource", DEFAULT_CONTENT_SOURCE),
+    }
 
 
 def _extract_divider_payload(data: dict) -> dict:

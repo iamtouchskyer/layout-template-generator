@@ -113,6 +113,9 @@ function _importNormalizeInput(raw) {
         data.smartartColorScheme = raw.smartartColorScheme || raw.smartart?.colorScheme;
         data.smartartItems = _importDeepClone(raw.smartartItems || raw.smartart?.items || []);
         data.smartartItemsByType = _importDeepClone(raw.smartartItemsByType || {});
+        data.contentTitle = raw.contentTitle || '市场趋势分析';
+        data.contentTag = raw.contentTag || '分析报告';
+        data.contentSource = raw.contentSource || '行业研究报告 2024';
         if (!data.smartartItemsByType[data.smartartType || 'pyramid'] && Array.isArray(data.smartartItems)) {
             data.smartartItemsByType[data.smartartType || 'pyramid'] = _importDeepClone(data.smartartItems);
         }
@@ -120,6 +123,9 @@ function _importNormalizeInput(raw) {
         data.grid = _importDeepClone(raw.grid || {});
         data.gridLayout = raw.gridLayout || raw.grid?.layout;
         data.zoneContents = _importDeepClone(raw.zoneContents || {});
+        data.contentTitle = raw.contentTitle || '市场趋势分析';
+        data.contentTag = raw.contentTag || '分析报告';
+        data.contentSource = raw.contentSource || '行业研究报告 2024';
     }
 
     return {

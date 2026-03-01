@@ -124,6 +124,9 @@ class TestSmartArtGeneration:
                 'placement': 'left-desc',
                 'colorScheme': 'colorful1',
             },
+            'contentTitle': '自定义标题',
+            'contentTag': '专题',
+            'contentSource': '内部系统',
         }
 
         with tempfile.NamedTemporaryFile(suffix='.pptx', delete=False) as f:
@@ -142,8 +145,9 @@ class TestSmartArtGeneration:
                     text_values.append(text)
 
             joined = '\n'.join(text_values)
-            assert '市场趋势分析' in joined
-            assert '数据来源：行业研究报告 2024' in joined
+            assert '自定义标题' in joined
+            assert '专题' in joined
+            assert '数据来源：内部系统' in joined
         finally:
             os.unlink(output_path)
 

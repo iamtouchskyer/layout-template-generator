@@ -159,6 +159,11 @@ function buildGridZones(layoutId, zoneContents) {
 function buildPageDataForExport(page, legacyFallback) {
     const pageType = getPageTypeForExport(page, legacyFallback?.pageType || 'content-grid');
     const sourceData = deepClone(page?.data || {});
+    const contentShell = {
+        contentTitle: sourceData.contentTitle || legacyFallback?.contentTitle || '市场趋势分析',
+        contentTag: sourceData.contentTag || legacyFallback?.contentTag || '分析报告',
+        contentSource: sourceData.contentSource || legacyFallback?.contentSource || '行业研究报告 2024',
+    };
 
     if (pageType === 'cover') {
         return {
@@ -227,6 +232,7 @@ function buildPageDataForExport(page, legacyFallback) {
             smartartColorScheme: smartart.colorScheme,
             smartartItemCount: sourceData.smartartItemCount ?? items.length,
             smartartItemsByType: byType,
+            ...contentShell,
             smartart,
         };
     }
@@ -239,6 +245,7 @@ function buildPageDataForExport(page, legacyFallback) {
     return {
         gridLayout,
         zoneContents: deepClone(zoneContents),
+        ...contentShell,
         grid: {
             layout: gridLayout,
             zones,

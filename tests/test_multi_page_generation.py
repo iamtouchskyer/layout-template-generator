@@ -175,3 +175,34 @@ def test_to_legacy_config_resolves_type_from_page_model():
 
     legacy = to_legacy_config_for_page(doc, doc["pages"][0])
     assert legacy["pageType"] == "content-grid"
+
+
+def test_to_legacy_config_carries_content_shell_fields():
+    doc = normalize_input(
+        {
+            "schemaVersion": 2,
+            "master": {
+                "theme": "forest_green",
+                "masterShapes": [],
+                "masterPlaceholders": {},
+                "masterContentAreas": {},
+            },
+            "pages": [
+                {
+                    "id": "p1",
+                    "type": "content-smartart",
+                    "data": {
+                        "contentTitle": "自定义标题",
+                        "contentTag": "专题",
+                        "contentSource": "内部系统",
+                        "smartartType": "pyramid",
+                    },
+                }
+            ],
+        }
+    )
+
+    legacy = to_legacy_config_for_page(doc, doc["pages"][0])
+    assert legacy["contentTitle"] == "自定义标题"
+    assert legacy["contentTag"] == "专题"
+    assert legacy["contentSource"] == "内部系统"

@@ -32,6 +32,12 @@ const DEFAULT_COVER_CONTENT = {
     }
 };
 
+const DEFAULT_CONTENT_SHELL = {
+    contentTitle: '市场趋势分析',
+    contentTag: '分析报告',
+    contentSource: '行业研究报告 2024',
+};
+
 const PAGE_MODEL_BY_TYPE = {
     cover: { shell: 'cover', renderer: 'cover' },
     divider: { shell: 'divider', renderer: 'divider' },
@@ -120,6 +126,7 @@ function createDefaultPageData(type) {
             smartartColorScheme: 'colorful1',  // see SMARTART_COLOR_SCHEMES in config.js
             smartartItems: null,  // current type's items (for backward compat)
             smartartItemsByType: {},  // { typeId: items[] } - each type has independent data
+            ...deepClone(DEFAULT_CONTENT_SHELL),
         };
     }
 
@@ -127,6 +134,7 @@ function createDefaultPageData(type) {
     return {
         gridLayout: 'two-col-equal',
         zoneContents: { A: 'chart', B: 'text' },
+        ...deepClone(DEFAULT_CONTENT_SHELL),
     };
 }
 
@@ -317,6 +325,9 @@ definePageDataAlias('smartartItemsByType', 'smartartItemsByType', () => ({}));
 
 definePageDataAlias('gridLayout', 'gridLayout', () => 'two-col-equal');
 definePageDataAlias('zoneContents', 'zoneContents', () => ({ A: 'chart', B: 'text' }));
+definePageDataAlias('contentTitle', 'contentTitle', () => DEFAULT_CONTENT_SHELL.contentTitle);
+definePageDataAlias('contentTag', 'contentTag', () => DEFAULT_CONTENT_SHELL.contentTag);
+definePageDataAlias('contentSource', 'contentSource', () => DEFAULT_CONTENT_SHELL.contentSource);
 
 // Internal helpers exposed for selector API module.
 window.__stateInternals = {

@@ -72,6 +72,10 @@ def generate_grid_slide(prs, config, theme):
 
     ZONE_GAP = px_to_inches_x(24)  # Gap between zones (24px)
 
+    content_title = str(config.get('contentTitle') or '市场趋势分析')
+    content_tag = str(config.get('contentTag') or '分析报告')
+    content_source = str(config.get('contentSource') or '行业研究报告 2024')
+
     # Set title using placeholder (inherits position from slide master)
     if has_title:
         title_placeholder = slide.shapes.title
@@ -85,8 +89,8 @@ def generate_grid_slide(prs, config, theme):
         set_title_with_style(
             slide,
             title_placeholder,
-            "市场趋势分析",
-            "分析报告",
+            content_title,
+            content_tag,
             theme,
             title_style,
             bounds=(header_x, header_y, header_w, header_h),
@@ -95,7 +99,7 @@ def generate_grid_slide(prs, config, theme):
     # Add source citation if enabled
     has_source = source_style == 'citation'
     if has_source:
-        add_source_citation_dynamic(slide, "行业研究报告 2024", theme,
+        add_source_citation_dynamic(slide, content_source, theme,
                                      x=footer_x, y=footer_y, width=footer_w)
 
     # Calculate zone positions based on layout (using body bounds)

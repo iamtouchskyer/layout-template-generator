@@ -843,7 +843,8 @@ select:focus, input:focus {
 .grid-operation-bar,
 .smartart-operation-bar,
 .divider-operation-bar,
-.cover-operation-bar {
+.cover-operation-bar,
+.content-shell-operation-bar {
     display: none;
     flex-direction: column;
     background: var(--bg-tertiary);
@@ -855,8 +856,34 @@ select:focus, input:focus {
 .grid-operation-bar.visible,
 .smartart-operation-bar.visible,
 .divider-operation-bar.visible,
-.cover-operation-bar.visible {
+.cover-operation-bar.visible,
+.content-shell-operation-bar.visible {
     display: flex;
+}
+
+.content-shell-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.4fr;
+    gap: 10px;
+}
+
+.content-shell-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.content-shell-field label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.content-shell-field input {
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 12px;
 }
 
 /* Cover Layout Selector */

@@ -45,6 +45,15 @@ function renderContentLayer() {
     return '';
 }
 
+function resolveContentShellText() {
+    const page = (typeof getCurrentPage === 'function') ? getCurrentPage() : null;
+    const data = page?.data || {};
+    const title = String(data.contentTitle || state.contentTitle || '市场趋势分析').trim() || '市场趋势分析';
+    const tag = String(data.contentTag || state.contentTag || '分析报告').trim() || '分析报告';
+    const source = String(data.contentSource || state.contentSource || '行业研究报告 2024').trim() || '行业研究报告 2024';
+    return { title, tag, source };
+}
+
 function renderContentShell(options = {}) {
     const shellOptions = options || {};
     const titleStyle = state.masterContentAreas.titleStyle || 'with-tag';
@@ -59,11 +68,12 @@ function renderContentShell(options = {}) {
     if (hasTitle) {
         const headerBounds = getHeaderBoundsFromConfig(state);
         const headerStyle = `position: absolute; top: ${headerBounds.top}px; left: ${headerBounds.left}px; right: ${headerBounds.right}px; height: ${headerBounds.height}px; display: flex; flex-direction: column; justify-content: flex-end;`;
+        const shellText = resolveContentShellText();
 
         if (titleStyle === 'simple') {
-            html += `<div class="header-area" style="${headerStyle}"><div class="title-zone"><h1>市场趋势分析</h1></div></div>`;
+            html += `<div class="header-area" style="${headerStyle}"><div class="title-zone"><h1>${shellText.title}</h1></div></div>`;
         } else if (titleStyle === 'with-tag') {
-            html += `<div class="header-area" style="${headerStyle}"><div class="title-zone"><span class="title-tag">分析报告</span><h1>市场趋势分析</h1></div></div>`;
+            html += `<div class="header-area" style="${headerStyle}"><div class="title-zone"><span class="title-tag">${shellText.tag}</span><h1>${shellText.title}</h1></div></div>`;
         }
     }
 
@@ -76,7 +86,8 @@ function renderContentShell(options = {}) {
         const footerHeight = CONTENT_AREAS.footer.getHeight(state.masterContentAreas.footerHeight || 'compact');
         const footerBottom = 10;
         const footerAreaStyle = `position: absolute; left: ${contentBounds.left}px; right: ${contentBounds.right}px; bottom: ${footerBottom}px; height: ${footerHeight}px;`;
-        const sourceText = shellOptions.sourceText || '数据来源：行业研究报告 2024';
+        const shellText = resolveContentShellText();
+        const sourceText = shellOptions.sourceText || `数据来源：${shellText.source}`;
         html += `<div class="footer-area" style="${footerAreaStyle}"><div class="source-zone">${sourceText}</div></div>`;
     }
 
@@ -148,3 +159,4 @@ function renderLayoutPreviewZones(layout) {
 }
 
 window.renderContentShell = renderContentShell;
+window.resolveContentShellText = resolveContentShellText;

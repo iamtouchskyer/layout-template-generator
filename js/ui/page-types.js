@@ -123,6 +123,16 @@ function _applyLayoutToCurrentPage(type, layoutValue) {
 }
 
 function _syncOperationBarsByType(currentType) {
+    const contentShellBar = document.getElementById('content-shell-operation-bar');
+    if (contentShellBar) {
+        if (currentType === 'content-grid' || currentType === 'content-smartart') {
+            contentShellBar.classList.add('visible');
+            renderContentShellOperationBar();
+        } else {
+            contentShellBar.classList.remove('visible');
+        }
+    }
+
     const coverBar = document.getElementById('cover-operation-bar');
     if (currentType === 'cover') {
         coverBar.classList.add('visible');
@@ -162,6 +172,36 @@ function _syncOperationBarsByType(currentType) {
     } else {
         smartartBar.classList.remove('visible');
     }
+}
+
+function _currentContentShellValue(page, key, fallback) {
+    const value = page?.data?.[key];
+    const text = String(value ?? '').trim();
+    return text || fallback;
+}
+
+function renderContentShellOperationBar() {
+    const page = _getCurrentPageRecord();
+    const titleInput = document.getElementById('content-shell-title-input');
+    const tagInput = document.getElementById('content-shell-tag-input');
+    const sourceInput = document.getElementById('content-shell-source-input');
+    if (!titleInput || !tagInput || !sourceInput) return;
+
+    titleInput.value = _currentContentShellValue(page, 'contentTitle', '市场趋势分析');
+    tagInput.value = _currentContentShellValue(page, 'contentTag', '分析报告');
+    sourceInput.value = _currentContentShellValue(page, 'contentSource', '行业研究报告 2024');
+}
+
+function updateCurrentPageShellText(field, value) {
+    if (typeof patchCurrentPage !== 'function') return;
+    const normalized = String(value ?? '').trim();
+    const fallbackMap = {
+        contentTitle: '市场趋势分析',
+        contentTag: '分析报告',
+        contentSource: '行业研究报告 2024',
+    };
+    const nextValue = normalized || fallbackMap[field] || '';
+    patchCurrentPage({ [field]: nextValue });
 }
 
 /**
@@ -264,3 +304,5 @@ function selectCoverLayout(layoutId) {
 
 window.refreshPageModelControls = refreshPageModelControls;
 window.updatePageModelFromControls = updatePageModelFromControls;
+window.renderContentShellOperationBar = renderContentShellOperationBar;
+window.updateCurrentPageShellText = updateCurrentPageShellText;

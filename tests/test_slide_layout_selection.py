@@ -233,3 +233,75 @@ def test_grid_title_uses_header_bounds_position():
         assert abs(title_shape.top - expected_top) < 20000
     finally:
         os.unlink(output_path)
+
+
+def test_multi_page_export_never_leaks_content_placeholders():
+    config = {
+        "schemaVersion": 2,
+        "master": {
+            "theme": "forest_green",
+            "masterShapes": [],
+            "masterPlaceholders": {},
+            "masterContentAreas": {
+                "titleStyle": "with-tag",
+                "sourceStyle": "citation",
+            },
+        },
+        "pages": [
+            {
+                "id": "p1",
+                "type": "cover",
+                "data": {"coverLayout": "cross_rectangles"},
+            },
+            {
+                "id": "p2",
+                "type": "divider",
+                "data": {"divider": {"layout": "cards-highlight", "sectionCount": 4}},
+            },
+            {
+                "id": "p3",
+                "type": "content-smartart",
+                "data": {
+                    "smartartType": "pyramid",
+                    "smartartItemsByType": {
+                        "pyramid": [
+                            {"text": "愿景", "children": [{"text": "长期目标"}]},
+                            {"text": "战略", "children": [{"text": "中期规划"}]},
+                            {"text": "战术", "children": [{"text": "短期行动"}]},
+                            {"text": "执行", "children": [{"text": "日常任务"}]},
+                        ]
+                    },
+                },
+            },
+            {
+                "id": "p4",
+                "type": "content-grid",
+                "data": {
+                    "grid": {
+                        "layout": "4x6",
+                        "zones": [
+                            {"id": "A", "content": "text"},
+                            {"id": "B", "content": "text"},
+                            {"id": "C", "content": "text"},
+                            {"id": "D", "content": "text"},
+                        ],
+                    }
+                },
+            },
+        ],
+    }
+
+    with tempfile.NamedTemporaryFile(suffix=".pptx", delete=False) as fp:
+        output_path = fp.name
+
+    try:
+        generate_pptx(config, output_path)
+        prs = Presentation.open(output_path)
+        for slide in prs.slides:
+            ph_types = _placeholder_types(slide)
+            assert ph_types.isdisjoint(CONTENT_PLACEHOLDER_TYPES)
+            assert "DATE (16)" not in ph_types
+            assert "FOOTER (15)" not in ph_types
+            assert "SLIDE_NUMBER (13)" not in ph_types
+    finally:
+        os.unlink(output_path)

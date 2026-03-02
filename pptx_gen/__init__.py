@@ -28,6 +28,7 @@ from .slides import (
     generate_smartart_slide,
     generate_grid_slide,
 )
+from .utils import remove_slide_placeholders
 
 
 def generate_pptx(config: dict, output_path: str):
@@ -80,14 +81,20 @@ def generate_pptx(config: dict, output_path: str):
         page_config = to_legacy_config_for_page(doc, page)
         page_type = page_config.get('pageType', 'content-grid')
 
+        slide = None
         if page_type == 'cover':
-            generate_cover_slide(prs, page_config, theme)
+            slide = generate_cover_slide(prs, page_config, theme)
         elif page_type == 'divider':
-            generate_divider_slide(prs, page_config, theme)
+            slide = generate_divider_slide(prs, page_config, theme)
         elif page_type == 'content-smartart':
-            generate_smartart_slide(prs, page_config, theme)
+            slide = generate_smartart_slide(prs, page_config, theme)
         else:
-            generate_grid_slide(prs, page_config, theme)
+            slide = generate_grid_slide(prs, page_config, theme)
+
+        # Global safety net: never leak template placeholders (e.g. title/object)
+        # into exported slides, even if a page branch uses a non-blank layout.
+        if slide is not None:
+            remove_slide_placeholders(slide)
 
     prs.save(output_path)
     logger.info(f"Saved PPTX: {output_path}")

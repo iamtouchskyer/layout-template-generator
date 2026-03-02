@@ -299,9 +299,10 @@ function getBodyBoundsFromConfig(state, hasTitle = true) {
         bodyTop = contentBounds.top;
     }
 
-    // Body bottom: baseMargin.bottom already reserves space for footer elements
-    // footerHeight only affects footer area height display, not body bottom
-    const bodyBottom = contentBounds.bottom;
+    // Body bottom: keep a stable footer-safe reserve regardless of footer-line
+    // visibility, so preview/export geometry stays deterministic.
+    const footerReserveBottom = getFooterSafeBottomFromConfig();
+    const bodyBottom = Math.max(contentBounds.bottom, footerReserveBottom);
 
     return {
         top: bodyTop,
@@ -309,6 +310,27 @@ function getBodyBoundsFromConfig(state, hasTitle = true) {
         right: contentBounds.right,
         bottom: bodyBottom,
     };
+}
+
+/**
+ * Footer safe bottom reserve from config.
+ * This keeps content area independent from decorative footer-line show/hide.
+ * @returns {number} Bottom reserve in px
+ */
+function getFooterSafeBottomFromConfig() {
+    const baseBottom = SLIDE_CONFIG?.baseMargin?.bottom || 0;
+    const footerLine = CONFIG?.shapes?.['footer-line'];
+    const presets = footerLine?.presets || {};
+    let maxBottom = baseBottom;
+
+    Object.values(presets).forEach((preset) => {
+        const posBottom = Number(preset?.position?.bottom);
+        if (Number.isFinite(posBottom)) {
+            maxBottom = Math.max(maxBottom, posBottom);
+        }
+    });
+
+    return maxBottom;
 }
 
 /**

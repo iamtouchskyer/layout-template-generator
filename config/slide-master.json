@@ -135,34 +135,30 @@
 
     "header-line": {
       "label": "Header Line",
-      "occupiesSpace": true,
+      "occupiesSpace": false,
       "comment": "Line below title area (header bottom ~80px)",
       "presets": {
         "full": {
           "name": "Full Width",
           "position": { "top": 82, "left": 0, "right": 0 },
-          "bounds": { "top": 82 },
           "size": { "height": 2 },
           "style": { "opacity": 0.3 }
         },
         "center": {
           "name": "Center",
           "position": { "top": 82, "left": 40, "right": 40 },
-          "bounds": { "top": 82 },
           "size": { "height": 2 },
           "style": { "opacity": 0.3 }
         },
         "left-half": {
           "name": "Left Half",
           "position": { "top": 82, "left": 0 },
-          "bounds": { "top": 82 },
           "size": { "width": "50%", "height": 2 },
           "style": { "opacity": 0.3 }
         },
         "right-half": {
           "name": "Right Half",
           "position": { "top": 82, "right": 0 },
-          "bounds": { "top": 82 },
           "size": { "width": "50%", "height": 2 },
           "style": { "opacity": 0.3 }
         }
@@ -171,34 +167,30 @@
 
     "footer-line": {
       "label": "Footer Line",
-      "occupiesSpace": true,
+      "occupiesSpace": false,
       "comment": "Line above source citation (footer top ~60px from bottom)",
       "presets": {
         "full": {
           "name": "Full Width",
           "position": { "bottom": 62, "left": 0, "right": 0 },
-          "bounds": { "bottom": 62 },
           "size": { "height": 2 },
           "style": { "opacity": 0.3 }
         },
         "center": {
           "name": "Center",
           "position": { "bottom": 62, "left": 40, "right": 40 },
-          "bounds": { "bottom": 62 },
           "size": { "height": 2 },
           "style": { "opacity": 0.3 }
         },
         "left-half": {
           "name": "Left Half",
           "position": { "bottom": 62, "left": 0 },
-          "bounds": { "bottom": 62 },
           "size": { "width": "50%", "height": 2 },
           "style": { "opacity": 0.3 }
         },
         "right-half": {
           "name": "Right Half",
           "position": { "bottom": 62, "right": 0 },
-          "bounds": { "bottom": 62 },
           "size": { "width": "50%", "height": 2 },
           "style": { "opacity": 0.3 }
         }

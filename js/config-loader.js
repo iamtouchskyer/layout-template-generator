@@ -321,12 +321,14 @@ function getFooterSafeBottomFromConfig() {
     const baseBottom = SLIDE_CONFIG?.baseMargin?.bottom || 0;
     const footerLine = CONFIG?.shapes?.['footer-line'];
     const presets = footerLine?.presets || {};
+    const bleedBuffer = 2; // avoid 1-2px border/rounding overlap on footer line
     let maxBottom = baseBottom;
 
     Object.values(presets).forEach((preset) => {
         const posBottom = Number(preset?.position?.bottom);
+        const lineHeight = Number(preset?.size?.height) || 0;
         if (Number.isFinite(posBottom)) {
-            maxBottom = Math.max(maxBottom, posBottom);
+            maxBottom = Math.max(maxBottom, posBottom + lineHeight + bleedBuffer);
         }
     });
 

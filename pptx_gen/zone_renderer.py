@@ -172,6 +172,9 @@ def _render_chart_zone(slide, zone_id, content_x, content_y, content_w, content_
     chart = chart_shape.chart
     chart.has_legend = False
 
+    # Set chart font sizes (python-pptx defaults to 18pt which is too large)
+    _style_chart_fonts(chart, chart_type_str)
+
     # Set line color to accent color for line charts
     if chart_type_str == 'line' and chart.series:
         accent_color = hex_to_rgb(theme['accent'])
@@ -179,6 +182,25 @@ def _render_chart_zone(slide, zone_id, content_x, content_y, content_w, content_
             if hasattr(series.format, 'line'):
                 series.format.line.color.rgb = accent_color
                 series.format.line.width = Pt(2)
+
+
+def _style_chart_fonts(chart, chart_type_str: str):
+    """Set reasonable font sizes on chart axes and labels."""
+    is_pie = chart_type_str in ('pie', 'doughnut')
+
+    if not is_pie:
+        if hasattr(chart, 'category_axis'):
+            chart.category_axis.tick_labels.font.size = Pt(9)
+        if hasattr(chart, 'value_axis'):
+            chart.value_axis.tick_labels.font.size = Pt(9)
+
+    # Override chart-level default text size (replaces 18pt default)
+    from lxml import etree
+    nsmap = {'c': 'http://schemas.openxmlformats.org/drawingml/2006/chart',
+             'a': 'http://schemas.openxmlformats.org/drawingml/2006/main'}
+    for txPr in chart._element.findall('.//c:txPr', nsmap):
+        for defRPr in txPr.findall('.//a:defRPr', nsmap):
+            defRPr.set('sz', '900')
 
 
 def _render_chart_placeholder(slide, x, y, w, h):
@@ -360,12 +382,12 @@ def _compact_font_sizes(w: float, h: float) -> tuple[int, int]:
     """Adaptive font sizes for dense compact cells."""
     cell = min(_safe_dim(w), _safe_dim(h))
     if cell < 0.35:
-        return 5, 4
-    if cell < 0.5:
         return 6, 5
-    if cell < 0.8:
+    if cell < 0.5:
         return 7, 6
-    return 8, 7
+    if cell < 0.8:
+        return 8, 7
+    return 9, 8
 
 
 def _compact_line_budget(w: float, h: float) -> tuple[int, int]:

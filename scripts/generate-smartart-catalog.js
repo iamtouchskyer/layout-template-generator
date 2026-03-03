@@ -108,9 +108,14 @@ function generatePythonMap(catalog) {
     .map((type) => `    '${type.id}': SMARTART_TYPE.${type.pptx.smartartType},`)
     .join('\n')
 
-  const layoutEntries = catalog.types
-    .filter((type) => type.ooxml && type.ooxml.layoutId)
-    .map((type) => `    '${type.ooxml.layoutId}': '${type.id}',`)
+  const layoutIdToTypeId = new Map()
+  for (const type of catalog.types) {
+    const layoutId = type.ooxml && type.ooxml.layoutId
+    if (!layoutId || layoutIdToTypeId.has(layoutId)) continue
+    layoutIdToTypeId.set(layoutId, type.id)
+  }
+  const layoutEntries = Array.from(layoutIdToTypeId.entries())
+    .map(([layoutId, typeId]) => `    '${layoutId}': '${typeId}',`)
     .join('\n')
 
   const enumToTypeIds = new Map()

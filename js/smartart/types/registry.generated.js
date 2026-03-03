@@ -77,16 +77,18 @@ export const SMARTART_TYPE_DEFS = [
   {
     "id": "cycle",
     "ui": {
-      "category": "matrix",
-      "label": "基础循环",
+      "category": "cycle",
+      "label": "块状循环",
       "ooxmlId": "cycle4"
     },
     "engine": {
-      "name": "基础循环",
-      "nameEn": "Basic Cycle",
+      "name": "块状循环",
+      "nameEn": "Block Cycle",
       "category": "cycle",
       "layout": "cycle",
-      "layoutArgs": {},
+      "layoutArgs": {
+        "variant": "cycle4"
+      },
       "shapeType": "chevron"
     },
     "ooxml": {
@@ -94,6 +96,174 @@ export const SMARTART_TYPE_DEFS = [
     },
     "pptx": {
       "smartartType": "BLOCK_CYCLE"
+    }
+  },
+  {
+    "id": "cycle1",
+    "ui": {
+      "category": "cycle",
+      "label": "基础循环",
+      "ooxmlId": "cycle1"
+    },
+    "engine": {
+      "name": "基础循环",
+      "nameEn": "Basic Cycle",
+      "category": "cycle",
+      "layout": "cycle",
+      "layoutArgs": {
+        "variant": "cycle1"
+      },
+      "shapeType": "rect"
+    },
+    "ooxml": {
+      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle1"
+    },
+    "pptx": {
+      "smartartType": "BASIC_CYCLE"
+    }
+  },
+  {
+    "id": "cycle2",
+    "ui": {
+      "category": "cycle",
+      "label": "文本循环",
+      "ooxmlId": "cycle2"
+    },
+    "engine": {
+      "name": "文本循环",
+      "nameEn": "Text Cycle",
+      "category": "cycle",
+      "layout": "cycle",
+      "layoutArgs": {
+        "variant": "cycle2"
+      },
+      "shapeType": "ellipse"
+    },
+    "ooxml": {
+      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle2"
+    },
+    "pptx": {
+      "smartartType": "TEXT_CYCLE"
+    }
+  },
+  {
+    "id": "cycle3",
+    "ui": {
+      "category": "cycle",
+      "label": "分段循环",
+      "ooxmlId": "cycle3"
+    },
+    "engine": {
+      "name": "分段循环",
+      "nameEn": "Segmented Cycle",
+      "category": "cycle",
+      "layout": "cycle",
+      "layoutArgs": {
+        "variant": "cycle3"
+      },
+      "shapeType": "roundRect"
+    },
+    "ooxml": {
+      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle3"
+    },
+    "pptx": {
+      "smartartType": "SEGMENTED_CYCLE"
+    }
+  },
+  {
+    "id": "cycle5",
+    "ui": {
+      "category": "cycle",
+      "label": "无方向循环",
+      "ooxmlId": "cycle5"
+    },
+    "engine": {
+      "name": "无方向循环",
+      "nameEn": "Non Directional Cycle",
+      "category": "cycle",
+      "layout": "cycle",
+      "layoutArgs": {
+        "variant": "cycle5"
+      },
+      "shapeType": "roundRect"
+    },
+    "ooxml": {
+      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle5"
+    },
+    "pptx": {
+      "smartartType": "NON_DIRECTIONAL_CYCLE"
+    }
+  },
+  {
+    "id": "cycle6",
+    "ui": {
+      "category": "cycle",
+      "label": "连续循环",
+      "ooxmlId": "cycle6"
+    },
+    "engine": {
+      "name": "连续循环",
+      "nameEn": "Continuous Cycle",
+      "category": "cycle",
+      "layout": "cycle",
+      "layoutArgs": {
+        "variant": "cycle6"
+      },
+      "shapeType": "roundRect"
+    },
+    "ooxml": {
+      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle6"
+    },
+    "pptx": {
+      "smartartType": "CONTINUOUS_CYCLE"
+    }
+  },
+  {
+    "id": "cycle7",
+    "ui": {
+      "category": "cycle",
+      "label": "三段循环",
+      "ooxmlId": "cycle7"
+    },
+    "engine": {
+      "name": "三段循环",
+      "nameEn": "Tri Cycle",
+      "category": "cycle",
+      "layout": "cycle",
+      "layoutArgs": {
+        "variant": "cycle7"
+      },
+      "shapeType": "roundRect"
+    },
+    "ooxml": {
+      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle7"
+    },
+    "pptx": {
+      "smartartType": "NON_DIRECTIONAL_CYCLE"
+    }
+  },
+  {
+    "id": "cycle8",
+    "ui": {
+      "category": "cycle",
+      "label": "扇区循环",
+      "ooxmlId": "cycle8"
+    },
+    "engine": {
+      "name": "扇区循环",
+      "nameEn": "Sector Cycle",
+      "category": "cycle",
+      "layout": "cycle",
+      "layoutArgs": {
+        "variant": "cycle8"
+      },
+      "shapeType": "pie"
+    },
+    "ooxml": {
+      "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle8"
+    },
+    "pptx": {
+      "smartartType": "SEGMENTED_CYCLE"
     }
   },
   {

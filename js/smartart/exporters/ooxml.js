@@ -3,7 +3,14 @@
  * Generates data compatible with python-pptx SmartArt generation
  */
 
+import { SMARTART_TYPE_DEFS } from '../types/registry.generated.js';
+
 const EMU_PER_PX = 9525;
+const TYPE_LAYOUT_ID_MAP = SMARTART_TYPE_DEFS.reduce((acc, typeDef) => {
+    const layoutId = typeDef?.ooxml?.layoutId;
+    if (layoutId) acc[typeDef.id] = layoutId;
+    return acc;
+}, {});
 
 /**
  * Convert SmartArt data to OOXML-compatible format
@@ -99,22 +106,7 @@ function toOOXMLConnector(conn) {
 }
 
 function getLayoutId(type) {
-    const layoutMap = {
-        'pyramid': 'urn:microsoft.com/office/officeart/2005/8/layout/pyramid1',
-        'pyramid-inverted': 'urn:microsoft.com/office/officeart/2005/8/layout/pyramid2',
-        'matrix': 'urn:microsoft.com/office/officeart/2005/8/layout/matrix1',
-        'matrix-titled': 'urn:microsoft.com/office/officeart/2005/8/layout/matrix2',
-        'matrix-cycle': 'urn:microsoft.com/office/officeart/2005/8/layout/matrix3',
-        'cycle': 'urn:microsoft.com/office/officeart/2005/8/layout/cycle4',
-        'cycle-segmented': 'urn:microsoft.com/office/officeart/2005/8/layout/cycle8',
-        'chevron': 'urn:microsoft.com/office/officeart/2005/8/layout/chevron1',
-        'arrow-process': 'urn:microsoft.com/office/officeart/2005/8/layout/arrow2',
-        'hierarchy': 'urn:microsoft.com/office/officeart/2005/8/layout/chart3',
-        'radial': 'urn:microsoft.com/office/officeart/2005/8/layout/radial3',
-        'list': 'urn:microsoft.com/office/officeart/2005/8/layout/default',
-        'list-vertical': 'urn:microsoft.com/office/officeart/2005/8/layout/vList3'
-    };
-    return layoutMap[type] || layoutMap['list'];
+    return TYPE_LAYOUT_ID_MAP[type] || TYPE_LAYOUT_ID_MAP['list'] || 'urn:microsoft.com/office/officeart/2005/8/layout/list1';
 }
 
 function getPresetShape(type) {

@@ -6,6 +6,7 @@ Tests that SmartArt color schemes work correctly with theme colors.
 
 import os
 import tempfile
+import zipfile
 
 # Path setup handled by conftest.py
 
@@ -331,6 +332,52 @@ class TestSmartArtLayouts:
 
             prs = Presentation.open(output_path)
             assert len(prs.slides) == 1
+        finally:
+            os.unlink(output_path)
+
+    @pytest.mark.parametrize(
+        ("type_id", "layout_suffix"),
+        [
+            ("cycle1", "cycle1"),
+            ("cycle2", "cycle2"),
+            ("cycle3", "cycle3"),
+            ("cycle5", "cycle5"),
+            ("cycle6", "cycle6"),
+            ("cycle7", "cycle7"),
+            ("cycle8", "cycle8"),
+        ],
+    )
+    def test_cycle_ooxml_layout_mapping(self, type_id, layout_suffix):
+        """Cycle 9-15 mappings should export expected OOXML layout URIs."""
+        config = {
+            'theme': 'forest_green',
+            'pageType': 'content-smartart',
+            'slide': {'width': 1280, 'height': 720, 'widthInches': 13.333, 'heightInches': 7.5},
+            'slideMaster': {'decorativeShapes': [], 'placeholders': {}, 'contentAreas': {}},
+            'smartart': {
+                'type': type_id,
+                'category': 'cycle',
+                'placement': 'full',
+                'colorScheme': 'colorful1',
+                'items': ['A', 'B', 'C', 'D', 'E'],
+            },
+        }
+
+        with tempfile.NamedTemporaryFile(suffix='.pptx', delete=False) as f:
+            output_path = f.name
+
+        try:
+            generate_pptx(config, output_path)
+            with zipfile.ZipFile(output_path) as zf:
+                rel_xml = zf.read('ppt/slides/_rels/slide1.xml.rels').decode('utf-8')
+                import re
+
+                match = re.search(r'Target="../diagrams/(layout\d+\.xml)"', rel_xml)
+                assert match, "diagram layout relationship not found"
+                layout_xml = zf.read(f"ppt/diagrams/{match.group(1)}").decode('utf-8')
+                unique = re.search(r'uniqueId="([^"]+)"', layout_xml)
+                assert unique, "layout uniqueId not found"
+                assert unique.group(1).endswith(f'/{layout_suffix}')
         finally:
             os.unlink(output_path)
 

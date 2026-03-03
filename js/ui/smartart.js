@@ -54,7 +54,8 @@ function renderSmartartTypeSelector() {
                      onclick="selectSmartartType('${typeId}')" title="${typeInfo.label}">
                     <img src="assets/smartart-refs/${typeInfo.ooxmlId}.png"
                          alt="${typeInfo.label}"
-                         onerror="this.parentElement.innerHTML='<div class=\\'thumb-fallback\\'>${typeInfo.label}</div>'">
+                         data-ooxml-id="${typeInfo.ooxmlId}"
+                         onerror="if(!this.dataset.svgTried){this.dataset.svgTried='1';this.src='assets/smartart-refs/${typeInfo.ooxmlId}.svg';}else{this.parentElement.innerHTML='<div class=\\'thumb-fallback\\'>${typeInfo.label}</div>'}">
                 </div>
             `).join('')}
         </div>
@@ -202,6 +203,13 @@ function generateColorSchemeThumbnail(smartartType, colors, outline = false) {
             </svg>`;
 
         case 'cycle':
+        case 'cycle1':
+        case 'cycle2':
+        case 'cycle3':
+        case 'cycle5':
+        case 'cycle6':
+        case 'cycle7':
+        case 'cycle8':
         case 'cycle-segmented': {
             const cx = w/2, cy = h/2, r = 11;
             return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">

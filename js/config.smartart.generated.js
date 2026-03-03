@@ -9,6 +9,10 @@
     "label": "Matrix",
     "desc": "矩阵/循环结构"
   },
+  "cycle": {
+    "label": "Cycle",
+    "desc": "循环结构"
+  },
   "pyramid": {
     "label": "Pyramid",
     "desc": "金字塔/漏斗结构"
@@ -36,9 +40,44 @@
     "ooxmlId": "matrix3"
   },
   "cycle": {
-    "category": "matrix",
-    "label": "基础循环",
+    "category": "cycle",
+    "label": "块状循环",
     "ooxmlId": "cycle4"
+  },
+  "cycle1": {
+    "category": "cycle",
+    "label": "基础循环",
+    "ooxmlId": "cycle1"
+  },
+  "cycle2": {
+    "category": "cycle",
+    "label": "文本循环",
+    "ooxmlId": "cycle2"
+  },
+  "cycle3": {
+    "category": "cycle",
+    "label": "分段循环",
+    "ooxmlId": "cycle3"
+  },
+  "cycle5": {
+    "category": "cycle",
+    "label": "无方向循环",
+    "ooxmlId": "cycle5"
+  },
+  "cycle6": {
+    "category": "cycle",
+    "label": "连续循环",
+    "ooxmlId": "cycle6"
+  },
+  "cycle7": {
+    "category": "cycle",
+    "label": "三段循环",
+    "ooxmlId": "cycle7"
+  },
+  "cycle8": {
+    "category": "cycle",
+    "label": "扇区循环",
+    "ooxmlId": "cycle8"
   },
   "pyramid": {
     "category": "pyramid",

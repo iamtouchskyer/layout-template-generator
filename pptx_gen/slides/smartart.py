@@ -3,11 +3,13 @@ SmartArt content slide generator.
 """
 
 import logging
+from pathlib import Path
 
 from pptx.util import Inches, Pt
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.smartart import SMARTART_TYPE, SMARTART_COLORS
 from pptx.smartart import SmartArtData
+from pptx.smartart import templates as smartart_templates
 
 from ..themes import hex_to_rgb, SMARTART_TYPE_MAP, SMARTART_COLOR_SCHEME_MAP
 from ..dimensions import px_to_inches_x, px_to_inches_y
@@ -22,6 +24,25 @@ from .grid import (
     resolve_content_shell_geometry,
     set_title_with_style,
 )
+
+_CUSTOM_LAYOUT_TYPE_SPECS = {
+    'cycle7': {
+        'layout_uri': 'urn:microsoft.com/office/officeart/2005/8/layout/cycle7',
+        'template_file': 'cycle7.xml',
+    },
+    'cycle8': {
+        'layout_uri': 'urn:microsoft.com/office/officeart/2005/8/layout/cycle8',
+        'template_file': 'cycle8.xml',
+    },
+}
+_CUSTOM_LAYOUT_TEMPLATE_DIR = Path(__file__).resolve().parents[1] / 'smartart_layout_templates'
+
+
+class _CustomSmartArtType:
+    """Lightweight SmartArt type object for custom layout URIs."""
+
+    def __init__(self, layout_uri: str):
+        self.layout_uri = layout_uri
 
 
 def generate_smartart_slide(prs, config, theme):
@@ -118,7 +139,7 @@ def generate_smartart_slide(prs, config, theme):
         x, y, cx, cy = Inches(body_x), Inches(body_y), Inches(body_w), Inches(body_h)
 
     # Add SmartArt with selected color scheme
-    pptx_type = SMARTART_TYPE_MAP.get(smartart_type_id, SMARTART_TYPE.BASIC_PYRAMID)
+    pptx_type = _resolve_pptx_type(smartart_type_id)
     color_scheme = SMARTART_COLOR_SCHEME_MAP.get(color_scheme_id, SMARTART_COLORS.COLORFUL_ACCENT_COLORS)
     smartart_data = _create_smartart_data(smartart_type_id, items)
 
@@ -183,6 +204,43 @@ def _resolve_smartart_type_id(smartart_config: dict) -> str:
                 logging.warning("Unknown SmartArt type '%s'; falling back to default.", normalized_type)
 
     return 'pyramid'
+
+
+def _resolve_pptx_type(smartart_type_id: str):
+    """Resolve python-pptx SmartArt type, including custom OOXML-only layouts."""
+    custom_type = _resolve_custom_pptx_type(smartart_type_id)
+    if custom_type is not None:
+        return custom_type
+    return SMARTART_TYPE_MAP.get(smartart_type_id, SMARTART_TYPE.BASIC_PYRAMID)
+
+
+def _resolve_custom_pptx_type(smartart_type_id: str):
+    spec = _CUSTOM_LAYOUT_TYPE_SPECS.get(smartart_type_id)
+    if not spec:
+        return None
+
+    layout_uri = spec['layout_uri']
+    if not _ensure_custom_layout_template(layout_uri, spec['template_file']):
+        return None
+
+    return _CustomSmartArtType(layout_uri)
+
+
+def _ensure_custom_layout_template(layout_uri: str, template_file: str) -> bool:
+    templates = getattr(smartart_templates, '_LAYOUT_TEMPLATES', None)
+    if not isinstance(templates, dict):
+        logging.warning('SmartArt template registry is unavailable; cannot register %s.', layout_uri)
+        return False
+    if layout_uri in templates:
+        return True
+
+    template_path = _CUSTOM_LAYOUT_TEMPLATE_DIR / template_file
+    if not template_path.exists():
+        logging.warning('Missing custom SmartArt layout template: %s', template_path)
+        return False
+
+    templates[layout_uri] = template_path.read_text(encoding='utf-8')
+    return True
 
 
 def _add_title_with_tag(slide, title: str, tag: str, theme: dict, title_style: str):

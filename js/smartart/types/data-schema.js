@@ -79,6 +79,55 @@ export const DATA_SCHEMAS = {
         labels: { item: '标题', child: '描述' },
         description: 'BLOCK_CYCLE: 4 items each with description'
     },
+    'cycle1': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '节点' },
+        description: 'BASIC_CYCLE: 5 cycle nodes'
+    },
+    'cycle2': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '节点' },
+        description: 'TEXT_CYCLE: 5 text circles'
+    },
+    'cycle3': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '节点' },
+        description: 'SEGMENTED_CYCLE: ring flow + outer labels'
+    },
+    'cycle5': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '节点' },
+        description: 'NON_DIRECTIONAL_CYCLE: 5 linked nodes'
+    },
+    'cycle6': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '节点' },
+        description: 'CONTINUOUS_CYCLE: 5 continuous nodes'
+    },
+    'cycle7': {
+        schema: SCHEMA_FLAT,
+        itemCount: 3,
+        bulletFromLevel: Infinity,
+        labels: { item: '节点' },
+        description: '3-node cycle with bidirectional arrows'
+    },
+    'cycle8': {
+        schema: SCHEMA_FLAT,
+        itemCount: 3,
+        bulletFromLevel: Infinity,
+        labels: { item: '分段' },
+        description: '3 sector cycle'
+    },
     'cycle-segmented': {
         schema: SCHEMA_FLAT,
         itemCount: 3,

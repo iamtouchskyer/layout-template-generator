@@ -47,6 +47,23 @@ function getPageThumbTitle(page) {
     return `${model.shell}/${model.renderer}`;
 }
 
+function getPageThumbSignature(page, model) {
+    const data = page?.data || {};
+    if (model.type === 'cover') {
+        return data.coverContent?.title || '';
+    }
+    if (model.type === 'divider') {
+        return String(data.divider?.sectionIndex ?? data.dividerIndex ?? 1);
+    }
+    if (model.type === 'content-smartart') {
+        return data.smartartType || '';
+    }
+    if (model.type === 'content-grid') {
+        return JSON.stringify(data.zoneContents || {});
+    }
+    return '';
+}
+
 function renderPageThumbnail(page) {
     const model = resolvePageModel(page);
     const data = page?.data || {};
@@ -176,6 +193,7 @@ function renderPageList() {
     const structureKey = pages.map((page) => {
         const model = resolvePageModel(page);
         const subtitle = getPageThumbTitle(page);
+        const thumbSignature = getPageThumbSignature(page, model);
         return [
             page?.id || '',
             model.type || '',
@@ -183,6 +201,7 @@ function renderPageList() {
             model.renderer || '',
             model.layout || '',
             subtitle || '',
+            thumbSignature,
         ].join('::');
     }).join('||');
 

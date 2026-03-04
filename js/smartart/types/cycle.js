@@ -6,6 +6,8 @@
  * - legacy flag: { segmented: true } -> cycle8
  */
 
+import { getDataSchema } from './data-schema.js';
+
 export function cycleLayout(option, config = {}) {
     const variant = config.variant || (config.segmented ? 'cycle8' : 'cycle4');
 
@@ -33,7 +35,7 @@ export function cycleLayout(option, config = {}) {
 function layoutCycle1(option) {
     const { items, size, theme } = option;
     const { width, height } = size;
-    const count = Math.max(items.length || 0, 5);
+    const count = resolveCount(items, { typeId: 'cycle1' });
     const cx = width / 2;
     const cy = height / 2;
     const ringR = Math.min(width, height) * 0.35;
@@ -90,7 +92,7 @@ function layoutCycle1(option) {
 function layoutCycle2(option) {
     const { items, size, theme } = option;
     const { width, height } = size;
-    const count = Math.max(items.length || 0, 5);
+    const count = resolveCount(items, { typeId: 'cycle2' });
     const cx = width / 2;
     const cy = height / 2;
     const ringR = Math.min(width, height) * 0.35;
@@ -146,7 +148,7 @@ function layoutCycle2(option) {
 function layoutCycle3(option) {
     const { items, size, theme } = option;
     const { width, height } = size;
-    const count = Math.max(items.length || 0, 5);
+    const count = resolveCount(items, { typeId: 'cycle3' });
     const cx = width / 2;
     const cy = height / 2;
     const ringR = Math.min(width, height) * 0.34;
@@ -314,7 +316,7 @@ function layoutCycle4(option) {
 function layoutCycle5(option) {
     const { items, size, theme } = option;
     const { width, height } = size;
-    const count = Math.max(items.length || 0, 5);
+    const count = resolveCount(items, { typeId: 'cycle5' });
     const cx = width / 2;
     const cy = height / 2;
     const ringR = Math.min(width, height) * 0.35;
@@ -369,7 +371,7 @@ function layoutCycle5(option) {
 function layoutCycle6(option) {
     const { items, size, theme } = option;
     const { width, height } = size;
-    const count = Math.max(items.length || 0, 5);
+    const count = resolveCount(items, { typeId: 'cycle6' });
     const cx = width / 2;
     const cy = height / 2;
     const ringR = Math.min(width, height) * 0.34;
@@ -426,7 +428,7 @@ function layoutCycle6(option) {
 function layoutCycle7(option) {
     const { items, size, theme } = option;
     const { width, height } = size;
-    const count = Math.max(Math.min(items.length || 0, 3), 3);
+    const count = resolveCount(items, { typeId: 'cycle7', min: 3, max: 3 });
     const cx = width / 2;
     const cy = height / 2;
     const ringR = Math.min(width, height) * 0.34;
@@ -506,7 +508,7 @@ function layoutCycle7(option) {
 function layoutCycle8(option) {
     const { items, size, theme } = option;
     const { width, height } = size;
-    const count = Math.max(items.length || 0, 3);
+    const count = resolveCount(items, { typeId: 'cycle8', min: 3 });
     const cx = width / 2;
     const cy = height / 2;
     const outerR = Math.min(width, height) * 0.36;
@@ -585,6 +587,17 @@ function getItem(items, idx) {
         return { text: `Item ${idx + 1}`, children: [] };
     }
     return items[idx % items.length] || { text: `Item ${idx + 1}`, children: [] };
+}
+
+function resolveCount(items, { typeId, min = 1, max = Infinity } = {}) {
+    let count = 0;
+    if (Array.isArray(items) && items.length > 0) {
+        count = items.length;
+    } else {
+        const schema = getDataSchema(typeId);
+        count = Number(schema && schema.itemCount) || 1;
+    }
+    return Math.max(min, Math.min(count, max));
 }
 
 function getItemText(item) {

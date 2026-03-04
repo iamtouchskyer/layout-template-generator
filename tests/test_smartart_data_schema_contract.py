@@ -141,3 +141,83 @@ console.log(JSON.stringify({
     assert result['titledHasCenter'] is False
     assert result['cycleShapeCount'] == 4
     assert result['cycleHasCenter'] is False
+
+
+def test_cycle_layout_respects_explicit_item_count_for_dynamic_variants():
+    result = _run_node_json(
+        """
+import { cycleLayout } from './js/smartart/types/cycle.js';
+
+const size = { width: 800, height: 600 };
+const theme = {
+  accent1: '#4472C4',
+  accent2: '#ED7D31',
+  accent3: '#A5A5A5',
+  accent4: '#FFC000',
+  accent5: '#5B9BD5',
+  accent6: '#70AD47',
+  light1: '#FFFFFF',
+  dark1: '#000000',
+};
+const items4 = [{text:'A'}, {text:'B'}, {text:'C'}, {text:'D'}];
+const input = { items: items4, size, theme };
+
+const cycle1 = cycleLayout(input, { variant: 'cycle1' });
+const cycle2 = cycleLayout(input, { variant: 'cycle2' });
+const cycle3 = cycleLayout(input, { variant: 'cycle3' });
+const cycle5 = cycleLayout(input, { variant: 'cycle5' });
+const cycle6 = cycleLayout(input, { variant: 'cycle6' });
+
+console.log(JSON.stringify({
+  cycle1Shapes: cycle1.shapes.length,
+  cycle2Shapes: cycle2.shapes.length,
+  cycle3Shapes: cycle3.shapes.length,
+  cycle5Shapes: cycle5.shapes.length,
+  cycle6Shapes: cycle6.shapes.length,
+}));
+        """
+    )
+
+    assert result['cycle1Shapes'] == 4
+    assert result['cycle2Shapes'] == 4
+    assert result['cycle3Shapes'] == 4
+    assert result['cycle5Shapes'] == 4
+    assert result['cycle6Shapes'] == 4
+
+
+def test_cycle_layout_count_falls_back_to_schema_and_variant_constraints():
+    result = _run_node_json(
+        """
+import { cycleLayout } from './js/smartart/types/cycle.js';
+
+const size = { width: 800, height: 600 };
+const theme = {
+  accent1: '#4472C4',
+  accent2: '#ED7D31',
+  accent3: '#A5A5A5',
+  accent4: '#FFC000',
+  accent5: '#5B9BD5',
+  accent6: '#70AD47',
+  light1: '#FFFFFF',
+  dark1: '#000000',
+};
+
+const noItems = { items: [], size, theme };
+const twoItems = { items: [{text:'A'}, {text:'B'}], size, theme };
+const fourItems = { items: [{text:'A'}, {text:'B'}, {text:'C'}, {text:'D'}], size, theme };
+
+const cycle1Default = cycleLayout(noItems, { variant: 'cycle1' });
+const cycle7Bounded = cycleLayout(fourItems, { variant: 'cycle7' });
+const cycle8Min = cycleLayout(twoItems, { variant: 'cycle8' });
+
+console.log(JSON.stringify({
+  cycle1DefaultShapes: cycle1Default.shapes.length,
+  cycle7BoundedShapes: cycle7Bounded.shapes.length,
+  cycle8MinShapes: cycle8Min.shapes.length,
+}));
+        """
+    )
+
+    assert result['cycle1DefaultShapes'] == 5
+    assert result['cycle7BoundedShapes'] == 3
+    assert result['cycle8MinShapes'] == 3

@@ -5,21 +5,15 @@ function _importDeepClone(value) {
 }
 
 function _importResolvePageType(pageLike, fallbackType = 'content-grid') {
-    const helper = window.__stateInternals || {};
-    const inferTypeFromModel = helper.inferTypeFromModel;
-    const normalizePageType = helper.normalizePageType;
-    const page = pageLike || {};
-    const inferred = typeof inferTypeFromModel === 'function'
-        ? inferTypeFromModel(page.shell || page.pageShell, page.renderer || page.bodyRenderer)
-        : null;
-    const preferred = page.type || inferred || fallbackType;
-    return typeof normalizePageType === 'function'
-        ? normalizePageType(preferred)
-        : String(preferred || 'content-grid');
+    const helper = window.__pageModelUtils || {};
+    if (typeof helper.resolvePageType === 'function') {
+        return helper.resolvePageType(pageLike, fallbackType);
+    }
+    return String(pageLike?.type || fallbackType || 'content-grid');
 }
 
 function _importResolvePageModel(pageType) {
-    const helper = window.__stateInternals || {};
+    const helper = window.__pageModelUtils || {};
     if (typeof helper.getPageModelFromType === 'function') return helper.getPageModelFromType(pageType);
     if (pageType === 'cover') return { shell: 'cover', renderer: 'cover' };
     if (pageType === 'divider') return { shell: 'divider', renderer: 'divider' };
@@ -28,7 +22,7 @@ function _importResolvePageModel(pageType) {
 }
 
 function _importResolvePageLayout(pageType, data, rawLayout) {
-    const helper = window.__stateInternals || {};
+    const helper = window.__pageModelUtils || {};
     if (typeof helper.derivePageLayout === 'function') {
         return helper.derivePageLayout(pageType, data || {}, rawLayout);
     }

@@ -42,9 +42,9 @@ function _stateNormalizePageRecord(page, fallbackType) {
 }
 
 function _stateResolveModelFromType(type) {
-    const helper = window.__stateInternals;
-    if (helper && typeof helper.getPageModelFromType === 'function') {
-        return helper.getPageModelFromType(type);
+    const pageModelUtils = window.__pageModelUtils;
+    if (pageModelUtils && typeof pageModelUtils.getPageModelFromType === 'function') {
+        return pageModelUtils.getPageModelFromType(type);
     }
     if (type === 'cover') return { shell: 'cover', renderer: 'cover' };
     if (type === 'divider') return { shell: 'divider', renderer: 'divider' };
@@ -53,16 +53,14 @@ function _stateResolveModelFromType(type) {
 }
 
 function _stateResolveTypeFromModel(shell, renderer, fallbackType = 'content-grid') {
-    const helper = window.__stateInternals;
-    const inferTypeFromModel = helper && helper.inferTypeFromModel;
-    const normalizePageType = helper && helper.normalizePageType;
-    const inferred = typeof inferTypeFromModel === 'function'
-        ? inferTypeFromModel(shell, renderer)
-        : null;
-    const preferred = inferred || fallbackType;
-    return typeof normalizePageType === 'function'
-        ? normalizePageType(preferred)
-        : (preferred || 'content-grid');
+    const pageModelUtils = window.__pageModelUtils;
+    if (pageModelUtils && typeof pageModelUtils.resolveTypeFromModel === 'function') {
+        return pageModelUtils.resolveTypeFromModel(shell, renderer, fallbackType);
+    }
+    if (shell === 'cover') return 'cover';
+    if (shell === 'divider') return 'divider';
+    if (shell === 'content' && renderer === 'smartart') return 'content-smartart';
+    return fallbackType || 'content-grid';
 }
 
 function _stateApplyLayoutToPageData(page, pageType, layoutValue) {
@@ -383,7 +381,7 @@ function duplicatePage(pageId) {
         bodyLayout: page.bodyLayout,
         data: _stateDeepClone(page.data || {}),
     };
-    _stateMergePageDefaults(copy, copy.type);
+    _stateNormalizePageRecord(copy, copy.type);
     state.doc.pages.splice(index + 1, 0, copy);
     state.ui.currentPageId = copy.id;
     _stateEnsureCurrentPage();

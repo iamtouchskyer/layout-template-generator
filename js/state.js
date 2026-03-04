@@ -191,7 +191,6 @@ function ensureCurrentPage(stateObj) {
     }
 
     normalizePageRecord(page, 'content-grid');
-    mergePageDefaults(page, page.type);
     return page;
 }
 

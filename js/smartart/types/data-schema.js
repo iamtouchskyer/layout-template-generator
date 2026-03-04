@@ -18,24 +18,6 @@ export const SCHEMA_FLAT = 'flat';
 export const SCHEMA_HIERARCHICAL = 'hierarchical';
 
 /**
- * Bullet display rules
- *
- * RULE: Level 0 = no bullet (title/label role)
- *       Level 1+ = bullet (content/description role)
- *
- * bulletFromLevel: the depth level where bullets start appearing
- *   - 0: all levels have bullets (rare, for plain lists)
- *   - 1: level 0 no bullet, level 1+ has bullet (most common)
- *   - 2: level 0,1 no bullet, level 2+ has bullet (deep hierarchies)
- */
-export const BULLET_RULES = {
-    NONE: { bulletFromLevel: Infinity },    // Never show bullets
-    FROM_LEVEL_0: { bulletFromLevel: 0 },   // All items have bullets
-    FROM_LEVEL_1: { bulletFromLevel: 1 },   // Children have bullets
-    FROM_LEVEL_2: { bulletFromLevel: 2 },   // Grandchildren have bullets
-};
-
-/**
  * Data schema definitions for each SmartArt type
  *
  * bulletFromLevel values:

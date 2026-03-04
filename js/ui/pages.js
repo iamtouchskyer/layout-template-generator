@@ -7,34 +7,34 @@ const PAGE_TYPE_LABELS = {
     'content-smartart': '内容-SmartArt',
 };
 
+function _pageModelUtils() {
+    return window.__pageModelUtils || {};
+}
+
 function resolvePageType(page) {
-    const helper = window.__stateInternals || {};
-    const inferred = typeof helper.inferTypeFromModel === 'function'
-        ? helper.inferTypeFromModel(page?.shell || page?.pageShell, page?.renderer || page?.bodyRenderer)
-        : null;
-    const normalize = helper.normalizePageType;
-    const raw = page?.type || inferred || 'content-grid';
-    return typeof normalize === 'function' ? normalize(raw) : raw;
+    const utils = _pageModelUtils();
+    if (typeof utils.resolvePageType === 'function') {
+        return utils.resolvePageType(page, 'content-grid');
+    }
+    if (page?.type) return page.type;
+    if ((page?.shell || page?.pageShell) === 'cover') return 'cover';
+    if ((page?.shell || page?.pageShell) === 'divider') return 'divider';
+    if ((page?.shell || page?.pageShell) === 'content' && (page?.renderer || page?.bodyRenderer) === 'smartart') {
+        return 'content-smartart';
+    }
+    return 'content-grid';
 }
 
 function resolvePageModel(page) {
+    const utils = _pageModelUtils();
+    if (typeof utils.resolvePageModel === 'function') {
+        return utils.resolvePageModel(page, 'content-grid');
+    }
     const type = resolvePageType(page);
-    const helper = window.__stateInternals || {};
-    const model = typeof helper.getPageModelFromType === 'function'
-        ? helper.getPageModelFromType(type)
-        : type === 'cover'
-            ? { shell: 'cover', renderer: 'cover' }
-            : type === 'divider'
-                ? { shell: 'divider', renderer: 'divider' }
-                : type === 'content-smartart'
-                    ? { shell: 'content', renderer: 'smartart' }
-                    : { shell: 'content', renderer: 'grid' };
-    return {
-        type,
-        shell: page?.shell || page?.pageShell || model.shell,
-        renderer: page?.renderer || page?.bodyRenderer || model.renderer,
-        layout: page?.layout || page?.bodyLayout,
-    };
+    if (type === 'cover') return { type, shell: 'cover', renderer: 'cover', layout: page?.layout || page?.bodyLayout };
+    if (type === 'divider') return { type, shell: 'divider', renderer: 'divider', layout: page?.layout || page?.bodyLayout };
+    if (type === 'content-smartart') return { type, shell: 'content', renderer: 'smartart', layout: page?.layout || page?.bodyLayout };
+    return { type, shell: 'content', renderer: 'grid', layout: page?.layout || page?.bodyLayout };
 }
 
 function getPageThumbTitle(page) {
@@ -171,6 +171,30 @@ function renderPageList() {
 
     const pages = listPages();
     const currentId = (typeof getCurrentPageId === 'function') ? getCurrentPageId() : state.ui?.currentPageId;
+    const currentItems = container.querySelector('.page-list-items');
+    const previousScrollTop = currentItems ? currentItems.scrollTop : 0;
+    const structureKey = pages.map((page) => {
+        const model = resolvePageModel(page);
+        const subtitle = getPageThumbTitle(page);
+        return [
+            page?.id || '',
+            model.type || '',
+            model.shell || '',
+            model.renderer || '',
+            model.layout || '',
+            subtitle || '',
+        ].join('::');
+    }).join('||');
+
+    if (structureKey === renderPageList._structureKey && pages.length === renderPageList._count) {
+        if (currentId !== renderPageList._activeId) {
+            container.querySelectorAll('.page-item').forEach((node) => {
+                node.classList.toggle('active', node.dataset.pageId === currentId);
+            });
+            renderPageList._activeId = currentId;
+        }
+        return;
+    }
 
     const itemsHtml = pages.map((page, idx) => {
         const model = resolvePageModel(page);
@@ -178,7 +202,7 @@ function renderPageList() {
         const subtitle = getPageThumbTitle(page);
         const active = page.id === currentId ? 'active' : '';
         return `
-            <div class="page-item ${active}">
+            <div class="page-item ${active}" data-page-id="${page.id}">
                 <div class="page-item-main" onclick="selectPageById('${page.id}')">
                     <span class="page-item-index">${idx + 1}</span>
                     <div class="page-item-body">
@@ -209,6 +233,14 @@ function renderPageList() {
             <button class="page-add-btn" onclick="addPageAfterCurrentByModel('content','smartart')">+ SmartArt</button>
         </div>
     `;
+
+    const nextItems = container.querySelector('.page-list-items');
+    if (nextItems && previousScrollTop > 0) {
+        nextItems.scrollTop = previousScrollTop;
+    }
+    renderPageList._structureKey = structureKey;
+    renderPageList._activeId = currentId;
+    renderPageList._count = pages.length;
 }
 
 window.renderPageList = renderPageList;

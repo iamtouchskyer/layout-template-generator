@@ -56,8 +56,8 @@ function updateNavValues() {
     document.getElementById('nav-l1-value').textContent = `${themeName.split(' ')[0]} + ${shapeCount} shapes`;
 
     const page = (typeof getCurrentPage === 'function') ? getCurrentPage() : null;
-    const model = (window.__stateInternals && typeof window.__stateInternals.getPageModelFromType === 'function')
-        ? window.__stateInternals.getPageModelFromType(state.pageType)
+    const model = (window.__pageModelUtils && typeof window.__pageModelUtils.getPageModelFromType === 'function')
+        ? window.__pageModelUtils.getPageModelFromType(state.pageType)
         : { shell: 'content', renderer: state.pageType === 'content-smartart' ? 'smartart' : 'grid' };
     const shell = page?.shell || page?.pageShell || model.shell;
     const renderer = page?.renderer || page?.bodyRenderer || model.renderer;
@@ -89,21 +89,15 @@ function deepClone(value) {
 }
 
 function getPageTypeForExport(page, fallbackType = 'content-grid') {
-    const helper = window.__stateInternals || {};
-    const inferTypeFromModel = helper.inferTypeFromModel;
-    const normalizePageType = helper.normalizePageType;
-    const fromType = page?.type;
-    const fromModel = typeof inferTypeFromModel === 'function'
-        ? inferTypeFromModel(page?.shell || page?.pageShell, page?.renderer || page?.bodyRenderer)
-        : null;
-    const preferred = fromType || fromModel || fallbackType;
-    return typeof normalizePageType === 'function'
-        ? normalizePageType(preferred)
-        : String(preferred || 'content-grid');
+    const helper = window.__pageModelUtils || {};
+    if (typeof helper.resolvePageType === 'function') {
+        return helper.resolvePageType(page, fallbackType);
+    }
+    return String(page?.type || fallbackType || 'content-grid');
 }
 
 function getPageModelForExport(pageType) {
-    const helper = window.__stateInternals || {};
+    const helper = window.__pageModelUtils || {};
     if (typeof helper.getPageModelFromType === 'function') {
         return helper.getPageModelFromType(pageType);
     }
@@ -114,7 +108,7 @@ function getPageModelForExport(pageType) {
 }
 
 function getPageLayoutForExport(pageType, pageData, fallbackLayout) {
-    const helper = window.__stateInternals || {};
+    const helper = window.__pageModelUtils || {};
     if (typeof helper.derivePageLayout === 'function') {
         return helper.derivePageLayout(pageType, pageData || {}, fallbackLayout);
     }

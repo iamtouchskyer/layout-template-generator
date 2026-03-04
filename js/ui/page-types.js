@@ -1,14 +1,13 @@
 // Page Type / Page Model management
 
 function _pageModelHelpers() {
-    return window.__stateInternals || {};
+    return window.__pageModelUtils || {};
 }
 
 function _resolveTypeFromModel(shell, renderer) {
     const helper = _pageModelHelpers();
-    if (typeof helper.inferTypeFromModel === 'function') {
-        const inferred = helper.inferTypeFromModel(shell, renderer);
-        if (inferred) return inferred;
+    if (typeof helper.resolveTypeFromModel === 'function') {
+        return helper.resolveTypeFromModel(shell, renderer, 'content-grid');
     }
     if (shell === 'cover') return 'cover';
     if (shell === 'divider') return 'divider';
@@ -58,6 +57,10 @@ function _layoutOptionsForType(type) {
 }
 
 function _currentLayoutByType(type, page) {
+    const helper = _pageModelHelpers();
+    if (typeof helper.derivePageLayout === 'function') {
+        return helper.derivePageLayout(type, page?.data || {}, page?.layout);
+    }
     const data = page?.data || {};
     if (type === 'cover') return data.coverLayout || page?.layout || 'cross_rectangles';
     if (type === 'divider') return data.dividerLayout || data.divider?.layout || page?.layout || 'cards-highlight';

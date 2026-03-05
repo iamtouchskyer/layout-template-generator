@@ -50,10 +50,10 @@ def test_cycle3_cycle6_visual_semantics_are_not_swapped():
     cycle3_block = source.split('function layoutCycle3(option) {', 1)[1].split('function layoutCycle4(option) {', 1)[0]
     cycle6_block = source.split('function layoutCycle6(option) {', 1)[1].split('function layoutCycle7(option) {', 1)[0]
 
-    # cycle3 (Segmented Cycle) should retain directional flow connectors.
-    assert "type: 'curvedArrow'" in cycle3_block
-    # cycle6 (Continuous Cycle) should avoid arrow-head flow connectors in preview.
-    assert "type: 'curvedArrow'" not in cycle6_block
+    # cycle3 (Block Cycle) uses arc segments between nodes (no arrowheads).
+    assert "type: 'arc'" in cycle3_block
+    # cycle6 (Segmented Cycle) uses a continuous circle ring connector.
+    assert "type: 'circle'" in cycle6_block
 
 
 def test_export_uses_aligned_ooxml_for_current_smartart_type():

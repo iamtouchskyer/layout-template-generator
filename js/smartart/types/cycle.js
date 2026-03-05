@@ -38,14 +38,38 @@ function layoutCycle1(option) {
     const count = resolveCount(items, { typeId: 'cycle1' });
     const cx = width / 2;
     const cy = height / 2;
-    const ringR = Math.min(width, height) * 0.35;
+    const minSide = Math.min(width, height);
+    const ringR = minSide * 0.35;
     const step = 360 / count;
     const centers = ringCenters(count, cx, cy, ringR, -90);
-    const nodeW = width * 0.15;
-    const nodeH = height * 0.12;
+    const chord = count > 1 ? (2 * ringR * Math.sin(Math.PI / count)) : ringR;
+    const nodeW = chord * 0.55;
+    const nodeH = nodeW * 0.8;
     const shapes = [];
     const connectors = [];
     const colors = childColors(theme);
+
+    const thickness = chord * 0.12;
+    const outerR = ringR + thickness / 2;
+    const innerR = ringR - thickness / 2;
+    const gapDeg = Math.min(15, step * 0.15);
+
+    for (let i = 0; i < count; i += 1) {
+        const color = colors[i % colors.length];
+        const start = -90 + i * step + gapDeg;
+        const end = start + step - gapDeg * 2;
+        connectors.push({
+            id: `flow-${i}`,
+            type: 'thickCurvedArrow',
+            cx,
+            cy,
+            outerR,
+            innerR,
+            startAngle: start,
+            endAngle: end,
+            fill: color
+        });
+    }
 
     for (let i = 0; i < count; i += 1) {
         const p = centers[i];
@@ -58,26 +82,13 @@ function layoutCycle1(option) {
             width: nodeW,
             height: nodeH,
             text: getItemText(item),
-            fill: theme.light1 || '#FFFFFF',
-            stroke: colors[i % colors.length],
-            strokeWidth: 1.5,
+            fill: 'none',
+            stroke: 'none',
+            strokeWidth: 0,
             textColor: theme.dark1 || '#333333',
             fontSize: 14,
-            rx: 8,
-            ry: 8
-        });
-
-        const start = -90 + i * step + 8;
-        const end = start + step - 16;
-        connectors.push({
-            id: `flow-${i}`,
-            type: 'curvedArrow',
-            cx,
-            cy,
-            radius: ringR * 0.9,
-            startAngle: start,
-            endAngle: end,
-            stroke: theme.accent1 || colors[0] || '#666666'
+            rx: 0,
+            ry: 0
         });
     }
 
@@ -97,13 +108,13 @@ function layoutCycle2(option) {
     const cy = height / 2;
     const ringR = Math.min(width, height) * 0.35;
     const centers = ringCenters(count, cx, cy, ringR, -90);
-    const nodeW = width * 0.18;
+    const chord = count > 1 ? (2 * ringR * Math.sin(Math.PI / count)) : ringR;
+    const nodeW = chord * 0.65;
     const nodeH = nodeW;
     const shapes = [];
     const connectors = [];
     const colors = childColors(theme);
-    const chord = count > 1 ? (2 * ringR * Math.sin(Math.PI / count)) : 0;
-    const arrowSize = Math.max(18, Math.min(chord * 0.34, nodeW * 0.55));
+    const arrowSize = Math.max(10, chord * 0.25);
 
     for (let i = 0; i < count; i += 1) {
         const p = centers[i];
@@ -157,9 +168,10 @@ function layoutCycle3(option) {
     const count = resolveCount(items, { typeId: 'cycle3' });
     const cx = width / 2;
     const cy = height / 2;
-    const ringR = Math.min(width, height) * 0.34;
+    const minSide = Math.min(width, height);
+    const ringR = minSide * 0.35;
     const step = 360 / count;
-    const centers = ringCenters(count, cx, cy, ringR * 1.05, -90);
+    const centers = ringCenters(count, cx, cy, ringR, -90);
     const nodeW = width * 0.2;
     const nodeH = height * 0.13;
     const shapes = [];
@@ -167,8 +179,26 @@ function layoutCycle3(option) {
     const colors = childColors(theme);
 
     for (let i = 0; i < count; i += 1) {
+        const color = colors[i % colors.length];
+        const start = -90 + i * step + 12;
+        const end = -90 + (i + 1) * step - 12;
+        connectors.push({
+            id: `arc-${i}`,
+            type: 'arc',
+            cx,
+            cy,
+            radius: ringR,
+            startAngle: start,
+            endAngle: end,
+            stroke: color,
+            strokeWidth: minSide * 0.03
+        });
+    }
+
+    for (let i = 0; i < count; i += 1) {
         const p = centers[i];
         const item = getItem(items, i);
+        const color = colors[i % colors.length];
         shapes.push({
             id: `node-${i}`,
             type: 'roundRect',
@@ -177,26 +207,13 @@ function layoutCycle3(option) {
             width: nodeW,
             height: nodeH,
             text: getItemText(item),
-            fill: theme.light1 || '#FFFFFF',
-            stroke: colors[i % colors.length],
-            strokeWidth: 1.5,
-            textColor: theme.dark1 || '#333333',
+            fill: color,
+            stroke: theme.light1 || '#FFFFFF',
+            strokeWidth: 2,
+            textColor: theme.light1 || '#FFFFFF',
             fontSize: 14,
-            rx: 10,
-            ry: 10
-        });
-
-        const start = -90 + i * step + 8;
-        const end = start + step - 16;
-        connectors.push({
-            id: `flow-${i}`,
-            type: 'curvedArrow',
-            cx,
-            cy,
-            radius: ringR * 0.92,
-            startAngle: start,
-            endAngle: end,
-            stroke: theme.accent1 || '#666666'
+            rx: 8,
+            ry: 8
         });
     }
 
@@ -326,9 +343,10 @@ function layoutCycle5(option) {
     const cx = width / 2;
     const cy = height / 2;
     const ringR = Math.min(width, height) * 0.35;
+    const step = 360 / count;
     const centers = ringCenters(count, cx, cy, ringR, -90);
-    const nodeW = width * 0.2;
-    const nodeH = height * 0.13;
+    const nodeW = width * 0.15;
+    const nodeH = height * 0.12;
     const shapes = [];
     const connectors = [];
     const colors = childColors(theme);
@@ -336,6 +354,7 @@ function layoutCycle5(option) {
     for (let i = 0; i < count; i += 1) {
         const p = centers[i];
         const item = getItem(items, i);
+        const color = colors[i % colors.length];
         shapes.push({
             id: `node-${i}`,
             type: 'roundRect',
@@ -344,25 +363,26 @@ function layoutCycle5(option) {
             width: nodeW,
             height: nodeH,
             text: getItemText(item),
-            fill: theme.light1 || '#FFFFFF',
-            stroke: colors[i % colors.length],
-            strokeWidth: 1.5,
-            textColor: theme.dark1 || '#333333',
+            fill: color,
+            stroke: theme.light1 || '#FFFFFF',
+            strokeWidth: 2,
+            textColor: theme.light1 || '#FFFFFF',
             fontSize: 14,
-            rx: 10,
-            ry: 10
+            rx: 8,
+            ry: 8
         });
 
-        const next = centers[(i + 1) % count];
+        const start = -90 + i * step + 8;
+        const end = start + step - 16;
         connectors.push({
-            id: `line-${i}`,
-            type: 'line',
-            x1: p.x,
-            y1: p.y,
-            x2: next.x,
-            y2: next.y,
-            stroke: theme.accent1 || '#666666',
-            strokeWidth: 1.5
+            id: `flow-${i}`,
+            type: 'curvedArrow',
+            cx,
+            cy,
+            radius: ringR * 0.9,
+            startAngle: start,
+            endAngle: end,
+            stroke: color
         });
     }
 
@@ -381,80 +401,24 @@ function layoutCycle6(option) {
     const cx = width / 2;
     const cy = height / 2;
     const minSide = Math.min(width, height);
-    const ringR = minSide * (count > 4 ? 0.38 : 0.35);
-    const step = 360 / count;
+    const ringR = minSide * 0.35;
     const centers = ringCenters(count, cx, cy, ringR, -90);
-    const nodeW = width * (count > 4 ? 0.24 : 0.33);
-    const nodeH = height * (count > 4 ? 0.20 : 0.28);
-    const ringOuter = minSide * (count > 4 ? 0.42 : 0.45);
-    const ringInner = ringOuter - minSide * (count > 4 ? 0.055 : 0.07);
-    const segmentGap = Math.min(18, step * 0.18);
-    const shapes = [];
-    const colors = childColors(theme);
-    const ringFill = softRingFill(theme);
-
-    // Continuous-cycle in PPT uses no arrow heads; render as a soft segmented ring.
-    for (let i = 0; i < count; i += 1) {
-        const start = -90 + i * step + segmentGap / 2;
-        const end = -90 + (i + 1) * step - segmentGap / 2;
-        shapes.push({
-            id: `ring-${i}`,
-            type: 'pie',
-            cx,
-            cy,
-            innerRadius: ringInner,
-            outerRadius: ringOuter,
-            startAngle: start,
-            endAngle: end,
-            fill: ringFill,
-            stroke: 'none',
-            strokeWidth: 0
-        });
-    }
-
-    for (let i = 0; i < count; i += 1) {
-        const p = centers[i];
-        const item = getItem(items, i);
-        shapes.push({
-            id: `node-${i}`,
-            type: 'roundRect',
-            x: p.x - nodeW / 2,
-            y: p.y - nodeH / 2,
-            width: nodeW,
-            height: nodeH,
-            text: getItemText(item),
-            fill: colors[i % colors.length],
-            stroke: theme.light1 || '#FFFFFF',
-            strokeWidth: 1.5,
-            textColor: theme.light1 || '#FFFFFF',
-            fontSize: 16,
-            rx: Math.max(12, nodeH * 0.22),
-            ry: Math.max(12, nodeH * 0.22)
-        });
-    }
-
-    return {
-        type: 'cycle',
-        shapes,
-        connectors: [],
-        bounds: { x: 0, y: 0, width, height }
-    };
-}
-
-function layoutCycle7(option) {
-    const { items, size, theme } = option;
-    const { width, height } = size;
-    const count = resolveCount(items, { typeId: 'cycle7', min: 3, max: 3 });
-    const cx = width / 2;
-    const cy = height / 2;
-    const ringR = Math.min(width, height) * 0.34;
-    const centers = ringCenters(count, cx, cy, ringR, -90);
-    const nodeW = width * 0.32;
-    const nodeH = height * 0.2;
-    const arrowSize = Math.min(width, height) * 0.06;
+    const nodeW = width * 0.2;
+    const nodeH = height * 0.13;
     const shapes = [];
     const connectors = [];
     const colors = childColors(theme);
+
+    connectors.push({
+        id: 'ring',
+        type: 'circle',
+        cx,
+        cy,
+        radius: ringR,
+        fill: 'none',
+        stroke: theme.accent1 || colors[0] || '#666666',
+        strokeWidth: minSide * 0.035
+    });
 
     for (let i = 0; i < count; i += 1) {
         const p = centers[i];
@@ -472,10 +436,37 @@ function layoutCycle7(option) {
             strokeWidth: 1.5,
             textColor: theme.dark1 || '#333333',
             fontSize: 14,
-            rx: 10,
-            ry: 10
+            rx: 8,
+            ry: 8
         });
     }
+
+    return {
+        type: 'cycle',
+        shapes,
+        connectors,
+        bounds: { x: 0, y: 0, width, height }
+    };
+}
+
+function layoutCycle7(option) {
+    const { items, size, theme } = option;
+    const { width, height } = size;
+    const count = resolveCount(items, { typeId: 'cycle7' });
+    const cx = width / 2;
+    const cy = height / 2;
+    const minSide = Math.min(width, height);
+    const ringR = minSide * 0.38;
+    const centers = ringCenters(count, cx, cy, ringR, -90);
+    const nodeW = width * 0.18;
+    const nodeH = height * 0.14;
+    const shapes = [];
+    const connectors = [];
+    const colors = childColors(theme);
+    const chord = count > 1 ? (2 * ringR * Math.sin(Math.PI / count)) : 0;
+    const nodeDiag = Math.sqrt(nodeW * nodeW + nodeH * nodeH) / 2;
+    const gap = Math.max(0, chord - nodeDiag * 2);
+    const arrowLen = Math.max(12, gap * 0.6);
 
     for (let i = 0; i < count; i += 1) {
         const p = centers[i];
@@ -483,33 +474,37 @@ function layoutCycle7(option) {
         const mx = (p.x + next.x) / 2;
         const my = (p.y + next.y) / 2;
         const angle = Math.atan2(next.y - p.y, next.x - p.x) * 180 / Math.PI;
+        const color = colors[i % colors.length];
         connectors.push({
             id: `edge-${i}`,
-            type: 'line',
-            x1: p.x,
-            y1: p.y,
-            x2: next.x,
-            y2: next.y,
-            stroke: theme.accent1 || '#666666',
-            strokeWidth: 1.2
-        });
-        connectors.push({
-            id: `edge-arrow-a-${i}`,
-            type: 'arrow',
-            x: mx - arrowSize / 2,
-            y: my - arrowSize / 2,
-            size: arrowSize,
+            type: 'biArrow',
+            x: mx,
+            y: my,
+            length: arrowLen,
             rotation: angle,
-            fill: theme.accent1 || '#666666'
+            fill: color
         });
-        connectors.push({
-            id: `edge-arrow-b-${i}`,
-            type: 'arrow',
-            x: mx - arrowSize / 2,
-            y: my - arrowSize / 2,
-            size: arrowSize,
-            rotation: angle + 180,
-            fill: theme.accent1 || '#666666'
+    }
+
+    for (let i = 0; i < count; i += 1) {
+        const p = centers[i];
+        const item = getItem(items, i);
+        const color = colors[i % colors.length];
+        shapes.push({
+            id: `node-${i}`,
+            type: 'roundRect',
+            x: p.x - nodeW / 2,
+            y: p.y - nodeH / 2,
+            width: nodeW,
+            height: nodeH,
+            text: getItemText(item),
+            fill: color,
+            stroke: theme.light1 || '#FFFFFF',
+            strokeWidth: 2,
+            textColor: theme.light1 || '#FFFFFF',
+            fontSize: 14,
+            rx: 8,
+            ry: 8
         });
     }
 

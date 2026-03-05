@@ -568,6 +568,21 @@ function renderConnector(conn) {
                 stroke: conn.stroke || '#666',
                 'stroke-width': conn.strokeWidth || 2
             });
+        case 'circle':
+            return createSVGElement('circle', {
+                cx: conn.cx,
+                cy: conn.cy,
+                r: conn.radius,
+                fill: conn.fill || 'none',
+                stroke: conn.stroke || '#666',
+                'stroke-width': conn.strokeWidth || 2
+            });
+        case 'arc':
+            return renderArc(conn);
+        case 'biArrow':
+            return renderBiArrow(conn);
+        case 'thickCurvedArrow':
+            return renderThickCurvedArrow(conn);
         case 'curvedArrow':
             return renderCurvedArrow(conn);
         case 'arrow':
@@ -685,8 +700,81 @@ function renderArrowConnector(conn) {
     return polygon;
 }
 
+function renderThickCurvedArrow(conn) {
+    const { cx, cy, outerR, innerR, startAngle, endAngle, fill } = conn;
+    const midR = (outerR + innerR) / 2;
+    const thickness = outerR - innerR;
+    const headDeg = 10;
+    const headExtend = thickness * 0.5;
+    const bodyEnd = endAngle - headDeg;
+
+    const toRad = (d) => d * Math.PI / 180;
+    const px = (r, a) => cx + Math.cos(toRad(a)) * r;
+    const py = (r, a) => cy + Math.sin(toRad(a)) * r;
+
+    const largeArc = (bodyEnd - startAngle) > 180 ? 1 : 0;
+
+    const d = [
+        `M ${px(outerR, startAngle)} ${py(outerR, startAngle)}`,
+        `A ${outerR} ${outerR} 0 ${largeArc} 1 ${px(outerR, bodyEnd)} ${py(outerR, bodyEnd)}`,
+        `L ${px(outerR + headExtend, bodyEnd)} ${py(outerR + headExtend, bodyEnd)}`,
+        `L ${px(midR, endAngle)} ${py(midR, endAngle)}`,
+        `L ${px(innerR - headExtend, bodyEnd)} ${py(innerR - headExtend, bodyEnd)}`,
+        `L ${px(innerR, bodyEnd)} ${py(innerR, bodyEnd)}`,
+        `A ${innerR} ${innerR} 0 ${largeArc} 0 ${px(innerR, startAngle)} ${py(innerR, startAngle)}`,
+        'Z'
+    ].join(' ');
+
+    return createSVGElement('path', { d, fill: fill || '#666' });
+}
+
+function renderBiArrow(conn) {
+    const { x, y, length, rotation = 0, fill = '#666' } = conn;
+    const hw = length / 2;
+    const headD = hw * 0.336;
+    const headH = hw * 0.336;
+    const bodyH = hw * 0.202;
+    // Normalized double-headed arrow centered at (x, y)
+    const pts = [
+        [hw, 0],
+        [hw - headD, -headH],
+        [hw - headD, -bodyH],
+        [-(hw - headD), -bodyH],
+        [-(hw - headD), -headH],
+        [-hw, 0],
+        [-(hw - headD), headH],
+        [-(hw - headD), bodyH],
+        [hw - headD, bodyH],
+        [hw - headD, headH]
+    ];
+    const points = pts.map(([px, py]) => `${x + px},${y + py}`).join(' ');
+    const polygon = createSVGElement('polygon', { points, fill });
+    if (rotation) {
+        polygon.setAttribute('transform', `rotate(${rotation} ${x} ${y})`);
+    }
+    return polygon;
+}
+
+function renderArc(conn) {
+    const { cx, cy, radius, startAngle, endAngle, stroke, strokeWidth } = conn;
+    const startRad = (startAngle * Math.PI) / 180;
+    const endRad = (endAngle * Math.PI) / 180;
+    const x1 = cx + Math.cos(startRad) * radius;
+    const y1 = cy + Math.sin(startRad) * radius;
+    const x2 = cx + Math.cos(endRad) * radius;
+    const y2 = cy + Math.sin(endRad) * radius;
+    const largeArc = (endAngle - startAngle) > 180 ? 1 : 0;
+    const d = `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`;
+    return createSVGElement('path', {
+        d,
+        fill: 'none',
+        stroke: stroke || '#666',
+        'stroke-width': strokeWidth || 2
+    });
+}
+
 function renderCurvedArrow(conn) {
-    const { cx, cy, radius, startAngle, endAngle, stroke } = conn;
+    const { cx, cy, radius, startAngle, endAngle, stroke, strokeWidth } = conn;
 
     const startRad = ((startAngle + 15) * Math.PI) / 180;
     const endRad = ((endAngle - 15) * Math.PI) / 180;
@@ -704,7 +792,7 @@ function renderCurvedArrow(conn) {
         d,
         fill: 'none',
         stroke: stroke || '#666',
-        'stroke-width': 2,
+        'stroke-width': strokeWidth || 2,
         'marker-end': 'url(#arrowhead)'
     });
 

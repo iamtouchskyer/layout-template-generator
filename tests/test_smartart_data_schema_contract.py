@@ -175,7 +175,7 @@ console.log(JSON.stringify({
   cycle3ConnectorCount: cycle3.connectors.length,
   cycle5Shapes: cycle5.shapes.length,
   cycle6NodeShapes: cycle6.shapes.filter((s) => /^node-/.test(s.id)).length,
-  cycle6RingShapes: cycle6.shapes.filter((s) => /^ring-/.test(s.id)).length,
+  cycle6RingConnector: cycle6.connectors.filter((c) => c.type === 'circle').length,
 }));
         """
     )
@@ -186,7 +186,7 @@ console.log(JSON.stringify({
     assert result['cycle3ConnectorCount'] == 4
     assert result['cycle5Shapes'] == 4
     assert result['cycle6NodeShapes'] == 4
-    assert result['cycle6RingShapes'] == 4
+    assert result['cycle6RingConnector'] == 1
 
 
 def test_cycle_layout_count_falls_back_to_schema_and_variant_constraints():
@@ -223,5 +223,5 @@ console.log(JSON.stringify({
     )
 
     assert result['cycle1DefaultShapes'] == 5
-    assert result['cycle7BoundedShapes'] == 3
+    assert result['cycle7BoundedShapes'] == 4
     assert result['cycle8MinShapes'] == 3

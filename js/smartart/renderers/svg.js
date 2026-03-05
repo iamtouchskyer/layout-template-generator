@@ -578,15 +578,99 @@ function renderConnector(conn) {
 }
 
 function renderArrowConnector(conn) {
-    const { x, y, size = 12, rotation = 0, fill = '#666' } = conn;
-    const half = size / 2;
+    const { x, y, size = 12, rotation = 0, fill = '#666', style } = conn;
+
+    if (style === 'textCycleSvg') {
+        // Preserve original self-intersecting shape from Picture1.svg.
+        const pathPoints = [
+            [0.0, 0.4977],
+            [0.3303, 0.1674],
+            [0.1629, 0.0],
+            [0.9118, 0.0883],
+            [1.0, 0.8373],
+            [0.8326, 0.6699],
+            [0.5023, 1.0]
+        ];
+        const d = pathPoints
+            .map(([px, py], idx) => `${idx === 0 ? 'M' : 'L'} ${x + px * size} ${y + py * size}`)
+            .join(' ') + ' Z';
+
+        const path = createSVGElement('path', {
+            d,
+            fill,
+            'fill-rule': 'evenodd'
+        });
+
+        let adjustedRotation = rotation + 45;
+        if (
+            Number.isFinite(conn.fromX) &&
+            Number.isFinite(conn.fromY) &&
+            Number.isFinite(conn.toX) &&
+            Number.isFinite(conn.toY)
+        ) {
+            const cx = x + size / 2;
+            const cy = y + size / 2;
+            const tipCandidates = [
+                [0.1629, 0.0],
+                [1.0, 0.8373]
+            ];
+
+            const rotatePoint = (deg, px, py) => {
+                const rad = deg * Math.PI / 180;
+                const vx = x + px * size - cx;
+                const vy = y + py * size - cy;
+                return {
+                    x: cx + vx * Math.cos(rad) - vy * Math.sin(rad),
+                    y: cy + vx * Math.sin(rad) + vy * Math.cos(rad)
+                };
+            };
+
+            const scoreRotation = (deg) => {
+                let best = Infinity;
+                for (let i = 0; i < tipCandidates.length; i += 1) {
+                    const [px, py] = tipCandidates[i];
+                    const tip = rotatePoint(deg, px, py);
+                    const dTo = Math.hypot(tip.x - conn.toX, tip.y - conn.toY);
+                    const dFrom = Math.hypot(tip.x - conn.fromX, tip.y - conn.fromY);
+                    best = Math.min(best, dTo - dFrom);
+                }
+                return best;
+            };
+
+            const directScore = scoreRotation(adjustedRotation);
+            const flippedScore = scoreRotation(adjustedRotation + 180);
+            if (flippedScore < directScore) {
+                adjustedRotation += 180;
+            }
+        }
+
+        if (adjustedRotation) {
+            path.setAttribute('transform', `rotate(${adjustedRotation} ${x + size / 2} ${y + size / 2})`);
+        }
+        return path;
+    }
+
+    const width = size * 1.42;
+    const height = size * 0.9;
+    const originX = x + (size - width) / 2;
+    const originY = y + (size - height) / 2;
+    const midY = originY + height / 2;
+    const notchX = originX + width * 0.2;
+    const bodyEndX = originX + width * 0.68;
+    const tipX = originX + width;
+    const shoulder = height * 0.17;
+    const notchDepth = height * 0.2;
     const points = [
-        `${x},${y + half}`,
-        `${x + size * 0.6},${y + half}`,
-        `${x + size * 0.6},${y}`,
-        `${x + size},${y + half}`,
-        `${x + size * 0.6},${y + size}`,
-        `${x + size * 0.6},${y + half}`
+        `${notchX},${originY}`,
+        `${bodyEndX},${originY}`,
+        `${bodyEndX},${midY - shoulder}`,
+        `${tipX},${midY}`,
+        `${bodyEndX},${midY + shoulder}`,
+        `${bodyEndX},${originY + height}`,
+        `${notchX},${originY + height}`,
+        `${notchX},${midY + notchDepth}`,
+        `${originX},${midY}`,
+        `${notchX},${midY - notchDepth}`
     ].join(' ');
 
     const polygon = createSVGElement('polygon', {
@@ -595,7 +679,7 @@ function renderArrowConnector(conn) {
     });
 
     if (rotation) {
-        polygon.setAttribute('transform', `rotate(${rotation} ${x + half} ${y + half})`);
+        polygon.setAttribute('transform', `rotate(${rotation} ${x + size / 2} ${y + size / 2})`);
     }
 
     return polygon;

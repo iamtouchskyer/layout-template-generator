@@ -171,18 +171,22 @@ const cycle6 = cycleLayout(input, { variant: 'cycle6' });
 console.log(JSON.stringify({
   cycle1Shapes: cycle1.shapes.length,
   cycle2Shapes: cycle2.shapes.length,
-  cycle3Shapes: cycle3.shapes.length,
+  cycle3NodeShapes: cycle3.shapes.filter((s) => /^node-/.test(s.id)).length,
+  cycle3ConnectorCount: cycle3.connectors.length,
   cycle5Shapes: cycle5.shapes.length,
-  cycle6Shapes: cycle6.shapes.length,
+  cycle6NodeShapes: cycle6.shapes.filter((s) => /^node-/.test(s.id)).length,
+  cycle6RingShapes: cycle6.shapes.filter((s) => /^ring-/.test(s.id)).length,
 }));
         """
     )
 
     assert result['cycle1Shapes'] == 4
     assert result['cycle2Shapes'] == 4
-    assert result['cycle3Shapes'] == 4
+    assert result['cycle3NodeShapes'] == 4
+    assert result['cycle3ConnectorCount'] == 4
     assert result['cycle5Shapes'] == 4
-    assert result['cycle6Shapes'] == 4
+    assert result['cycle6NodeShapes'] == 4
+    assert result['cycle6RingShapes'] == 4
 
 
 def test_cycle_layout_count_falls_back_to_schema_and_variant_constraints():

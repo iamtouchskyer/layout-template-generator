@@ -1,15 +1,35 @@
 {
   "version": "1.0.0",
   "categories": [
-    { "id": "matrix", "label": "Matrix", "desc": "矩阵/循环结构" },
-    { "id": "cycle", "label": "Cycle", "desc": "循环结构" },
-    { "id": "pyramid", "label": "Pyramid", "desc": "金字塔/漏斗结构" },
-    { "id": "others", "label": "Others", "desc": "其他图形" }
+    {
+      "id": "matrix",
+      "label": "Matrix",
+      "desc": "Matrix and cycle structures"
+    },
+    {
+      "id": "cycle",
+      "label": "Cycle",
+      "desc": "Cycle structures"
+    },
+    {
+      "id": "pyramid",
+      "label": "Pyramid",
+      "desc": "Pyramid and funnel structures"
+    },
+    {
+      "id": "others",
+      "label": "Others",
+      "desc": "Other diagrams"
+    }
   ],
   "types": [
     {
       "id": "matrix",
-      "ui": { "category": "matrix", "label": "标题矩阵", "ooxmlId": "matrix1" },
+      "ui": {
+        "category": "matrix",
+        "label": "Basic Matrix",
+        "ooxmlId": "matrix1"
+      },
       "engine": {
         "name": "基础矩阵",
         "nameEn": "Basic Matrix",
@@ -18,152 +38,260 @@
         "layoutArgs": {},
         "shapeType": "rect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/matrix1" },
-      "pptx": { "smartartType": "BASIC_MATRIX" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/matrix1"
+      },
+      "pptx": {
+        "smartartType": "BASIC_MATRIX"
+      }
     },
     {
       "id": "matrix-titled",
-      "ui": { "category": "matrix", "label": "基础矩阵", "ooxmlId": "matrix2" },
+      "ui": {
+        "category": "matrix",
+        "label": "Titled Matrix",
+        "ooxmlId": "matrix2"
+      },
       "engine": {
         "name": "标题矩阵",
         "nameEn": "Titled Matrix",
         "category": "matrix",
         "layout": "matrix",
-        "layoutArgs": { "titled": true },
+        "layoutArgs": {
+          "titled": true
+        },
         "shapeType": "rect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/matrix2" },
-      "pptx": { "smartartType": "TITLED_MATRIX" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/matrix2"
+      },
+      "pptx": {
+        "smartartType": "TITLED_MATRIX"
+      }
     },
     {
       "id": "matrix-cycle",
-      "ui": { "category": "matrix", "label": "循环矩阵", "ooxmlId": "matrix3" },
+      "ui": {
+        "category": "matrix",
+        "label": "Cycle Matrix",
+        "ooxmlId": "matrix3"
+      },
       "engine": {
         "name": "循环矩阵",
         "nameEn": "Cycle Matrix",
         "category": "matrix",
         "layout": "matrix",
-        "layoutArgs": { "cycle": true },
+        "layoutArgs": {
+          "cycle": true
+        },
         "shapeType": "rect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/matrix3" },
-      "pptx": { "smartartType": "TITLED_MATRIX" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/matrix3"
+      },
+      "pptx": {
+        "smartartType": "TITLED_MATRIX"
+      }
     },
     {
       "id": "cycle",
-      "ui": { "category": "cycle", "label": "块状循环", "ooxmlId": "cycle4" },
-      "engine": {
-        "name": "块状循环",
-        "nameEn": "Block Cycle",
+      "ui": {
         "category": "cycle",
-        "layout": "cycle",
-        "layoutArgs": { "variant": "cycle4" },
-        "shapeType": "chevron"
+        "label": "Continuous Cycle",
+        "ooxmlId": "cycle4"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle4" },
-      "pptx": { "smartartType": "BLOCK_CYCLE" }
-    },
-    {
-      "id": "cycle1",
-      "ui": { "category": "cycle", "label": "基础循环", "ooxmlId": "cycle1" },
-      "engine": {
-        "name": "基础循环",
-        "nameEn": "Basic Cycle",
-        "category": "cycle",
-        "layout": "cycle",
-        "layoutArgs": { "variant": "cycle1" },
-        "shapeType": "rect"
-      },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle1" },
-      "pptx": { "smartartType": "BASIC_CYCLE" }
-    },
-    {
-      "id": "cycle2",
-      "ui": { "category": "cycle", "label": "文本循环", "ooxmlId": "cycle2" },
-      "engine": {
-        "name": "文本循环",
-        "nameEn": "Text Cycle",
-        "category": "cycle",
-        "layout": "cycle",
-        "layoutArgs": { "variant": "cycle2" },
-        "shapeType": "ellipse"
-      },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle2" },
-      "pptx": { "smartartType": "TEXT_CYCLE" }
-    },
-    {
-      "id": "cycle3",
-      "ui": { "category": "cycle", "label": "分段循环", "ooxmlId": "cycle3" },
-      "engine": {
-        "name": "分段循环",
-        "nameEn": "Segmented Cycle",
-        "category": "cycle",
-        "layout": "cycle",
-        "layoutArgs": { "variant": "cycle3" },
-        "shapeType": "roundRect"
-      },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle3" },
-      "pptx": { "smartartType": "SEGMENTED_CYCLE" }
-    },
-    {
-      "id": "cycle5",
-      "ui": { "category": "cycle", "label": "无方向循环", "ooxmlId": "cycle5" },
-      "engine": {
-        "name": "无方向循环",
-        "nameEn": "Non Directional Cycle",
-        "category": "cycle",
-        "layout": "cycle",
-        "layoutArgs": { "variant": "cycle5" },
-        "shapeType": "roundRect"
-      },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle5" },
-      "pptx": { "smartartType": "NON_DIRECTIONAL_CYCLE" }
-    },
-    {
-      "id": "cycle6",
-      "ui": { "category": "cycle", "label": "连续循环", "ooxmlId": "cycle6" },
       "engine": {
         "name": "连续循环",
         "nameEn": "Continuous Cycle",
         "category": "cycle",
         "layout": "cycle",
-        "layoutArgs": { "variant": "cycle6" },
+        "layoutArgs": {
+          "variant": "cycle4"
+        },
+        "shapeType": "chevron"
+      },
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle4"
+      },
+      "pptx": {
+        "smartartType": "BLOCK_CYCLE"
+      }
+    },
+    {
+      "id": "cycle1",
+      "ui": {
+        "category": "cycle",
+        "label": "Basic Cycle",
+        "ooxmlId": "cycle1"
+      },
+      "engine": {
+        "name": "基础循环",
+        "nameEn": "Basic Cycle",
+        "category": "cycle",
+        "layout": "cycle",
+        "layoutArgs": {
+          "variant": "cycle1"
+        },
+        "shapeType": "rect"
+      },
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle1"
+      },
+      "pptx": {
+        "smartartType": "BASIC_CYCLE"
+      }
+    },
+    {
+      "id": "cycle2",
+      "ui": {
+        "category": "cycle",
+        "label": "Text Cycle",
+        "ooxmlId": "cycle2"
+      },
+      "engine": {
+        "name": "文本循环",
+        "nameEn": "Text Cycle",
+        "category": "cycle",
+        "layout": "cycle",
+        "layoutArgs": {
+          "variant": "cycle2"
+        },
+        "shapeType": "ellipse"
+      },
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle2"
+      },
+      "pptx": {
+        "smartartType": "TEXT_CYCLE"
+      }
+    },
+    {
+      "id": "cycle3",
+      "ui": {
+        "category": "cycle",
+        "label": "Block Cycle",
+        "ooxmlId": "cycle3"
+      },
+      "engine": {
+        "name": "块状循环",
+        "nameEn": "Block Cycle",
+        "category": "cycle",
+        "layout": "cycle",
+        "layoutArgs": {
+          "variant": "cycle3"
+        },
         "shapeType": "roundRect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle6" },
-      "pptx": { "smartartType": "CONTINUOUS_CYCLE" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle3"
+      },
+      "pptx": {
+        "smartartType": "SEGMENTED_CYCLE"
+      }
+    },
+    {
+      "id": "cycle5",
+      "ui": {
+        "category": "cycle",
+        "label": "Non Directional Cycle",
+        "ooxmlId": "cycle5"
+      },
+      "engine": {
+        "name": "无方向循环",
+        "nameEn": "Non Directional Cycle",
+        "category": "cycle",
+        "layout": "cycle",
+        "layoutArgs": {
+          "variant": "cycle5"
+        },
+        "shapeType": "roundRect"
+      },
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle5"
+      },
+      "pptx": {
+        "smartartType": "NON_DIRECTIONAL_CYCLE"
+      }
+    },
+    {
+      "id": "cycle6",
+      "ui": {
+        "category": "cycle",
+        "label": "Segmented Cycle",
+        "ooxmlId": "cycle6"
+      },
+      "engine": {
+        "name": "分段循环",
+        "nameEn": "Segmented Cycle",
+        "category": "cycle",
+        "layout": "cycle",
+        "layoutArgs": {
+          "variant": "cycle6"
+        },
+        "shapeType": "roundRect"
+      },
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle6"
+      },
+      "pptx": {
+        "smartartType": "CONTINUOUS_CYCLE"
+      }
     },
     {
       "id": "cycle7",
-      "ui": { "category": "cycle", "label": "三段循环", "ooxmlId": "cycle7" },
+      "ui": {
+        "category": "cycle",
+        "label": "Basic Pie",
+        "ooxmlId": "cycle7"
+      },
       "engine": {
-        "name": "三段循环",
-        "nameEn": "Tri Cycle",
+        "name": "基础饼图",
+        "nameEn": "Basic Pie",
         "category": "cycle",
         "layout": "cycle",
-        "layoutArgs": { "variant": "cycle7" },
+        "layoutArgs": {
+          "variant": "cycle7"
+        },
         "shapeType": "roundRect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle7" },
-      "pptx": { "smartartType": "NON_DIRECTIONAL_CYCLE" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle7"
+      },
+      "pptx": {
+        "smartartType": "NON_DIRECTIONAL_CYCLE"
+      }
     },
     {
       "id": "cycle8",
-      "ui": { "category": "cycle", "label": "扇区循环", "ooxmlId": "cycle8" },
+      "ui": {
+        "category": "cycle",
+        "label": "Radial Cycle",
+        "ooxmlId": "cycle8"
+      },
       "engine": {
-        "name": "扇区循环",
-        "nameEn": "Sector Cycle",
+        "name": "放射循环",
+        "nameEn": "Radial Cycle",
         "category": "cycle",
         "layout": "cycle",
-        "layoutArgs": { "variant": "cycle8" },
+        "layoutArgs": {
+          "variant": "cycle8"
+        },
         "shapeType": "pie"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle8" },
-      "pptx": { "smartartType": "SEGMENTED_CYCLE" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle8"
+      },
+      "pptx": {
+        "smartartType": "SEGMENTED_CYCLE"
+      }
     },
     {
       "id": "pyramid",
-      "ui": { "category": "pyramid", "label": "基础金字塔", "ooxmlId": "pyramid1" },
+      "ui": {
+        "category": "pyramid",
+        "label": "Basic Pyramid",
+        "ooxmlId": "pyramid1"
+      },
       "engine": {
         "name": "基础金字塔",
         "nameEn": "Basic Pyramid",
@@ -172,54 +300,92 @@
         "layoutArgs": {},
         "shapeType": "trapezoid"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/pyramid1" },
-      "pptx": { "smartartType": "BASIC_PYRAMID" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/pyramid1"
+      },
+      "pptx": {
+        "smartartType": "BASIC_PYRAMID"
+      }
     },
     {
       "id": "pyramid-list",
-      "ui": { "category": "pyramid", "label": "金字塔列表", "ooxmlId": "pyramid2" },
+      "ui": {
+        "category": "pyramid",
+        "label": "Pyramid List",
+        "ooxmlId": "pyramid2"
+      },
       "engine": {
         "name": "金字塔列表",
         "nameEn": "Pyramid List",
         "category": "pyramid",
         "layout": "pyramid",
-        "layoutArgs": { "listStyle": true },
+        "layoutArgs": {
+          "listStyle": true
+        },
         "shapeType": "triangle"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/pyramid2" },
-      "pptx": { "smartartType": "PYRAMID_LIST" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/pyramid2"
+      },
+      "pptx": {
+        "smartartType": "PYRAMID_LIST"
+      }
     },
     {
       "id": "pyramid-inverted",
-      "ui": { "category": "pyramid", "label": "倒漏斗", "ooxmlId": "pyramid3" },
+      "ui": {
+        "category": "pyramid",
+        "label": "Inverted Funnel",
+        "ooxmlId": "pyramid3"
+      },
       "engine": {
         "name": "倒漏斗",
         "nameEn": "Inverted Funnel",
         "category": "pyramid",
         "layout": "pyramid",
-        "layoutArgs": { "inverted": true },
+        "layoutArgs": {
+          "inverted": true
+        },
         "shapeType": "trapezoid"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/pyramid3" },
-      "pptx": { "smartartType": "INVERTED_PYRAMID" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/pyramid3"
+      },
+      "pptx": {
+        "smartartType": "INVERTED_PYRAMID"
+      }
     },
     {
       "id": "pyramid-segmented",
-      "ui": { "category": "pyramid", "label": "分段金字塔", "ooxmlId": "pyramid4" },
+      "ui": {
+        "category": "pyramid",
+        "label": "Segmented Pyramid",
+        "ooxmlId": "pyramid4"
+      },
       "engine": {
         "name": "分段金字塔",
         "nameEn": "Segmented Pyramid",
         "category": "pyramid",
         "layout": "pyramid",
-        "layoutArgs": { "segmented": true },
+        "layoutArgs": {
+          "segmented": true
+        },
         "shapeType": "triangle"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/pyramid4" },
-      "pptx": { "smartartType": "SEGMENTED_PYRAMID" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/pyramid4"
+      },
+      "pptx": {
+        "smartartType": "SEGMENTED_PYRAMID"
+      }
     },
     {
       "id": "chevron",
-      "ui": { "category": "others", "label": "基础流程", "ooxmlId": "chevron1" },
+      "ui": {
+        "category": "others",
+        "label": "Basic Chevron Process",
+        "ooxmlId": "chevron1"
+      },
       "engine": {
         "name": "基础流程",
         "nameEn": "Basic Chevron Process",
@@ -228,54 +394,92 @@
         "layoutArgs": {},
         "shapeType": "chevron"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/chevron1" },
-      "pptx": { "smartartType": "BASIC_CHEVRON_PROCESS" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/chevron1"
+      },
+      "pptx": {
+        "smartartType": "BASIC_CHEVRON_PROCESS"
+      }
     },
     {
       "id": "arrow-process",
-      "ui": { "category": "others", "label": "流程箭头", "ooxmlId": "arrow2" },
+      "ui": {
+        "category": "others",
+        "label": "Circular Bending Process",
+        "ooxmlId": "arrow2"
+      },
       "engine": {
         "name": "流程箭头",
         "nameEn": "Circular Bending Process",
         "category": "process",
         "layout": "chevron",
-        "layoutArgs": { "style": "arrow" },
+        "layoutArgs": {
+          "style": "arrow"
+        },
         "shapeType": "arrow"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/arrow2" },
-      "pptx": { "smartartType": "CIRCULAR_BENDING_PROCESS" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/arrow2"
+      },
+      "pptx": {
+        "smartartType": "CIRCULAR_BENDING_PROCESS"
+      }
     },
     {
       "id": "descending-process",
-      "ui": { "category": "others", "label": "下降流程", "ooxmlId": "DescendingProcess" },
+      "ui": {
+        "category": "others",
+        "label": "Descending Process",
+        "ooxmlId": "DescendingProcess"
+      },
       "engine": {
         "name": "下降流程",
         "nameEn": "Descending Process",
         "category": "process",
         "layout": "chevron",
-        "layoutArgs": { "style": "descending" },
+        "layoutArgs": {
+          "style": "descending"
+        },
         "shapeType": "rect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/DescendingProcess" },
-      "pptx": { "smartartType": "DESCENDING_PROCESS" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/DescendingProcess"
+      },
+      "pptx": {
+        "smartartType": "DESCENDING_PROCESS"
+      }
     },
     {
       "id": "cycle-segmented",
-      "ui": { "category": "others", "label": "分段循环", "ooxmlId": "cycle8" },
+      "ui": {
+        "category": "others",
+        "label": "Segmented Cycle",
+        "ooxmlId": "cycle8"
+      },
       "engine": {
         "name": "分段循环",
         "nameEn": "Segmented Cycle",
         "category": "cycle",
         "layout": "cycle",
-        "layoutArgs": { "segmented": true },
+        "layoutArgs": {
+          "segmented": true
+        },
         "shapeType": "pie"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle8" },
-      "pptx": { "smartartType": "SEGMENTED_CYCLE" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/cycle8"
+      },
+      "pptx": {
+        "smartartType": "SEGMENTED_CYCLE"
+      }
     },
     {
       "id": "hierarchy",
-      "ui": { "category": "others", "label": "组织架构", "ooxmlId": "hierarchy1" },
+      "ui": {
+        "category": "others",
+        "label": "Hierarchy",
+        "ooxmlId": "hierarchy1"
+      },
       "engine": {
         "name": "组织架构",
         "nameEn": "Hierarchy",
@@ -284,12 +488,20 @@
         "layoutArgs": {},
         "shapeType": "rect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/hierarchy1" },
-      "pptx": { "smartartType": "HIERARCHY" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/hierarchy1"
+      },
+      "pptx": {
+        "smartartType": "HIERARCHY"
+      }
     },
     {
       "id": "radial",
-      "ui": { "category": "others", "label": "发散图", "ooxmlId": "radial4" },
+      "ui": {
+        "category": "others",
+        "label": "Basic Radial",
+        "ooxmlId": "radial4"
+      },
       "engine": {
         "name": "发散图",
         "nameEn": "Basic Radial",
@@ -298,12 +510,20 @@
         "layoutArgs": {},
         "shapeType": "ellipse"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/radial4" },
-      "pptx": { "smartartType": "BASIC_RADIAL" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/radial4"
+      },
+      "pptx": {
+        "smartartType": "BASIC_RADIAL"
+      }
     },
     {
       "id": "list",
-      "ui": { "category": "others", "label": "基础列表", "ooxmlId": "list1" },
+      "ui": {
+        "category": "others",
+        "label": "Basic Block List",
+        "ooxmlId": "list1"
+      },
       "engine": {
         "name": "基础列表",
         "nameEn": "Basic Block List",
@@ -312,64 +532,108 @@
         "layoutArgs": {},
         "shapeType": "rect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/list1" },
-      "pptx": { "smartartType": "BASIC_BLOCK_LIST" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/list1"
+      },
+      "pptx": {
+        "smartartType": "BASIC_BLOCK_LIST"
+      }
     },
     {
       "id": "list-vertical",
-      "ui": { "category": "others", "label": "垂直列表", "ooxmlId": "vList3" },
+      "ui": {
+        "category": "others",
+        "label": "Vertical Block List",
+        "ooxmlId": "vList3"
+      },
       "engine": {
         "name": "垂直列表",
         "nameEn": "Vertical Block List",
         "category": "list",
         "layout": "list",
-        "layoutArgs": { "direction": "vertical" },
+        "layoutArgs": {
+          "direction": "vertical"
+        },
         "shapeType": "rect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/vList3" },
-      "pptx": { "smartartType": "VERTICAL_BLOCK_LIST" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/vList3"
+      },
+      "pptx": {
+        "smartartType": "VERTICAL_BLOCK_LIST"
+      }
     },
     {
       "id": "hexagon-alternating",
-      "ui": { "category": "others", "label": "交替六边形", "ooxmlId": "AlternatingHexagons" },
+      "ui": {
+        "category": "others",
+        "label": "Alternating Hexagons",
+        "ooxmlId": "AlternatingHexagons"
+      },
       "engine": {
         "name": "交替六边形",
         "nameEn": "Alternating Hexagons",
         "category": "list",
         "layout": "list",
-        "layoutArgs": { "style": "hexagon" },
+        "layoutArgs": {
+          "style": "hexagon"
+        },
         "shapeType": "hexagon"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/AlternatingHexagons" },
-      "pptx": { "smartartType": "ALTERNATING_HEXAGONS" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/AlternatingHexagons"
+      },
+      "pptx": {
+        "smartartType": "ALTERNATING_HEXAGONS"
+      }
     },
     {
       "id": "picture-accent",
-      "ui": { "category": "others", "label": "突出图片", "ooxmlId": "AccentedPicture" },
+      "ui": {
+        "category": "others",
+        "label": "Accented Picture",
+        "ooxmlId": "AccentedPicture"
+      },
       "engine": {
         "name": "突出图片",
         "nameEn": "Accented Picture",
         "category": "picture",
         "layout": "list",
-        "layoutArgs": { "style": "picture" },
+        "layoutArgs": {
+          "style": "picture"
+        },
         "shapeType": "rect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/AccentedPicture" },
-      "pptx": { "smartartType": "ACCENTED_PICTURE" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/AccentedPicture"
+      },
+      "pptx": {
+        "smartartType": "ACCENTED_PICTURE"
+      }
     },
     {
       "id": "picture-captioned",
-      "ui": { "category": "others", "label": "带标题图片", "ooxmlId": "CaptionedPictures" },
+      "ui": {
+        "category": "others",
+        "label": "Captioned Pictures",
+        "ooxmlId": "CaptionedPictures"
+      },
       "engine": {
         "name": "带标题图片",
         "nameEn": "Captioned Pictures",
         "category": "picture",
         "layout": "list",
-        "layoutArgs": { "style": "captioned" },
+        "layoutArgs": {
+          "style": "captioned"
+        },
         "shapeType": "rect"
       },
-      "ooxml": { "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/CaptionedPictures" },
-      "pptx": { "smartartType": "CAPTIONED_PICTURES" }
+      "ooxml": {
+        "layoutId": "urn:microsoft.com/office/officeart/2005/8/layout/CaptionedPictures"
+      },
+      "pptx": {
+        "smartartType": "CAPTIONED_PICTURES"
+      }
     }
   ]
 }

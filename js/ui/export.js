@@ -72,7 +72,13 @@ function updateNavValues() {
     } else if (state.pageType === 'content-smartart') {
         const smartartType = SMARTART_TYPES[state.smartartType];
         const placement = SMARTART_PLACEMENTS[state.smartartPlacement];
-        l2Value = `${shell}/${renderer} · ${smartartType?.label || state.smartartType} · ${placement?.label || layoutFromPage || ''}`;
+        const smartartLabel = (typeof getSmartArtTypeLabel === 'function')
+            ? getSmartArtTypeLabel(smartartType)
+            : (smartartType?.label || state.smartartType);
+        const placementLabel = (typeof getSmartArtPlacementLabel === 'function')
+            ? getSmartArtPlacementLabel(placement)
+            : (placement?.label || layoutFromPage || '');
+        l2Value = `${shell}/${renderer} · ${smartartLabel} · ${placementLabel}`;
     } else if (state.pageType === 'content-grid') {
         const gridLayout = GRID_LAYOUTS[state.gridLayout];
         const zoneTypes = Object.values(state.zoneContents).join('+');
@@ -86,6 +92,23 @@ function updateNavValues() {
 
 function deepClone(value) {
     return JSON.parse(JSON.stringify(value));
+}
+
+function isSmartartOOXMLAligned(ooxml, smartartType) {
+    if (!ooxml || typeof ooxml !== 'object') return false;
+    if (!smartartType || typeof smartartType !== 'string') return true;
+
+    const expectedType = smartartType.trim();
+    const actualType = typeof ooxml.smartArtType === 'string' ? ooxml.smartArtType.trim() : '';
+    if (actualType && actualType !== expectedType) return false;
+
+    const expectedOOXMLId = SMARTART_TYPES[expectedType]?.ooxmlId;
+    if (!expectedOOXMLId) return true;
+
+    const layoutId = typeof ooxml.layoutId === 'string' ? ooxml.layoutId.trim() : '';
+    if (!layoutId) return true;
+    const layoutTail = layoutId.split('/').pop();
+    return layoutTail === expectedOOXMLId;
 }
 
 function getPageTypeForExport(page, fallbackType = 'content-grid') {
@@ -242,10 +265,17 @@ function buildPageDataForExport(page, legacyFallback) {
             ooxmlId: SMARTART_TYPES[smartartType]?.ooxmlId,
         };
 
-        if (sourceData.smartart?.ooxml) {
+        // Prefer live OOXML from current editor to avoid exporting stale layout/type pairs.
+        if (typeof getSmartArtOOXML === 'function' && state.ui?.currentPageId === page?.id) {
+            const liveOOXML = getSmartArtOOXML();
+            if (isSmartartOOXMLAligned(liveOOXML, smartartType)) {
+                smartart.ooxml = deepClone(liveOOXML);
+            }
+        }
+
+        // For non-current pages, only reuse cached OOXML when it still matches current type.
+        if (!smartart.ooxml && isSmartartOOXMLAligned(sourceData.smartart?.ooxml, smartartType)) {
             smartart.ooxml = deepClone(sourceData.smartart.ooxml);
-        } else if (typeof getSmartArtOOXML === 'function' && state.ui?.currentPageId === page?.id) {
-            smartart.ooxml = getSmartArtOOXML();
         }
 
         return {

@@ -8,7 +8,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "matrix",
     "ui": {
       "category": "matrix",
-      "label": "标题矩阵",
+      "label": "Basic Matrix",
       "ooxmlId": "matrix1"
     },
     "engine": {
@@ -30,7 +30,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "matrix-titled",
     "ui": {
       "category": "matrix",
-      "label": "基础矩阵",
+      "label": "Titled Matrix",
       "ooxmlId": "matrix2"
     },
     "engine": {
@@ -54,7 +54,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "matrix-cycle",
     "ui": {
       "category": "matrix",
-      "label": "循环矩阵",
+      "label": "Cycle Matrix",
       "ooxmlId": "matrix3"
     },
     "engine": {
@@ -78,12 +78,12 @@ export const SMARTART_TYPE_DEFS = [
     "id": "cycle",
     "ui": {
       "category": "cycle",
-      "label": "块状循环",
+      "label": "Continuous Cycle",
       "ooxmlId": "cycle4"
     },
     "engine": {
-      "name": "块状循环",
-      "nameEn": "Block Cycle",
+      "name": "连续循环",
+      "nameEn": "Continuous Cycle",
       "category": "cycle",
       "layout": "cycle",
       "layoutArgs": {
@@ -102,7 +102,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "cycle1",
     "ui": {
       "category": "cycle",
-      "label": "基础循环",
+      "label": "Basic Cycle",
       "ooxmlId": "cycle1"
     },
     "engine": {
@@ -126,7 +126,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "cycle2",
     "ui": {
       "category": "cycle",
-      "label": "文本循环",
+      "label": "Text Cycle",
       "ooxmlId": "cycle2"
     },
     "engine": {
@@ -150,12 +150,12 @@ export const SMARTART_TYPE_DEFS = [
     "id": "cycle3",
     "ui": {
       "category": "cycle",
-      "label": "分段循环",
+      "label": "Block Cycle",
       "ooxmlId": "cycle3"
     },
     "engine": {
-      "name": "分段循环",
-      "nameEn": "Segmented Cycle",
+      "name": "块状循环",
+      "nameEn": "Block Cycle",
       "category": "cycle",
       "layout": "cycle",
       "layoutArgs": {
@@ -174,7 +174,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "cycle5",
     "ui": {
       "category": "cycle",
-      "label": "无方向循环",
+      "label": "Non Directional Cycle",
       "ooxmlId": "cycle5"
     },
     "engine": {
@@ -198,12 +198,12 @@ export const SMARTART_TYPE_DEFS = [
     "id": "cycle6",
     "ui": {
       "category": "cycle",
-      "label": "连续循环",
+      "label": "Segmented Cycle",
       "ooxmlId": "cycle6"
     },
     "engine": {
-      "name": "连续循环",
-      "nameEn": "Continuous Cycle",
+      "name": "分段循环",
+      "nameEn": "Segmented Cycle",
       "category": "cycle",
       "layout": "cycle",
       "layoutArgs": {
@@ -222,12 +222,12 @@ export const SMARTART_TYPE_DEFS = [
     "id": "cycle7",
     "ui": {
       "category": "cycle",
-      "label": "三段循环",
+      "label": "Basic Pie",
       "ooxmlId": "cycle7"
     },
     "engine": {
-      "name": "三段循环",
-      "nameEn": "Tri Cycle",
+      "name": "基础饼图",
+      "nameEn": "Basic Pie",
       "category": "cycle",
       "layout": "cycle",
       "layoutArgs": {
@@ -246,12 +246,12 @@ export const SMARTART_TYPE_DEFS = [
     "id": "cycle8",
     "ui": {
       "category": "cycle",
-      "label": "扇区循环",
+      "label": "Radial Cycle",
       "ooxmlId": "cycle8"
     },
     "engine": {
-      "name": "扇区循环",
-      "nameEn": "Sector Cycle",
+      "name": "放射循环",
+      "nameEn": "Radial Cycle",
       "category": "cycle",
       "layout": "cycle",
       "layoutArgs": {
@@ -270,7 +270,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "pyramid",
     "ui": {
       "category": "pyramid",
-      "label": "基础金字塔",
+      "label": "Basic Pyramid",
       "ooxmlId": "pyramid1"
     },
     "engine": {
@@ -292,7 +292,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "pyramid-list",
     "ui": {
       "category": "pyramid",
-      "label": "金字塔列表",
+      "label": "Pyramid List",
       "ooxmlId": "pyramid2"
     },
     "engine": {
@@ -316,7 +316,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "pyramid-inverted",
     "ui": {
       "category": "pyramid",
-      "label": "倒漏斗",
+      "label": "Inverted Funnel",
       "ooxmlId": "pyramid3"
     },
     "engine": {
@@ -340,7 +340,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "pyramid-segmented",
     "ui": {
       "category": "pyramid",
-      "label": "分段金字塔",
+      "label": "Segmented Pyramid",
       "ooxmlId": "pyramid4"
     },
     "engine": {
@@ -364,7 +364,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "chevron",
     "ui": {
       "category": "others",
-      "label": "基础流程",
+      "label": "Basic Chevron Process",
       "ooxmlId": "chevron1"
     },
     "engine": {
@@ -386,7 +386,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "arrow-process",
     "ui": {
       "category": "others",
-      "label": "流程箭头",
+      "label": "Circular Bending Process",
       "ooxmlId": "arrow2"
     },
     "engine": {
@@ -410,7 +410,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "descending-process",
     "ui": {
       "category": "others",
-      "label": "下降流程",
+      "label": "Descending Process",
       "ooxmlId": "DescendingProcess"
     },
     "engine": {
@@ -434,7 +434,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "cycle-segmented",
     "ui": {
       "category": "others",
-      "label": "分段循环",
+      "label": "Segmented Cycle",
       "ooxmlId": "cycle8"
     },
     "engine": {
@@ -458,7 +458,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "hierarchy",
     "ui": {
       "category": "others",
-      "label": "组织架构",
+      "label": "Hierarchy",
       "ooxmlId": "hierarchy1"
     },
     "engine": {
@@ -480,7 +480,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "radial",
     "ui": {
       "category": "others",
-      "label": "发散图",
+      "label": "Basic Radial",
       "ooxmlId": "radial4"
     },
     "engine": {
@@ -502,7 +502,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "list",
     "ui": {
       "category": "others",
-      "label": "基础列表",
+      "label": "Basic Block List",
       "ooxmlId": "list1"
     },
     "engine": {
@@ -524,7 +524,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "list-vertical",
     "ui": {
       "category": "others",
-      "label": "垂直列表",
+      "label": "Vertical Block List",
       "ooxmlId": "vList3"
     },
     "engine": {
@@ -548,7 +548,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "hexagon-alternating",
     "ui": {
       "category": "others",
-      "label": "交替六边形",
+      "label": "Alternating Hexagons",
       "ooxmlId": "AlternatingHexagons"
     },
     "engine": {
@@ -572,7 +572,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "picture-accent",
     "ui": {
       "category": "others",
-      "label": "突出图片",
+      "label": "Accented Picture",
       "ooxmlId": "AccentedPicture"
     },
     "engine": {
@@ -596,7 +596,7 @@ export const SMARTART_TYPE_DEFS = [
     "id": "picture-captioned",
     "ui": {
       "category": "others",
-      "label": "带标题图片",
+      "label": "Captioned Pictures",
       "ooxmlId": "CaptionedPictures"
     },
     "engine": {

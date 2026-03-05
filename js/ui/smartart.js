@@ -24,6 +24,49 @@ function _mutateSmartart(mutator, options = {}) {
     if (options.render !== false && typeof render === 'function') render();
 }
 
+function _smartartUILang() {
+    if (typeof getSmartArtUILang === 'function') return getSmartArtUILang();
+    return 'en';
+}
+
+function _smartartText(key) {
+    const zh = {
+        itemCountTitle: '个元素',
+        defaultNode: '节点',
+        editorTitle: '在此处键入文字',
+        addNode: '添加节点',
+        removeNode: '删除节点',
+        center: '中心',
+        topLeft: '左上',
+        topRight: '右上',
+        bottomLeft: '左下',
+        bottomRight: '右下',
+        newNode: '新节点',
+    };
+    const en = {
+        itemCountTitle: 'items',
+        defaultNode: 'Node',
+        editorTitle: 'Type your text here',
+        addNode: 'Add node',
+        removeNode: 'Remove node',
+        center: 'Center',
+        topLeft: 'Top Left',
+        topRight: 'Top Right',
+        bottomLeft: 'Bottom Left',
+        bottomRight: 'Bottom Right',
+        newNode: 'New node',
+    };
+    const dict = _smartartUILang() === 'zh' ? zh : en;
+    return dict[key] || key;
+}
+
+function _smartartDefaultItems(typeId, category) {
+    if (typeof getSmartArtTestData === 'function') {
+        return getSmartArtTestData(typeId, category);
+    }
+    return SMARTART_TEST_DATA[typeId] || SMARTART_TEST_DATA[category] || SMARTART_TEST_DATA.list || [];
+}
+
 /**
  * Render SmartArt type selector with category tabs
  */
@@ -31,6 +74,18 @@ function renderSmartartTypeSelector() {
     const container = document.getElementById('smartart-type-selector');
     const currentType = SMARTART_TYPES[state.smartartType];
     const currentCat = currentType?.category || 'matrix';
+    const getTypeLabel = (typeInfo) => {
+        if (typeof getSmartArtTypeLabel === 'function') {
+            return getSmartArtTypeLabel(typeInfo);
+        }
+        return typeInfo?.label || '';
+    };
+    const getCatLabel = (catInfo) => {
+        if (typeof getSmartArtCategoryLabel === 'function') {
+            return getSmartArtCategoryLabel(catInfo);
+        }
+        return catInfo?.label || '';
+    };
 
     // Get types for current category
     const currentCatTypes = Object.entries(SMARTART_TYPES).filter(([_, t]) => t.category === currentCat);
@@ -40,24 +95,28 @@ function renderSmartartTypeSelector() {
             ${Object.entries(SMARTART_CATEGORIES).map(([catId, cat]) => {
                 const types = Object.entries(SMARTART_TYPES).filter(([_, t]) => t.category === catId);
                 if (types.length === 0) return '';
+                const catLabel = getCatLabel(cat);
                 return `
                     <button class="smartart-cat-btn ${currentCat === catId ? 'active' : ''}"
                             onclick="selectSmartartCategory('${catId}')" title="${cat.desc}">
-                        <span class="cat-label">${cat.label}</span>
+                        <span class="cat-label">${catLabel}</span>
                     </button>
                 `;
             }).join('')}
         </div>
         <div class="smartart-thumbnail-grid">
-            ${currentCatTypes.map(([typeId, typeInfo]) => `
+            ${currentCatTypes.map(([typeId, typeInfo]) => {
+                const typeLabel = getTypeLabel(typeInfo);
+                return `
                 <div class="smartart-thumbnail ${state.smartartType === typeId ? 'active' : ''}"
-                     onclick="selectSmartartType('${typeId}')" title="${typeInfo.label}">
+                     onclick="selectSmartartType('${typeId}')" title="${typeLabel}">
                     <img src="assets/smartart-refs/${typeInfo.ooxmlId}.png"
-                         alt="${typeInfo.label}"
+                         alt="${typeLabel}"
                          data-ooxml-id="${typeInfo.ooxmlId}"
-                         onerror="if(!this.dataset.svgTried){this.dataset.svgTried='1';this.src='assets/smartart-refs/${typeInfo.ooxmlId}.svg';}else{this.parentElement.innerHTML='<div class=\\'thumb-fallback\\'>${typeInfo.label}</div>'}">
+                         onerror="if(!this.dataset.svgTried){this.dataset.svgTried='1';this.src='assets/smartart-refs/${typeInfo.ooxmlId}.svg';}else{this.parentElement.innerHTML='<div class=\\'thumb-fallback\\'>${typeLabel}</div>'}">
                 </div>
-            `).join('')}
+            `;
+            }).join('')}
         </div>
     `;
 }
@@ -80,6 +139,10 @@ function selectSmartartCategory(catId) {
         draft.smartartType = nextType;
         draft.smartartItemsByType = byType;
         draft.smartartItems = Array.isArray(byType[nextType]) ? _saClone(byType[nextType]) : null;
+        if (draft.smartart && typeof draft.smartart === 'object') {
+            draft.smartart.type = nextType;
+            delete draft.smartart.ooxml;
+        }
     });
     renderSmartartTypeSelector();
     renderSmartartColorSelector();
@@ -91,10 +154,14 @@ function selectSmartartCategory(catId) {
 function renderSmartartPlacements() {
     const container = document.getElementById('smartart-placements');
     container.innerHTML = `<div class="placement-btns">
-        ${Object.entries(SMARTART_PLACEMENTS).map(([id, p]) => `
+        ${Object.entries(SMARTART_PLACEMENTS).map(([id, p]) => {
+            const label = (typeof getSmartArtPlacementLabel === 'function') ? getSmartArtPlacementLabel(p) : (p.label || id);
+            const desc = (typeof getSmartArtPlacementDesc === 'function') ? getSmartArtPlacementDesc(p) : (p.desc || '');
+            return `
             <button class="placement-btn ${state.smartartPlacement === id ? 'active' : ''}"
-                    onclick="selectSmartartPlacement('${id}')" title="${p.desc}">${p.label}</button>
-        `).join('')}
+                    onclick="selectSmartartPlacement('${id}')" title="${desc}">${label}</button>
+        `;
+        }).join('')}
     </div>`;
 }
 
@@ -112,6 +179,10 @@ function selectSmartartType(typeId) {
         draft.smartartCategory = SMARTART_TYPES[typeId].category;
         draft.smartartItemsByType = byType;
         draft.smartartItems = Array.isArray(byType[typeId]) ? _saClone(byType[typeId]) : null;
+        if (draft.smartart && typeof draft.smartart === 'object') {
+            draft.smartart.type = typeId;
+            delete draft.smartart.ooxml;
+        }
     });
 
     renderSmartartTypeSelector();
@@ -137,7 +208,7 @@ function renderSmartartCountSelector() {
     container.innerHTML = `<div class="count-btns">
         ${counts.map(count => `
             <button class="count-btn ${state.smartartItemCount === count ? 'active' : ''}"
-                    onclick="selectSmartartCount(${count})" title="${count}个元素">
+                    onclick="selectSmartartCount(${count})" title="${count} ${_smartartText('itemCountTitle')}">
                 <span class="count-num">${count}</span>
             </button>
         `).join('')}
@@ -157,7 +228,7 @@ function syncSmartartItemsToCount(count) {
         const typeId = draft.smartartType || 'pyramid';
         const typeInfo = SMARTART_TYPES[typeId];
         const category = typeInfo?.category || 'list';
-        const testData = SMARTART_TEST_DATA[typeId] || SMARTART_TEST_DATA[category] || SMARTART_TEST_DATA['list'] || [];
+        const testData = _smartartDefaultItems(typeId, category);
 
         let nextItems = Array.isArray(draft.smartartItems)
             ? _saClone(draft.smartartItems)
@@ -167,7 +238,7 @@ function syncSmartartItemsToCount(count) {
             nextItems = nextItems.slice(0, count);
         } else if (nextItems.length < count) {
             for (let i = nextItems.length; i < count; i++) {
-                const template = testData[i] || testData[testData.length - 1] || { text: `节点${i + 1}`, children: [] };
+                const template = testData[i] || testData[testData.length - 1] || { text: `${_smartartText('defaultNode')} ${i + 1}`, children: [] };
                 nextItems.push(_saClone(template));
             }
         }
@@ -389,7 +460,7 @@ function renderSmartartTextEditor() {
 
     // Initialize items from test data if needed
     if (!state.smartartItems || !Array.isArray(state.smartartItems)) {
-        const testData = SMARTART_TEST_DATA[state.smartartType] || SMARTART_TEST_DATA[category] || SMARTART_TEST_DATA['list'];
+        const testData = _smartartDefaultItems(state.smartartType, category);
         const initItems = JSON.parse(JSON.stringify(testData.slice(0, state.smartartItemCount)));
         const byType = _saClone(state.smartartItemsByType || {});
         byType[state.smartartType] = _saClone(initItems);
@@ -415,10 +486,10 @@ function renderSmartartTextEditor() {
 
     container.innerHTML = `
         <div class="smartart-editor-header">
-            <span class="editor-title">在此处键入文字</span>
+            <span class="editor-title">${_smartartText('editorTitle')}</span>
             <div class="editor-toolbar">
-                <button class="editor-btn add-item" title="添加节点">+</button>
-                <button class="editor-btn remove-item" title="删除节点">−</button>
+                <button class="editor-btn add-item" title="${_smartartText('addNode')}">+</button>
+                <button class="editor-btn remove-item" title="${_smartartText('removeNode')}">−</button>
             </div>
         </div>
         <div class="smartart-editor-list">${itemsHtml}</div>
@@ -452,13 +523,13 @@ function renderMatrixEditorItems(items) {
     const expectedCount = window.SmartArt?.schema?.get?.(state.smartartType)?.itemCount;
     const hasCenter = expectedCount === 5;
     const labels = hasCenter
-        ? ['中心', '左上', '右上', '左下', '右下']
-        : ['左上', '右上', '左下', '右下'];
+        ? [_smartartText('center'), _smartartText('topLeft'), _smartartText('topRight'), _smartartText('bottomLeft'), _smartartText('bottomRight')]
+        : [_smartartText('topLeft'), _smartartText('topRight'), _smartartText('bottomLeft'), _smartartText('bottomRight')];
     let html = '';
 
     items.forEach((item, idx) => {
         const text = typeof item === 'string' ? item : (item.text || '');
-        const label = labels[idx] || `节点${idx + 1}`;
+        const label = labels[idx] || `${_smartartText('defaultNode')} ${idx + 1}`;
         const isCenter = hasCenter && idx === 0;
 
         html += `
@@ -536,8 +607,8 @@ function bindSmartartEditorEvents(container) {
 
     // Add item
     container.querySelector('.add-item')?.addEventListener('click', () => {
-        const testData = SMARTART_TEST_DATA[state.smartartType] || SMARTART_TEST_DATA['list'];
-        const template = testData[0] || { text: '新节点', children: [] };
+        const testData = _smartartDefaultItems(state.smartartType, 'list');
+        const template = testData[0] || { text: _smartartText('newNode'), children: [] };
         _mutateSmartart((draft) => {
             const typeId = draft.smartartType || 'pyramid';
             const items = Array.isArray(draft.smartartItems) ? _saClone(draft.smartartItems) : [];

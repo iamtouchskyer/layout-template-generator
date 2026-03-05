@@ -1,11 +1,29 @@
 // Multi-page list UI
 
 const PAGE_TYPE_LABELS = {
-    'cover': '封面',
-    'divider': '目录',
-    'content-grid': '内容-Grid',
-    'content-smartart': '内容-SmartArt',
+    zh: {
+        'cover': '封面',
+        'divider': '目录',
+        'content-grid': '内容-Grid',
+        'content-smartart': '内容-SmartArt',
+    },
+    en: {
+        'cover': 'Cover',
+        'divider': 'Divider',
+        'content-grid': 'Content-Grid',
+        'content-smartart': 'Content-SmartArt',
+    },
 };
+
+function _pageUILang() {
+    if (typeof getSiteUILang === 'function') return getSiteUILang();
+    return 'zh';
+}
+
+function _pageUIText(key) {
+    if (typeof getSiteUIText === 'function') return getSiteUIText(key, _pageUILang());
+    return key;
+}
 
 function _pageModelUtils() {
     return window.__pageModelUtils || {};
@@ -41,7 +59,7 @@ function getPageThumbTitle(page) {
     const data = page?.data || {};
     const model = resolvePageModel(page);
     if (model.type === 'cover') return data.coverContent?.title || model.layout || 'cover';
-    if (model.type === 'divider') return model.layout || `章节 ${data.divider?.sectionIndex || data.dividerIndex || 1}`;
+    if (model.type === 'divider') return model.layout || `${_pageUIText('pageSectionPrefix')} ${data.divider?.sectionIndex || data.dividerIndex || 1}`;
     if (model.type === 'content-smartart') return model.layout || data.smartartType || 'smartart';
     if (model.type === 'content-grid') return model.layout || data.gridLayout || 'grid';
     return `${model.shell}/${model.renderer}`;
@@ -217,7 +235,7 @@ function renderPageList() {
 
     const itemsHtml = pages.map((page, idx) => {
         const model = resolvePageModel(page);
-        const label = `${model.shell}/${model.renderer}`;
+        const label = PAGE_TYPE_LABELS[_pageUILang()]?.[model.type] || `${model.shell}/${model.renderer}`;
         const subtitle = getPageThumbTitle(page);
         const active = page.id === currentId ? 'active' : '';
         return `
@@ -233,10 +251,10 @@ function renderPageList() {
                     </div>
                 </div>
                 <div class="page-item-actions">
-                    <button class="page-action-btn" onclick="movePageUp('${page.id}')" title="上移">↑</button>
-                    <button class="page-action-btn" onclick="movePageDown('${page.id}')" title="下移">↓</button>
-                    <button class="page-action-btn" onclick="duplicatePageById('${page.id}')" title="复制">复制</button>
-                    <button class="page-action-btn" onclick="deletePageById('${page.id}')" title="删除">删</button>
+                    <button class="page-action-btn" onclick="movePageUp('${page.id}')" title="${_pageUIText('pageMoveUp')}">↑</button>
+                    <button class="page-action-btn" onclick="movePageDown('${page.id}')" title="${_pageUIText('pageMoveDown')}">↓</button>
+                    <button class="page-action-btn" onclick="duplicatePageById('${page.id}')" title="${_pageUIText('pageDuplicate')}">${_pageUIText('pageDuplicate')}</button>
+                    <button class="page-action-btn" onclick="deletePageById('${page.id}')" title="${_pageUIText('pageDelete')}">${_pageUIText('pageDelete')}</button>
                 </div>
             </div>
         `;
@@ -246,8 +264,8 @@ function renderPageList() {
         <div class="page-list-header">Pages (${pages.length})</div>
         <div class="page-list-items">${itemsHtml}</div>
         <div class="page-list-footer">
-            <button class="page-add-btn" onclick="addPageAfterCurrentByModel('cover','cover')">+ 封面</button>
-            <button class="page-add-btn" onclick="addPageAfterCurrentByModel('divider','divider')">+ 目录</button>
+            <button class="page-add-btn" onclick="addPageAfterCurrentByModel('cover','cover')">${_pageUIText('pageAddCover')}</button>
+            <button class="page-add-btn" onclick="addPageAfterCurrentByModel('divider','divider')">${_pageUIText('pageAddDivider')}</button>
             <button class="page-add-btn" onclick="addPageAfterCurrentByModel('content','grid')">+ Grid</button>
             <button class="page-add-btn" onclick="addPageAfterCurrentByModel('content','smartart')">+ SmartArt</button>
         </div>

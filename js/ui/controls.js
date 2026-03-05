@@ -16,7 +16,7 @@ function toggleSection(section) {
 function setPreviewTab(tab) {
     state.previewTab = tab;
     document.querySelectorAll('.preview-tab').forEach(el => {
-        el.classList.toggle('active', el.textContent.toLowerCase() === tab);
+        el.classList.toggle('active', el.dataset.tab === tab);
     });
     document.getElementById('preview-viewport').style.display = tab === 'preview' ? 'flex' : 'none';
     document.getElementById('code-view').classList.toggle('active', tab === 'json');
@@ -79,4 +79,12 @@ function updateHistoryButtons() {
     const history = state.ui?.history || { undoStack: [], redoStack: [] };
     undoBtn.disabled = !Array.isArray(history.undoStack) || history.undoStack.length === 0;
     redoBtn.disabled = !Array.isArray(history.redoStack) || history.redoStack.length === 0;
+}
+
+function setUILanguage(lang) {
+    if (typeof applySiteI18n === 'function') {
+        applySiteI18n(lang);
+    }
+    if (typeof refreshPageModelControls === 'function') refreshPageModelControls();
+    if (typeof render === 'function') render();
 }

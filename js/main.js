@@ -4,6 +4,9 @@
  * Initialize the application after config is loaded
  */
 function init() {
+    if (typeof applySiteI18n === 'function') {
+        applySiteI18n();
+    }
     initAspectRatioSelector();
     renderPlaceholderList();
     renderShapesList();

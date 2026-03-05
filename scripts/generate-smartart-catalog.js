@@ -63,20 +63,31 @@ function toPretty(obj) {
   return JSON.stringify(obj, null, 2)
 }
 
+function resolveTypeLabels(type) {
+  const labelEn = type?.ui?.label || type?.engine?.nameEn || type?.id || ''
+  const labelZh = type?.engine?.name || type?.ui?.label || type?.id || ''
+  return { labelEn, labelZh }
+}
+
 function generateUiConfig(catalog) {
   const categories = {}
   for (const category of catalog.categories) {
     categories[category.id] = {
       label: category.label,
+      labelEn: category.label,
+      labelZh: category.labelZh || category.label,
       desc: category.desc,
     }
   }
 
   const types = {}
   for (const type of catalog.types) {
+    const { labelEn, labelZh } = resolveTypeLabels(type)
     types[type.id] = {
       category: type.ui.category,
-      label: type.ui.label,
+      label: labelEn,
+      labelEn,
+      labelZh,
       ooxmlId: type.ui.ooxmlId,
     }
   }

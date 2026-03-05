@@ -47,7 +47,9 @@ function _layoutOptionsForType(type) {
     if (type === 'content-smartart') {
         return Object.entries(SMARTART_PLACEMENTS || {}).map(([id, cfg]) => ({
             value: id,
-            label: cfg?.label || id,
+            label: (typeof getSmartArtPlacementLabel === 'function')
+                ? getSmartArtPlacementLabel(cfg)
+                : (cfg?.label || id),
         }));
     }
     return Object.entries(GRID_LAYOUTS || {}).map(([id, cfg]) => ({

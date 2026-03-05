@@ -19,11 +19,15 @@
     <header class="app-header">
         <div class="app-logo">Layout × Theme</div>
         <div class="header-actions">
+            <select id="ui-language-select" class="ui-lang-select" onchange="setUILanguage(this.value)" aria-label="UI Language">
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+            </select>
             <button class="btn" id="btn-undo" onclick="undoDoc()" disabled>Undo</button>
             <button class="btn" id="btn-redo" onclick="redoDoc()" disabled>Redo</button>
-            <button class="btn" onclick="triggerImportConfig()">Import JSON</button>
-            <button class="btn" onclick="exportConfig()">Export JSON</button>
-            <button class="btn btn-primary" onclick="generatePPTX()">Generate PPTX</button>
+            <button class="btn" id="btn-import-json" onclick="triggerImportConfig()">Import JSON</button>
+            <button class="btn" id="btn-export-json" onclick="exportConfig()">Export JSON</button>
+            <button class="btn btn-primary" id="btn-generate-pptx" onclick="generatePPTX()">Generate PPTX</button>
         </div>
     </header>
     <input type="file" id="config-import-input" accept="application/json,.json" class="hidden" onchange="handleImportConfigFile(event)">
@@ -35,7 +39,7 @@
                 <div class="section-group-header" onclick="toggleSection('l1')">
                     <span class="layer-badge">L1</span>
                     <div class="section-group-title">
-                        <h3>Theme & Master</h3>
+                        <h3 id="title-l1">Theme & Master</h3>
                         <span class="section-group-value" id="nav-l1-value">Forest Green + 0 shapes</span>
                     </div>
                     <span class="section-toggle" id="toggle-l1">▶</span>
@@ -93,16 +97,16 @@
                 <div class="section-group-header" onclick="toggleSection('l2')">
                     <span class="layer-badge">L2</span>
                     <div class="section-group-title">
-                        <h3>Page Type</h3>
+                        <h3 id="title-l2">Page Type</h3>
                         <span class="section-group-value" id="nav-l2-value">Content-Grid</span>
                     </div>
                     <span class="section-toggle" id="toggle-l2">▼</span>
                 </div>
                 <div class="section-group-content" id="content-l2">
                     <div class="editor-section">
-                        <div class="editor-section-title">页面模型</div>
+                        <div class="editor-section-title" id="title-page-model">页面模型</div>
                         <div class="control-group">
-                            <label>Page Shell</label>
+                            <label id="label-page-shell">Page Shell</label>
                             <select id="page-shell-select" onchange="updatePageModelFromControls()">
                                 <option value="cover">cover</option>
                                 <option value="divider">divider</option>
@@ -110,24 +114,24 @@
                             </select>
                         </div>
                         <div class="control-group">
-                            <label>Body Renderer</label>
+                            <label id="label-body-renderer">Body Renderer</label>
                             <select id="page-renderer-select" onchange="updatePageModelFromControls()">
                                 <option value="grid" selected>grid</option>
                                 <option value="smartart">smartart</option>
                             </select>
                         </div>
                         <div class="control-group">
-                            <label>Body Layout</label>
+                            <label id="label-body-layout">Body Layout</label>
                             <select id="page-layout-select" onchange="updatePageModelFromControls()"></select>
                         </div>
                     </div>
                     <div class="editor-section">
-                        <div class="editor-section-title">页面类型 (兼容)</div>
+                        <div class="editor-section-title" id="title-page-type-compat">页面类型 (兼容)</div>
                         <div class="checkbox-group">
-                            <label class="checkbox-item"><input type="radio" name="page-type" value="cover" onchange="updatePageType(this.value)"><span class="item-label">封面</span><span class="item-desc">Cover</span></label>
-                            <label class="checkbox-item"><input type="radio" name="page-type" value="divider" onchange="updatePageType(this.value)"><span class="item-label">目录/章节</span><span class="item-desc">Divider</span></label>
-                            <label class="checkbox-item"><input type="radio" name="page-type" value="content-grid" checked onchange="updatePageType(this.value)"><span class="item-label">内容-Grid</span><span class="item-desc">卡片/图表布局</span></label>
-                            <label class="checkbox-item"><input type="radio" name="page-type" value="content-smartart" onchange="updatePageType(this.value)"><span class="item-label">内容-SmartArt</span><span class="item-desc">关系图形</span></label>
+                            <label class="checkbox-item"><input type="radio" name="page-type" value="cover" onchange="updatePageType(this.value)"><span class="item-label" id="label-page-type-cover">封面</span><span class="item-desc" id="desc-page-type-cover">Cover</span></label>
+                            <label class="checkbox-item"><input type="radio" name="page-type" value="divider" onchange="updatePageType(this.value)"><span class="item-label" id="label-page-type-divider">目录/章节</span><span class="item-desc" id="desc-page-type-divider">Divider</span></label>
+                            <label class="checkbox-item"><input type="radio" name="page-type" value="content-grid" checked onchange="updatePageType(this.value)"><span class="item-label" id="label-page-type-grid">内容-Grid</span><span class="item-desc" id="desc-page-type-grid">卡片/图表布局</span></label>
+                            <label class="checkbox-item"><input type="radio" name="page-type" value="content-smartart" onchange="updatePageType(this.value)"><span class="item-label" id="label-page-type-smartart">内容-SmartArt</span><span class="item-desc" id="desc-page-type-smartart">关系图形</span></label>
                         </div>
                     </div>
                 </div>
@@ -136,25 +140,25 @@
 
         <div class="preview-panel">
             <div class="preview-header">
-                <h3>Preview</h3>
+                <h3 id="title-preview">Preview</h3>
                 <div class="preview-controls">
-                    <div class="zoom-control"><label>Zoom</label><input type="range" id="zoom-slider" min="75" max="200" value="100" oninput="setZoom(this.value)"><span class="zoom-value" id="zoom-value">100%</span></div>
-                    <div class="preview-tabs"><button class="preview-tab active" onclick="setPreviewTab('preview')">Preview</button><button class="preview-tab" onclick="setPreviewTab('json')">JSON</button></div>
+                    <div class="zoom-control"><label id="label-zoom">Zoom</label><input type="range" id="zoom-slider" min="75" max="200" value="100" oninput="setZoom(this.value)"><span class="zoom-value" id="zoom-value">100%</span></div>
+                    <div class="preview-tabs"><button class="preview-tab active" id="tab-preview" data-tab="preview" onclick="setPreviewTab('preview')">Preview</button><button class="preview-tab" id="tab-json" data-tab="json" onclick="setPreviewTab('json')">JSON</button></div>
                 </div>
             </div>
             <!-- Cover Operation Bar (visible only for cover) -->
             <div class="content-shell-operation-bar" id="content-shell-operation-bar">
                 <div class="content-shell-row">
                     <div class="content-shell-field">
-                        <label for="content-shell-title-input">标题</label>
+                        <label id="label-content-title" for="content-shell-title-input">标题</label>
                         <input id="content-shell-title-input" type="text" onchange="updateCurrentPageShellText('contentTitle', this.value)">
                     </div>
                     <div class="content-shell-field">
-                        <label for="content-shell-tag-input">标签</label>
+                        <label id="label-content-tag" for="content-shell-tag-input">标签</label>
                         <input id="content-shell-tag-input" type="text" onchange="updateCurrentPageShellText('contentTag', this.value)">
                     </div>
                     <div class="content-shell-field content-shell-source">
-                        <label for="content-shell-source-input">来源</label>
+                        <label id="label-content-source" for="content-shell-source-input">来源</label>
                         <input id="content-shell-source-input" type="text" onchange="updateCurrentPageShellText('contentSource', this.value)">
                     </div>
                 </div>
@@ -163,7 +167,7 @@
             <div class="cover-operation-bar" id="cover-operation-bar">
                 <div class="grid-op-row">
                     <div class="grid-op-section">
-                        <div class="grid-op-title">封面布局</div>
+                        <div class="grid-op-title" id="label-cover-layout">封面布局</div>
                         <div class="cover-layout-selector" id="cover-layout-selector"></div>
                     </div>
                 </div>
@@ -172,27 +176,27 @@
             <div class="divider-operation-bar" id="divider-operation-bar">
                 <div class="grid-op-row">
                     <div class="grid-op-section">
-                        <div class="grid-op-title">布局样式</div>
+                        <div class="grid-op-title" id="label-divider-layout">布局样式</div>
                         <div class="divider-style-selector" id="divider-style-selector"></div>
                     </div>
                     <div class="grid-op-section">
-                        <div class="grid-op-title">章节数量</div>
+                        <div class="grid-op-title" id="label-divider-count">章节数量</div>
                         <div class="divider-count-selector" id="divider-count-selector"></div>
                     </div>
                     <div class="grid-op-section">
-                        <div class="grid-op-title">编号样式</div>
+                        <div class="grid-op-title" id="label-divider-number">编号样式</div>
                         <div class="divider-number-selector" id="divider-number-selector"></div>
                     </div>
                     <div class="grid-op-section">
-                        <div class="grid-op-title">文字层级</div>
+                        <div class="grid-op-title" id="label-divider-text-level">文字层级</div>
                         <div class="divider-text-selector" id="divider-text-selector"></div>
                     </div>
                     <div class="grid-op-section">
-                        <div class="grid-op-title">背景样式</div>
+                        <div class="grid-op-title" id="label-divider-bg">背景样式</div>
                         <div class="divider-bg-selector" id="divider-bg-selector"></div>
                     </div>
                     <div class="grid-op-section">
-                        <div class="grid-op-title">当前章节</div>
+                        <div class="grid-op-title" id="label-divider-index">当前章节</div>
                         <div class="divider-index-selector" id="divider-index-selector"></div>
                     </div>
                 </div>
@@ -201,13 +205,13 @@
             <div class="grid-operation-bar" id="grid-operation-bar">
                 <div class="grid-op-row">
                     <div class="grid-op-section">
-                        <div class="grid-op-title">布局模式</div>
+                        <div class="grid-op-title" id="label-grid-layout-mode">布局模式</div>
                         <div class="layout-patterns" id="layout-patterns"></div>
                     </div>
                 </div>
                 <div class="grid-op-row">
                     <div class="grid-op-section">
-                        <div class="grid-op-title">区域内容</div>
+                        <div class="grid-op-title" id="label-grid-zone-content">区域内容</div>
                         <div class="zone-assignments" id="zone-assignments"></div>
                     </div>
                 </div>
@@ -216,22 +220,22 @@
             <div class="smartart-operation-bar" id="smartart-operation-bar">
                 <div class="smartart-op-row">
                     <div class="smartart-op-group">
-                        <span class="smartart-op-label">类型</span>
+                        <span class="smartart-op-label" id="label-smartart-type">Type</span>
                         <div class="smartart-type-selector" id="smartart-type-selector"></div>
                     </div>
                     <div class="smartart-op-divider"></div>
                     <div class="smartart-op-group">
-                        <span class="smartart-op-label">数量</span>
+                        <span class="smartart-op-label" id="label-smartart-count">Count</span>
                         <div class="smartart-count-selector" id="smartart-count-selector"></div>
                     </div>
                     <div class="smartart-op-divider"></div>
                     <div class="smartart-op-group">
-                        <span class="smartart-op-label">布局</span>
+                        <span class="smartart-op-label" id="label-smartart-placement">Placement</span>
                         <div class="smartart-placements" id="smartart-placements"></div>
                     </div>
                     <div class="smartart-op-divider"></div>
                     <div class="smartart-op-group">
-                        <span class="smartart-op-label">配色</span>
+                        <span class="smartart-op-label" id="label-smartart-colors">Colors</span>
                         <div class="smartart-colors" id="smartart-colors"></div>
                     </div>
                 </div>
@@ -251,7 +255,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <script src="js/smartart.bundle.js?v=20260206c"></script>
+    <script type="module" src="js/smartart/bundle-entry.js"></script>
     <script src="themes.js?v=2"></script>
     <script src="js/config-loader.js?v=14"></script>
     <script src="js/config.smartart.generated.js?v=1"></script>

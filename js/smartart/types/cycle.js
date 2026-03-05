@@ -102,7 +102,8 @@ function layoutCycle2(option) {
     const shapes = [];
     const connectors = [];
     const colors = childColors(theme);
-    const arrowSize = Math.min(width, height) * 0.06;
+    const chord = count > 1 ? (2 * ringR * Math.sin(Math.PI / count)) : 0;
+    const arrowSize = Math.max(18, Math.min(chord * 0.34, nodeW * 0.55));
 
     for (let i = 0; i < count; i += 1) {
         const p = centers[i];
@@ -129,11 +130,16 @@ function layoutCycle2(option) {
         connectors.push({
             id: `arrow-${i}`,
             type: 'arrow',
+            style: 'textCycleSvg',
+            fromX: p.x,
+            fromY: p.y,
+            toX: next.x,
+            toY: next.y,
             x: mx - arrowSize / 2,
             y: my - arrowSize / 2,
             size: arrowSize,
             rotation: angle,
-            fill: theme.accent1 || '#666666'
+            fill: colors[i % colors.length] || theme.accent1 || '#666666'
         });
     }
 
@@ -153,16 +159,16 @@ function layoutCycle3(option) {
     const cy = height / 2;
     const ringR = Math.min(width, height) * 0.34;
     const step = 360 / count;
-    const centers = ringCenters(count, cx, cy, ringR * 1.1, -90);
-    const nodeW = width * 0.28;
-    const nodeH = height * 0.14;
+    const centers = ringCenters(count, cx, cy, ringR * 1.05, -90);
+    const nodeW = width * 0.2;
+    const nodeH = height * 0.13;
     const shapes = [];
     const connectors = [];
     const colors = childColors(theme);
 
     for (let i = 0; i < count; i += 1) {
-        const item = getItem(items, i);
         const p = centers[i];
+        const item = getItem(items, i);
         shapes.push({
             id: `node-${i}`,
             type: 'roundRect',
@@ -176,18 +182,18 @@ function layoutCycle3(option) {
             strokeWidth: 1.5,
             textColor: theme.dark1 || '#333333',
             fontSize: 14,
-            rx: 8,
-            ry: 8
+            rx: 10,
+            ry: 10
         });
 
-        const start = -90 + i * step + 10;
-        const end = start + step - 20;
+        const start = -90 + i * step + 8;
+        const end = start + step - 16;
         connectors.push({
             id: `flow-${i}`,
             type: 'curvedArrow',
             cx,
             cy,
-            radius: ringR,
+            radius: ringR * 0.92,
             startAngle: start,
             endAngle: end,
             stroke: theme.accent1 || '#666666'
@@ -374,14 +380,37 @@ function layoutCycle6(option) {
     const count = resolveCount(items, { typeId: 'cycle6' });
     const cx = width / 2;
     const cy = height / 2;
-    const ringR = Math.min(width, height) * 0.34;
+    const minSide = Math.min(width, height);
+    const ringR = minSide * (count > 4 ? 0.38 : 0.35);
     const step = 360 / count;
-    const centers = ringCenters(count, cx, cy, ringR * 1.05, -90);
-    const nodeW = width * 0.2;
-    const nodeH = height * 0.13;
+    const centers = ringCenters(count, cx, cy, ringR, -90);
+    const nodeW = width * (count > 4 ? 0.24 : 0.33);
+    const nodeH = height * (count > 4 ? 0.20 : 0.28);
+    const ringOuter = minSide * (count > 4 ? 0.42 : 0.45);
+    const ringInner = ringOuter - minSide * (count > 4 ? 0.055 : 0.07);
+    const segmentGap = Math.min(18, step * 0.18);
     const shapes = [];
-    const connectors = [];
     const colors = childColors(theme);
+    const ringFill = softRingFill(theme);
+
+    // Continuous-cycle in PPT uses no arrow heads; render as a soft segmented ring.
+    for (let i = 0; i < count; i += 1) {
+        const start = -90 + i * step + segmentGap / 2;
+        const end = -90 + (i + 1) * step - segmentGap / 2;
+        shapes.push({
+            id: `ring-${i}`,
+            type: 'pie',
+            cx,
+            cy,
+            innerRadius: ringInner,
+            outerRadius: ringOuter,
+            startAngle: start,
+            endAngle: end,
+            fill: ringFill,
+            stroke: 'none',
+            strokeWidth: 0
+        });
+    }
 
     for (let i = 0; i < count; i += 1) {
         const p = centers[i];
@@ -394,33 +423,20 @@ function layoutCycle6(option) {
             width: nodeW,
             height: nodeH,
             text: getItemText(item),
-            fill: theme.light1 || '#FFFFFF',
-            stroke: colors[i % colors.length],
+            fill: colors[i % colors.length],
+            stroke: theme.light1 || '#FFFFFF',
             strokeWidth: 1.5,
-            textColor: theme.dark1 || '#333333',
-            fontSize: 14,
-            rx: 10,
-            ry: 10
-        });
-
-        const start = -90 + i * step + 8;
-        const end = start + step - 16;
-        connectors.push({
-            id: `flow-${i}`,
-            type: 'curvedArrow',
-            cx,
-            cy,
-            radius: ringR * 0.92,
-            startAngle: start,
-            endAngle: end,
-            stroke: theme.accent1 || '#666666'
+            textColor: theme.light1 || '#FFFFFF',
+            fontSize: 16,
+            rx: Math.max(12, nodeH * 0.22),
+            ry: Math.max(12, nodeH * 0.22)
         });
     }
 
     return {
         type: 'cycle',
         shapes,
-        connectors,
+        connectors: [],
         bounds: { x: 0, y: 0, width, height }
     };
 }
@@ -598,6 +614,37 @@ function resolveCount(items, { typeId, min = 1, max = Infinity } = {}) {
         count = Number(schema && schema.itemCount) || 1;
     }
     return Math.max(min, Math.min(count, max));
+}
+
+function softRingFill(theme) {
+    const light = normalizeHex(theme?.light1) || '#FFFFFF';
+    const accent = normalizeHex(theme?.accent4) || normalizeHex(theme?.accent2) || '#D7C39B';
+    return mixHex(light, accent, 0.2);
+}
+
+function normalizeHex(value) {
+    if (typeof value !== 'string') return null;
+    const hex = value.trim();
+    if (!/^#([0-9a-fA-F]{6})$/.test(hex)) return null;
+    return hex.toUpperCase();
+}
+
+function mixHex(baseHex, targetHex, ratio) {
+    const clampRatio = Math.max(0, Math.min(1, Number(ratio) || 0));
+    const br = parseInt(baseHex.slice(1, 3), 16);
+    const bg = parseInt(baseHex.slice(3, 5), 16);
+    const bb = parseInt(baseHex.slice(5, 7), 16);
+    const tr = parseInt(targetHex.slice(1, 3), 16);
+    const tg = parseInt(targetHex.slice(3, 5), 16);
+    const tb = parseInt(targetHex.slice(5, 7), 16);
+    const r = Math.round(br + (tr - br) * clampRatio);
+    const g = Math.round(bg + (tg - bg) * clampRatio);
+    const b = Math.round(bb + (tb - bb) * clampRatio);
+    return `#${toHex2(r)}${toHex2(g)}${toHex2(b)}`;
+}
+
+function toHex2(value) {
+    return Math.max(0, Math.min(255, value)).toString(16).padStart(2, '0').toUpperCase();
 }
 
 function getItemText(item) {

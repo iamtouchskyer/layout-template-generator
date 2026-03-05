@@ -20,6 +20,37 @@ const SMARTART_SAMPLE_DATA = {
 
 let smartArtInstance = null;
 
+function _smartartRenderLang() {
+    if (typeof getSmartArtUILang === 'function') return getSmartArtUILang();
+    return 'en';
+}
+
+function _smartartRenderText(key) {
+    const zh = {
+        descTitle: '说明文字区域',
+        descBody: '这里可以放置对 SmartArt 图形的描述、解释或相关数据说明。',
+        bullet1: '要点一：关键信息',
+        bullet2: '要点二：补充说明',
+        bullet3: '要点三：总结概括',
+    };
+    const en = {
+        descTitle: 'Description',
+        descBody: 'Use this area for SmartArt notes, context, or supporting details.',
+        bullet1: 'Point 1: Key message',
+        bullet2: 'Point 2: Supporting detail',
+        bullet3: 'Point 3: Summary',
+    };
+    const dict = _smartartRenderLang() === 'zh' ? zh : en;
+    return dict[key] || key;
+}
+
+function _smartartRenderDefaultItems(typeId, category) {
+    if (typeof getSmartArtTestData === 'function') {
+        return getSmartArtTestData(typeId, category);
+    }
+    return SMARTART_TEST_DATA[typeId] || SMARTART_TEST_DATA[category] || SMARTART_TEST_DATA.list || [];
+}
+
 function renderSmartartPage() {
     const placement = state.smartartPlacement;
     const typeInfo = SMARTART_TYPES[state.smartartType];
@@ -29,12 +60,12 @@ function renderSmartartPage() {
 
     const descBlock = `
         <div class="smartart-desc-block">
-            <h3>说明文字区域</h3>
-            <p>这里可以放置对 SmartArt 图形的描述、解释或相关数据说明。</p>
+            <h3>${_smartartRenderText('descTitle')}</h3>
+            <p>${_smartartRenderText('descBody')}</p>
             <ul>
-                <li>要点一：关键信息</li>
-                <li>要点二：补充说明</li>
-                <li>要点三：总结概括</li>
+                <li>${_smartartRenderText('bullet1')}</li>
+                <li>${_smartartRenderText('bullet2')}</li>
+                <li>${_smartartRenderText('bullet3')}</li>
             </ul>
         </div>
     `;
@@ -71,16 +102,15 @@ function renderSmartArtChart() {
 
     const typeInfo = SMARTART_TYPES[state.smartartType];
     if (!typeInfo) return;
+    const typeLabel = (typeof getSmartArtTypeLabel === 'function')
+        ? getSmartArtTypeLabel(typeInfo)
+        : (typeInfo.label || state.smartartType);
 
     const category = typeInfo.category;
     const count = state.smartartItemCount || 4;
-    let sampleData = SMARTART_SAMPLE_DATA[category] || SMARTART_SAMPLE_DATA.list;
-    if (category !== 'hierarchy' && category !== 'matrix') {
-        sampleData = sampleData.slice(0, count);
-    }
 
     if (!state.smartartItems || !Array.isArray(state.smartartItems)) {
-        const testData = SMARTART_TEST_DATA[state.smartartType] || SMARTART_TEST_DATA[category] || SMARTART_TEST_DATA['list'];
+        const testData = _smartartRenderDefaultItems(state.smartartType, category);
         const initItems = JSON.parse(JSON.stringify(testData.slice(0, count)));
         if (typeof patchCurrentPage === 'function') {
             patchCurrentPage({
@@ -129,7 +159,7 @@ function renderSmartArtChart() {
         console.warn('SmartArt render failed:', e.message);
         target.innerHTML = `<div class="smartart-fallback">
             <div class="smartart-icon">${SMARTART_CATEGORIES[typeInfo.category]?.icon || '📊'}</div>
-            <div class="smartart-type-name">${typeInfo.label}</div>
+            <div class="smartart-type-name">${typeLabel}</div>
         </div>`;
     }
 }

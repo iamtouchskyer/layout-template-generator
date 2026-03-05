@@ -44,6 +44,16 @@ body {
 
 .header-actions { display: flex; gap: 12px; }
 
+.ui-lang-select {
+    min-width: 88px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
 /* Buttons */
 .btn {
     padding: 8px 16px;

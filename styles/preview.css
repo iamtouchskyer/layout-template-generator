@@ -191,9 +191,9 @@
 .page-thumb {
     width: 46px;
     height: 28px;
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    background: rgba(255,255,255,0.04);
+    background: var(--bg-tertiary);
     position: relative;
     flex-shrink: 0;
     overflow: hidden;
@@ -246,7 +246,7 @@
 .page-thumb-grid .thumb-grid-col {
     flex: 1;
     border-radius: 2px;
-    background: rgba(255,255,255,0.15);
+    background: var(--border-color);
 }
 
 .page-thumb-smartart {
@@ -349,5 +349,5 @@
     font-size: 12px;
     overflow: auto;
     max-height: 100%;
-    color: #68d391;
+    color: var(--accent-l3);
 }

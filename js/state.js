@@ -124,6 +124,7 @@ function createDefaultPageData(type) {
             smartartPlacement: 'left-desc',
             smartartItemCount: 4,
             smartartColorScheme: 'colorful1',  // see SMARTART_COLOR_SCHEMES in config.js
+            smartartFontSizePt: null,
             smartartItems: null,  // current type's items (for backward compat)
             smartartItemsByType: {},  // { typeId: items[] } - each type has independent data
             ...deepClone(DEFAULT_CONTENT_SHELL),
@@ -319,6 +320,7 @@ definePageDataAlias('smartartType', 'smartartType', () => 'pyramid');
 definePageDataAlias('smartartPlacement', 'smartartPlacement', () => 'left-desc');
 definePageDataAlias('smartartItemCount', 'smartartItemCount', () => 4);
 definePageDataAlias('smartartColorScheme', 'smartartColorScheme', () => 'colorful1');
+definePageDataAlias('smartartFontSizePt', 'smartartFontSizePt', () => null);
 definePageDataAlias('smartartItems', 'smartartItems', () => null);
 definePageDataAlias('smartartItemsByType', 'smartartItemsByType', () => ({}));
 

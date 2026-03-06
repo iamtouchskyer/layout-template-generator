@@ -536,51 +536,6 @@ select:focus, input:focus {
     color: white;
 }
 
-/* SmartArt Count Selector - Segmented Control Style */
-.smartart-count-selector {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.count-btns {
-    display: flex;
-    gap: 2px;
-    background: var(--bg-tertiary);
-    padding: 3px;
-    border-radius: 10px;
-}
-
-.count-btn {
-    width: 32px;
-    height: 28px;
-    padding: 0;
-    border: none;
-    border-radius: 7px;
-    background: transparent;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-muted);
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.count-btn:hover {
-    color: var(--text-primary);
-}
-
-.count-btn.active {
-    background: white;
-    color: var(--accent-l2);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
-}
-
-.count-btn .count-num {
-    line-height: 1;
-}
 
 /* SmartArt Type Selector (for operation bar) */
 .smartart-type-selector {
@@ -680,8 +635,8 @@ select:focus, input:focus {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 20px;
+    width: 42px;
+    height: 30px;
 }
 
 .color-trigger-preview svg {
@@ -690,7 +645,7 @@ select:focus, input:focus {
 }
 
 .color-trigger-arrow {
-    font-size: 8px;
+    font-size: 10px;
     color: var(--text-secondary);
 }
 
@@ -703,10 +658,10 @@ select:focus, input:focus {
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 12px;
+    padding: 14px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 1000;
-    min-width: 300px;
+    min-width: 480px;
     max-height: calc(100vh - 200px);
     overflow-y: auto;
 }
@@ -734,21 +689,25 @@ select:focus, input:focus {
 }
 
 .color-picker-label {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text-secondary);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     padding-left: 2px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .color-picker-row {
-    display: flex;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
 }
 
 .color-picker-btn {
-    width: 52px;
-    height: 44px;
-    padding: 4px;
+    width: auto;
+    height: auto;
+    aspect-ratio: 1.2;
+    padding: 6px;
     border: 1px solid transparent;
     border-radius: 4px;
     background: transparent;
@@ -936,7 +895,7 @@ select:focus, input:focus {
 
 .smartart-op-group:first-child {
     padding-left: 0;
-    min-width: 320px; /* Fixed width to prevent layout shift when thumbnails load */
+    min-width: 460px; /* Fixed width to prevent layout shift when thumbnails load */
 }
 
 .smartart-op-label {
@@ -955,17 +914,138 @@ select:focus, input:focus {
     margin-top: 4px;
 }
 
-/* SmartArt Thumbnail Grid (PPT-style selector) */
-.smartart-thumbnail-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 64px);
-    gap: 6px;
-    margin-top: 8px;
+/* SmartArt Thumbnail Strip (horizontal carousel) */
+.smartart-strip-wrapper {
+    position: relative;
+    margin-top: 6px;
 }
 
+.smartart-thumb-strip {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+}
+
+.strip-track {
+    display: flex;
+    gap: 8px;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    flex: 1;
+    padding: 6px 4px;
+    max-width: calc(5 * 96px + 4 * 8px); /* show at most 5 thumbnails */
+}
+
+.strip-arrow {
+    width: 28px;
+    height: 60px;
+    border: none;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.15s;
+    z-index: 1;
+}
+
+.strip-arrow:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.strip-arrow.hidden {
+    visibility: hidden;
+}
+
+.strip-expand-btn {
+    display: block;
+    width: 100%;
+    border: none;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px 0;
+    border-radius: 0 0 4px 4px;
+    transition: all 0.15s;
+    margin-top: 2px;
+    line-height: 1;
+}
+
+.strip-expand-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* SmartArt Layout Dropdown (all types grouped by category) */
+.smartart-layout-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.smartart-layout-dropdown::-webkit-scrollbar {
+    display: none;
+}
+
+.smartart-layout-dropdown.open {
+    display: block;
+}
+
+.dropdown-cat-group {
+    margin-bottom: 14px;
+}
+
+.dropdown-cat-group:last-child {
+    margin-bottom: 0;
+}
+
+.dropdown-cat-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    padding-left: 2px;
+}
+
+.dropdown-cat-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.dropdown-cat-grid .smartart-thumbnail {
+    width: auto;
+    min-width: 0;
+    height: 60px;
+}
+
+/* SmartArt Thumbnail (shared between strip and dropdown) */
+
 .smartart-thumbnail {
-    width: 64px;
-    height: 40px;
+    width: 96px;
+    min-width: 96px;
+    height: 60px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background: var(--bg-primary);
@@ -989,6 +1069,21 @@ select:focus, input:focus {
     height: 100%;
     object-fit: contain;
     display: block;
+}
+
+.thumb-ooxml-id {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    font-size: 8px;
+    line-height: 1;
+    text-align: center;
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    opacity: 0.85;
+    padding: 1px 0;
+    pointer-events: none;
 }
 
 .thumb-fallback {
@@ -1185,11 +1280,19 @@ select:focus, input:focus {
 
 .smartart-editor-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 8px;
     padding: 10px 12px;
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-tertiary);
+}
+
+.smartart-editor-header .editor-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .smartart-editor-header .editor-title {
@@ -1204,13 +1307,13 @@ select:focus, input:focus {
 }
 
 .smartart-editor-header .editor-btn {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background: var(--bg-primary);
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     display: flex;
@@ -1223,6 +1326,17 @@ select:focus, input:focus {
     background: var(--accent-l3);
     border-color: var(--accent-l3);
     color: white;
+}
+
+.smartart-editor-header .editor-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.smartart-editor-header .editor-btn:disabled:hover {
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
 }
 
 .smartart-editor-list {
@@ -1241,6 +1355,10 @@ select:focus, input:focus {
 
 .smartart-editor-list .editor-item:hover {
     background: var(--bg-tertiary);
+}
+
+.smartart-editor-list .editor-item.selected {
+    background: rgba(110, 185, 150, 0.18);
 }
 
 .smartart-editor-list .item-bullet {
@@ -1286,6 +1404,11 @@ select:focus, input:focus {
 
 /* Level 1+: bullet, normal text */
 .smartart-editor-list .editor-item.level-1 .item-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.smartart-editor-list .editor-item[data-level]:not([data-level="0"]) .item-text {
     font-size: 12px;
     color: var(--text-secondary);
 }

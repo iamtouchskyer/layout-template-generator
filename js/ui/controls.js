@@ -38,9 +38,10 @@ function setZoom(value) {
 function updateState() {
     const nextTheme = document.getElementById('theme-select').value;
     patchMaster({ theme: nextTheme });
-    // Re-render SmartArt color picker when theme changes (colors depend on theme)
+    // Re-render SmartArt UI when theme changes (colors depend on theme)
     if (state.pageType === 'content-smartart') {
         renderSmartartColorSelector();
+        renderSmartartTypeSelector();
     }
 }
 

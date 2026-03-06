@@ -36,6 +36,10 @@ function _smartartText(key) {
         editorTitle: '在此处键入文字',
         addNode: '添加节点',
         removeNode: '删除节点',
+        indentNode: '右缩进',
+        outdentNode: '左缩进',
+        moveNodeUp: '上移',
+        moveNodeDown: '下移',
         center: '中心',
         topLeft: '左上',
         topRight: '右上',
@@ -49,6 +53,10 @@ function _smartartText(key) {
         editorTitle: 'Type your text here',
         addNode: 'Add node',
         removeNode: 'Remove node',
+        indentNode: 'Indent right',
+        outdentNode: 'Outdent left',
+        moveNodeUp: 'Move up',
+        moveNodeDown: 'Move down',
         center: 'Center',
         topLeft: 'Top Left',
         topRight: 'Top Right',
@@ -578,6 +586,8 @@ function selectSmartartColorScheme(schemeId) {
 
 // ============= SmartArt Text Editor =============
 
+let _smartartEditorSelection = { path: null, caret: null };
+
 /**
  * Render PPT-style text editor for SmartArt
  */
@@ -616,22 +626,31 @@ function renderSmartartTextEditor() {
         // Matrix: center (items[0]) + quadrants (items[1-4])
         itemsHtml = renderMatrixEditorItems(items);
     } else {
-        // Default: tree editor (items with optional children)
-        itemsHtml = items.map((item, idx) => renderSmartartEditorItem(item, idx)).join('');
+        // Default: tree editor (recursive)
+        itemsHtml = items.map((item, idx) => renderSmartartEditorItem(item, [idx])).join('');
     }
+
+    const capabilities = getSmartartEditorCapabilities(items, schemaType);
 
     container.innerHTML = `
         <div class="smartart-editor-header">
-            <span class="editor-title">${_smartartText('editorTitle')}</span>
+            <div class="editor-title-row">
+                <span class="editor-title">${_smartartText('editorTitle')}</span>
+            </div>
             <div class="editor-toolbar">
-                <button class="editor-btn add-item" title="${_smartartText('addNode')}">+</button>
-                <button class="editor-btn remove-item" title="${_smartartText('removeNode')}">−</button>
+                <button class="editor-btn" data-op="add" title="${_smartartText('addNode')}" ${capabilities.add ? '' : 'disabled'}>+</button>
+                <button class="editor-btn" data-op="remove" title="${_smartartText('removeNode')}" ${capabilities.remove ? '' : 'disabled'}>−</button>
+                <button class="editor-btn" data-op="outdent" title="${_smartartText('outdentNode')}" ${capabilities.outdent ? '' : 'disabled'}>←</button>
+                <button class="editor-btn" data-op="indent" title="${_smartartText('indentNode')}" ${capabilities.indent ? '' : 'disabled'}>→</button>
+                <button class="editor-btn" data-op="move-down" title="${_smartartText('moveNodeDown')}" ${capabilities.moveDown ? '' : 'disabled'}>↓</button>
+                <button class="editor-btn" data-op="move-up" title="${_smartartText('moveNodeUp')}" ${capabilities.moveUp ? '' : 'disabled'}>↑</button>
             </div>
         </div>
         <div class="smartart-editor-list">${itemsHtml}</div>
     `;
 
     bindSmartartEditorEvents(container);
+    restoreSmartartEditorSelection(container);
 }
 
 /**
@@ -670,7 +689,7 @@ function renderMatrixEditorItems(items) {
 
         html += `
             <div class="editor-item matrix-item ${isCenter ? 'center' : 'quadrant'}"
-                 data-index="${idx}" data-level="0">
+                 data-index="${idx}" data-level="0" data-path="${idx}">
                 <span class="item-label">${label}</span>
                 <input type="text" class="item-text" value="${escapeHtml(text)}" data-path="${idx}" />
             </div>
@@ -683,27 +702,23 @@ function renderMatrixEditorItems(items) {
 /**
  * Render single editor item with children
  */
-function renderSmartartEditorItem(item, index, level = 0) {
-    const text = typeof item === 'string' ? item : (item.text || '');
-    const children = (typeof item === 'object' && item.children) ? item.children : [];
+function renderSmartartEditorItem(item, path, level = 0) {
+    const node = normalizeSmartartNode(item);
+    const text = node.text || '';
+    const children = Array.isArray(node.children) ? node.children : [];
     const bullet = shouldShowSmartartBullet(level) ? '•' : '';
     const indent = level * 16;
+    const pathStr = smartartPathToString(path);
 
     let html = `
-        <div class="editor-item level-${level}" data-index="${index}" data-level="${level}" style="padding-left: ${indent}px">
+        <div class="editor-item level-${level}" data-level="${level}" data-path="${pathStr}" style="padding-left: ${indent}px">
             <span class="item-bullet">${bullet}</span>
-            <input type="text" class="item-text" value="${escapeHtml(text)}" data-path="${index}" />
+            <input type="text" class="item-text" value="${escapeHtml(text)}" data-path="${pathStr}" />
         </div>
     `;
 
     children.forEach((child, childIdx) => {
-        const childText = typeof child === 'string' ? child : (child.text || '');
-        html += `
-            <div class="editor-item level-1" data-index="${index}-${childIdx}" data-level="1" style="padding-left: ${indent + 16}px">
-                <span class="item-bullet">${shouldShowSmartartBullet(level + 1) ? '•' : ''}</span>
-                <input type="text" class="item-text" value="${escapeHtml(childText)}" data-path="${index}-${childIdx}" />
-            </div>
-        `;
+        html += renderSmartartEditorItem(child, [...path, childIdx], level + 1);
     });
 
     return html;
@@ -732,49 +747,55 @@ function escapeHtml(str) {
  * Bind editor events
  */
 function bindSmartartEditorEvents(container) {
-    // Text input change
+    if (container.dataset.smartartEditorBound === '1') return;
+    container.dataset.smartartEditorBound = '1';
+
     container.addEventListener('input', (e) => {
         if (!e.target.classList.contains('item-text')) return;
         const path = e.target.dataset.path;
         const newText = e.target.value;
+        setSmartartEditorSelection(path, e.target.selectionStart);
         updateSmartartItemText(path, newText);
         renderSmartArtChart();
     });
 
-    // Add item
-    container.querySelector('.add-item')?.addEventListener('click', () => {
-        const testData = _smartartDefaultItems(state.smartartType, 'list');
-        const template = testData[0] || { text: _smartartText('newNode'), children: [] };
-        _mutateSmartart((draft) => {
-            const typeId = draft.smartartType || 'pyramid';
-            const items = Array.isArray(draft.smartartItems) ? _saClone(draft.smartartItems) : [];
-            items.push(_saClone(template));
-            const byType = _saClone(draft.smartartItemsByType || {});
-            byType[typeId] = _saClone(items);
-            draft.smartartItems = items;
-            draft.smartartItemsByType = byType;
-            draft.smartartItemCount = items.length;
-        }, { render: false });
-        renderSmartartTextEditor();
-        renderSmartArtChart();
+    container.addEventListener('focusin', (e) => {
+        if (!e.target.classList.contains('item-text')) return;
+        setSmartartEditorSelection(e.target.dataset.path, e.target.selectionStart);
+        syncSmartartSelectionStyles(container);
     });
 
-    // Remove item
-    container.querySelector('.remove-item')?.addEventListener('click', () => {
-        if (state.smartartItems.length > 1) {
-            _mutateSmartart((draft) => {
-                const typeId = draft.smartartType || 'pyramid';
-                const items = Array.isArray(draft.smartartItems) ? _saClone(draft.smartartItems) : [];
-                items.pop();
-                const byType = _saClone(draft.smartartItemsByType || {});
-                byType[typeId] = _saClone(items);
-                draft.smartartItems = items;
-                draft.smartartItemsByType = byType;
-                draft.smartartItemCount = items.length;
-            }, { render: false });
-            renderSmartartTextEditor();
-            renderSmartArtChart();
+    container.addEventListener('keyup', (e) => {
+        if (!e.target.classList.contains('item-text')) return;
+        setSmartartEditorSelection(e.target.dataset.path, e.target.selectionStart);
+    });
+
+    container.addEventListener('click', (e) => {
+        const btn = e.target.closest('.editor-btn[data-op]');
+        if (btn) {
+            if (btn.disabled) return;
+            const op = btn.dataset.op;
+            const schemaType = getSmartartEditorSchema(state.smartartType);
+            const changed = applySmartartEditorOperation(op, schemaType);
+            if (changed) {
+                renderSmartartTextEditor();
+                if (typeof renderSmartartCountSelector === 'function') renderSmartartCountSelector();
+                renderSmartArtChart();
+            }
+            return;
         }
+
+        const row = e.target.closest('.editor-item[data-path]');
+        if (!row) return;
+        const input = row.querySelector('.item-text');
+        if (!input) return;
+        if (e.target !== input) {
+            input.focus();
+            const end = input.value.length;
+            input.setSelectionRange(end, end);
+        }
+        setSmartartEditorSelection(input.dataset.path, input.selectionStart);
+        syncSmartartSelectionStyles(container);
     });
 }
 
@@ -782,31 +803,284 @@ function bindSmartartEditorEvents(container) {
  * Update item text by path
  */
 function updateSmartartItemText(path, newText) {
-    const parts = path.split('-').map(Number);
+    const parts = parseSmartartPath(path);
+    if (!parts || !parts.length) return;
+
     _mutateSmartart((draft) => {
         const typeId = draft.smartartType || 'pyramid';
         const items = Array.isArray(draft.smartartItems) ? _saClone(draft.smartartItems) : [];
-        if (parts.length === 1) {
-            const item = items[parts[0]];
-            if (typeof item === 'string') {
-                items[parts[0]] = newText;
-            } else if (item && typeof item === 'object') {
-                item.text = newText;
-            }
-        } else if (parts.length === 2) {
-            const parent = items[parts[0]];
-            if (typeof parent === 'object' && parent.children && parent.children[parts[1]]) {
-                const child = parent.children[parts[1]];
-                if (typeof child === 'string') {
-                    parent.children[parts[1]] = newText;
-                } else {
-                    child.text = newText;
-                }
-            }
-        }
+        updateSmartartNodeText(items, parts, newText);
         const byType = _saClone(draft.smartartItemsByType || {});
         byType[typeId] = _saClone(items);
         draft.smartartItems = items;
         draft.smartartItemsByType = byType;
     }, { render: false });
+}
+
+function setSmartartEditorSelection(path, caret = null) {
+    if (typeof path !== 'string' || !path.length) return;
+    _smartartEditorSelection = {
+        path,
+        caret: Number.isFinite(caret) ? caret : null,
+    };
+}
+
+function parseSmartartPath(path) {
+    if (typeof path !== 'string' || !path.length) return null;
+    const nums = path.split('-').map((part) => Number(part));
+    if (nums.some((n) => !Number.isInteger(n) || n < 0)) return null;
+    return nums;
+}
+
+function smartartPathToString(path) {
+    if (!Array.isArray(path) || path.length === 0) return '';
+    return path.join('-');
+}
+
+function normalizeSmartartNode(node) {
+    if (typeof node === 'string') return { text: node, children: [] };
+    if (!node || typeof node !== 'object') return { text: '', children: [] };
+    const children = Array.isArray(node.children) ? node.children.map(normalizeSmartartNode) : [];
+    return { ...node, text: node.text == null ? '' : String(node.text), children };
+}
+
+function normalizeSmartartTree(items) {
+    if (!Array.isArray(items)) return [];
+    return items.map(normalizeSmartartNode);
+}
+
+function updateSmartartNodeText(items, path, newText) {
+    let currentArray = items;
+    for (let depth = 0; depth < path.length; depth += 1) {
+        const idx = path[depth];
+        if (!Array.isArray(currentArray) || idx < 0 || idx >= currentArray.length) return false;
+        if (depth === path.length - 1) {
+            const node = currentArray[idx];
+            if (typeof node === 'string') {
+                currentArray[idx] = newText;
+            } else if (node && typeof node === 'object') {
+                node.text = newText;
+            } else {
+                currentArray[idx] = { text: newText, children: [] };
+            }
+            return true;
+        }
+        let parent = currentArray[idx];
+        if (typeof parent === 'string') {
+            parent = { text: parent, children: [] };
+            currentArray[idx] = parent;
+        } else if (!parent || typeof parent !== 'object') {
+            parent = { text: '', children: [] };
+            currentArray[idx] = parent;
+        }
+        if (!Array.isArray(parent.children)) parent.children = [];
+        currentArray = parent.children;
+    }
+    return false;
+}
+
+function getSmartartChildrenArray(items, parentPath) {
+    if (!Array.isArray(parentPath) || parentPath.length === 0) return items;
+    let currentArray = items;
+    for (let i = 0; i < parentPath.length; i += 1) {
+        const idx = parentPath[i];
+        if (!Array.isArray(currentArray) || idx < 0 || idx >= currentArray.length) return null;
+        const node = normalizeSmartartNode(currentArray[idx]);
+        currentArray[idx] = node;
+        if (!Array.isArray(node.children)) node.children = [];
+        currentArray = node.children;
+    }
+    return currentArray;
+}
+
+function getSmartartNodeAtPath(items, path) {
+    if (!Array.isArray(path) || path.length === 0) return null;
+    const parentPath = path.slice(0, -1);
+    const idx = path[path.length - 1];
+    const arr = getSmartartChildrenArray(items, parentPath);
+    if (!Array.isArray(arr) || idx < 0 || idx >= arr.length) return null;
+    return arr[idx];
+}
+
+function resolveSmartartSelectedPath(items) {
+    const parsed = parseSmartartPath(_smartartEditorSelection.path);
+    if (parsed && getSmartartNodeAtPath(normalizeSmartartTree(items), parsed)) return parsed;
+    if (Array.isArray(items) && items.length > 0) return [0];
+    return null;
+}
+
+function getSmartartEditorCapabilities(items, schemaType) {
+    const tree = normalizeSmartartTree(items);
+    const selectedPath = resolveSmartartSelectedPath(tree);
+    const cap = {
+        add: true,
+        remove: false,
+        indent: false,
+        outdent: false,
+        moveUp: false,
+        moveDown: false,
+    };
+    if (!selectedPath) {
+        cap.remove = tree.length > 1;
+        return cap;
+    }
+
+    const parentPath = selectedPath.slice(0, -1);
+    const idx = selectedPath[selectedPath.length - 1];
+    const siblings = getSmartartChildrenArray(tree, parentPath) || [];
+    cap.remove = !(selectedPath.length === 1 && tree.length <= 1);
+    cap.moveUp = idx > 0;
+    cap.moveDown = idx < siblings.length - 1;
+    if (schemaType !== 'matrix') {
+        cap.indent = idx > 0;
+        cap.outdent = selectedPath.length > 1;
+    }
+    return cap;
+}
+
+function applySmartartEditorOperation(operation, schemaType) {
+    if (schemaType === 'matrix' && (operation === 'indent' || operation === 'outdent')) return false;
+
+    let changed = false;
+    let nextSelectedPath = null;
+
+    _mutateSmartart((draft) => {
+        const typeId = draft.smartartType || 'pyramid';
+        const baseItems = Array.isArray(draft.smartartItems) ? _saClone(draft.smartartItems) : [];
+        const selectedPath = resolveSmartartSelectedPath(baseItems);
+        const result = applySmartartTreeOperation(baseItems, operation, selectedPath);
+        if (!result.changed) return;
+
+        const items = result.items;
+        const byType = _saClone(draft.smartartItemsByType || {});
+        byType[typeId] = _saClone(items);
+        draft.smartartItems = items;
+        draft.smartartItemsByType = byType;
+        draft.smartartItemCount = items.length;
+        changed = true;
+        nextSelectedPath = result.selectedPath;
+    }, { render: false });
+
+    if (!changed) return false;
+    if (nextSelectedPath && nextSelectedPath.length > 0) {
+        setSmartartEditorSelection(smartartPathToString(nextSelectedPath), null);
+    }
+    return true;
+}
+
+function applySmartartTreeOperation(rawItems, operation, selectedPath) {
+    const items = normalizeSmartartTree(rawItems);
+    const makeNode = () => ({ text: _smartartText('newNode'), children: [] });
+    let changed = false;
+    let nextSelectedPath = selectedPath && selectedPath.length ? [...selectedPath] : null;
+
+    if (!nextSelectedPath && items.length > 0) nextSelectedPath = [0];
+
+    if (operation === 'add') {
+        if (!nextSelectedPath) {
+            items.push(makeNode());
+            return { changed: true, items, selectedPath: [0] };
+        }
+        const parentPath = nextSelectedPath.slice(0, -1);
+        const idx = nextSelectedPath[nextSelectedPath.length - 1];
+        const siblings = getSmartartChildrenArray(items, parentPath);
+        if (!Array.isArray(siblings)) return { changed: false, items, selectedPath: nextSelectedPath };
+        const insertAt = Math.max(0, Math.min(siblings.length, idx + 1));
+        siblings.splice(insertAt, 0, makeNode());
+        return { changed: true, items, selectedPath: [...parentPath, insertAt] };
+    }
+
+    if (!nextSelectedPath) return { changed: false, items, selectedPath: null };
+    const parentPath = nextSelectedPath.slice(0, -1);
+    const idx = nextSelectedPath[nextSelectedPath.length - 1];
+    const siblings = getSmartartChildrenArray(items, parentPath);
+    if (!Array.isArray(siblings) || idx < 0 || idx >= siblings.length) {
+        return { changed: false, items, selectedPath: nextSelectedPath };
+    }
+
+    if (operation === 'remove') {
+        if (nextSelectedPath.length === 1 && items.length <= 1) {
+            return { changed: false, items, selectedPath: nextSelectedPath };
+        }
+        siblings.splice(idx, 1);
+        changed = true;
+
+        if (siblings.length > 0) {
+            nextSelectedPath = [...parentPath, Math.min(idx, siblings.length - 1)];
+        } else if (parentPath.length > 0) {
+            nextSelectedPath = parentPath;
+        } else if (items.length > 0) {
+            nextSelectedPath = [Math.min(idx, items.length - 1)];
+        } else {
+            items.push(makeNode());
+            nextSelectedPath = [0];
+        }
+    }
+
+    if (operation === 'move-up') {
+        if (idx <= 0) return { changed: false, items, selectedPath: nextSelectedPath };
+        [siblings[idx - 1], siblings[idx]] = [siblings[idx], siblings[idx - 1]];
+        changed = true;
+        nextSelectedPath = [...parentPath, idx - 1];
+    }
+
+    if (operation === 'move-down') {
+        if (idx >= siblings.length - 1) return { changed: false, items, selectedPath: nextSelectedPath };
+        [siblings[idx], siblings[idx + 1]] = [siblings[idx + 1], siblings[idx]];
+        changed = true;
+        nextSelectedPath = [...parentPath, idx + 1];
+    }
+
+    if (operation === 'indent') {
+        if (idx <= 0) return { changed: false, items, selectedPath: nextSelectedPath };
+        const moving = siblings[idx];
+        const prev = normalizeSmartartNode(siblings[idx - 1]);
+        siblings[idx - 1] = prev;
+        if (!Array.isArray(prev.children)) prev.children = [];
+        siblings.splice(idx, 1);
+        prev.children.push(moving);
+        changed = true;
+        nextSelectedPath = [...parentPath, idx - 1, prev.children.length - 1];
+    }
+
+    if (operation === 'outdent') {
+        if (nextSelectedPath.length <= 1) return { changed: false, items, selectedPath: nextSelectedPath };
+        const moving = siblings[idx];
+        siblings.splice(idx, 1);
+        const grandPath = parentPath.slice(0, -1);
+        const parentIdx = parentPath[parentPath.length - 1];
+        const grandSiblings = getSmartartChildrenArray(items, grandPath);
+        if (!Array.isArray(grandSiblings)) return { changed: false, items, selectedPath: nextSelectedPath };
+        const insertAt = Math.min(grandSiblings.length, parentIdx + 1);
+        grandSiblings.splice(insertAt, 0, moving);
+        changed = true;
+        nextSelectedPath = [...grandPath, insertAt];
+    }
+
+    return { changed, items, selectedPath: nextSelectedPath };
+}
+
+function syncSmartartSelectionStyles(container) {
+    const activePath = _smartartEditorSelection.path;
+    container.querySelectorAll('.editor-item.selected').forEach((el) => el.classList.remove('selected'));
+    if (!activePath) return;
+    const row = container.querySelector(`.editor-item[data-path="${activePath}"]`);
+    if (row) row.classList.add('selected');
+}
+
+function restoreSmartartEditorSelection(container) {
+    const activePath = _smartartEditorSelection.path;
+    if (!activePath) return;
+    const input = container.querySelector(`.item-text[data-path="${activePath}"]`);
+    if (!input) {
+        syncSmartartSelectionStyles(container);
+        return;
+    }
+
+    const max = input.value.length;
+    const caret = Number.isFinite(_smartartEditorSelection.caret) ? _smartartEditorSelection.caret : max;
+    const pos = Math.max(0, Math.min(max, caret));
+    input.focus({ preventScroll: true });
+    input.setSelectionRange(pos, pos);
+    syncSmartartSelectionStyles(container);
 }

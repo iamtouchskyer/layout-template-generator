@@ -69,6 +69,9 @@ function _importNormalizeInput(raw) {
             pages: raw.pages.map((page, idx) => {
                 const data = _importDeepClone(page?.data || {});
                 const type = _importResolvePageType(page, 'content-grid');
+                if (type === 'content-smartart' && data.smartartFontSizePt == null && data.smartart?.fontSizePt != null) {
+                    data.smartartFontSizePt = data.smartart.fontSizePt;
+                }
                 const model = _importResolvePageModel(type);
                 return {
                     id: String(page?.id || `page-${idx + 1}`),
@@ -105,6 +108,7 @@ function _importNormalizeInput(raw) {
         data.smartartCategory = raw.smartartCategory || raw.smartart?.category;
         data.smartartPlacement = raw.smartartPlacement || raw.smartart?.placement;
         data.smartartColorScheme = raw.smartartColorScheme || raw.smartart?.colorScheme;
+        data.smartartFontSizePt = raw.smartartFontSizePt ?? raw.smartart?.fontSizePt ?? null;
         data.smartartItems = _importDeepClone(raw.smartartItems || raw.smartart?.items || []);
         data.smartartItemsByType = _importDeepClone(raw.smartartItemsByType || {});
         data.contentTitle = raw.contentTitle || '市场趋势分析';

@@ -94,6 +94,27 @@ function deepClone(value) {
     return JSON.parse(JSON.stringify(value));
 }
 
+function normalizeSmartartFontSizePt(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num <= 0) return null;
+    const clamped = Math.max(8, Math.min(36, num));
+    return Math.round(clamped * 10) / 10;
+}
+
+function resolveSmartartFontSizePtForExport(sourceData, page) {
+    const fromData = normalizeSmartartFontSizePt(
+        sourceData?.smartartFontSizePt ?? sourceData?.smartart?.fontSizePt
+    );
+
+    const currentPageId = state.ui?.currentPageId;
+    if (page?.id && currentPageId && page.id === currentPageId && typeof getSmartArtFontSizePt === 'function') {
+        const live = normalizeSmartartFontSizePt(getSmartArtFontSizePt());
+        if (live) return live;
+    }
+
+    return fromData;
+}
+
 function isSmartartOOXMLAligned(ooxml, smartartType) {
     if (!ooxml || typeof ooxml !== 'object') return false;
     if (!smartartType || typeof smartartType !== 'string') return true;
@@ -243,6 +264,7 @@ function buildPageDataForExport(page, legacyFallback) {
 
     if (pageType === 'content-smartart') {
         const smartartType = sourceData.smartartType || sourceData.smartart?.type || legacyFallback?.smartart?.type || 'pyramid';
+        const smartartFontSizePt = resolveSmartartFontSizePtForExport(sourceData, page);
         const byType = deepClone(sourceData.smartartItemsByType || {});
         const fromSmartart = sourceData.smartart?.items;
         const fromCurrent = sourceData.smartartItems;
@@ -263,6 +285,7 @@ function buildPageDataForExport(page, legacyFallback) {
             colorScheme: sourceData.smartartColorScheme || sourceData.smartart?.colorScheme || legacyFallback?.smartart?.colorScheme || 'colorful1',
             items,
             ooxmlId: SMARTART_TYPES[smartartType]?.ooxmlId,
+            ...(smartartFontSizePt ? { fontSizePt: smartartFontSizePt } : {}),
         };
 
         // Prefer live OOXML from current editor to avoid exporting stale layout/type pairs.
@@ -283,6 +306,7 @@ function buildPageDataForExport(page, legacyFallback) {
             smartartType: smartart.type,
             smartartPlacement: smartart.placement,
             smartartColorScheme: smartart.colorScheme,
+            smartartFontSizePt: smartartFontSizePt ?? null,
             smartartItemCount: sourceData.smartartItemCount ?? items.length,
             smartartItemsByType: byType,
             ...contentShell,
@@ -359,6 +383,10 @@ function toV2PresentationConfig(legacyConfig) {
  */
 function updateJsonOutput() {
     const gridLayout = GRID_LAYOUTS[state.gridLayout];
+    const liveSmartartFontSizePt = (typeof getSmartArtFontSizePt === 'function')
+        ? normalizeSmartartFontSizePt(getSmartArtFontSizePt())
+        : null;
+    const smartartFontSizePtForLegacy = liveSmartartFontSizePt || normalizeSmartartFontSizePt(state.smartartFontSizePt);
 
     // Serialize shapes with full config
     const serializedShapes = state.masterShapes.map(shapeState => {
@@ -445,6 +473,7 @@ function updateJsonOutput() {
             }
         } : {}),
         ...(state.pageType === 'content-smartart' ? {
+            smartartFontSizePt: smartartFontSizePtForLegacy,
             smartart: {
                 type: state.smartartType,
                 category: state.smartartCategory,
@@ -454,6 +483,7 @@ function updateJsonOutput() {
                     ? JSON.parse(JSON.stringify(state.smartartItems))
                     : [],
                 ooxmlId: SMARTART_TYPES[state.smartartType]?.ooxmlId,
+                ...(smartartFontSizePtForLegacy ? { fontSizePt: smartartFontSizePtForLegacy } : {}),
                 ...(typeof getSmartArtOOXML === 'function' ? { ooxml: getSmartArtOOXML() } : {})
             }
         } : {}),

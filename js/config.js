@@ -45,6 +45,7 @@ const SMARTART_DEFAULT_CATEGORIES = {
     'matrix': { label: 'Matrix', desc: '矩阵/循环结构' },
     'cycle': { label: 'Cycle', desc: '循环结构' },
     'pyramid': { label: 'Pyramid', desc: '金字塔/漏斗结构' },
+    'list': { label: 'List', desc: '列表/流程结构' },
     'others': { label: 'Others', desc: '其他图形' },
 };
 

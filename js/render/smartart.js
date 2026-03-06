@@ -224,8 +224,23 @@ function handleSmartartTextChange(e) {
     }
 }
 
-function getSmartArtColorsFromScheme(schemeId) {
+function getSmartArtPreviewNeutralColors() {
+    const isLightMode = document.documentElement.getAttribute('data-theme') === 'light';
+    if (isLightMode) {
+        return {
+            light1: '#FFFFFF',
+            dark1: '#1F2937',
+        };
+    }
+    return {
+        light1: '#D5DEE8',
+        dark1: '#0F172A',
+    };
+}
+
+function getSmartArtColorsFromScheme(schemeId, options = {}) {
     const colorSchemes = getSmartArtColorSchemes(state.theme);
+    const previewMode = options.previewMode === true;
 
     let accents = null;
     for (const group of colorSchemes) {
@@ -241,11 +256,15 @@ function getSmartArtColorsFromScheme(schemeId) {
         accents = theme?.accentColors || ['#156082', '#E97132', '#196B24', '#0F9ED5', '#A02B93', '#4EA72E'];
     }
 
+    const neutrals = previewMode
+        ? getSmartArtPreviewNeutralColors()
+        : { light1: '#FFFFFF', dark1: '#000000' };
+
     return {
         parentColor: accents[0],
         childColors: accents.slice(1),
-        light1: '#FFFFFF',
-        dark1: '#000000',
+        light1: neutrals.light1,
+        dark1: neutrals.dark1,
         accent1: accents[0],
         accent2: accents[1],
         accent3: accents[2],

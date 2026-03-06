@@ -32,6 +32,12 @@ function render() {
     if (state.pageType === 'content-grid') {
         setTimeout(() => initZoneCharts(), 0);
     }
+    if (state.pageType === 'content-smartart') {
+        if (typeof renderSmartartTypeSelector === 'function') renderSmartartTypeSelector();
+        if (typeof renderSmartartCountSelector === 'function') renderSmartartCountSelector();
+        if (typeof renderSmartartPlacements === 'function') renderSmartartPlacements();
+        if (typeof renderSmartartColorSelector === 'function') renderSmartartColorSelector();
+    }
 
     renderSmartartTextEditor();
     if (typeof updateHistoryButtons === 'function') updateHistoryButtons();

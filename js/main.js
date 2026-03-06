@@ -1,9 +1,35 @@
 // Main Application Entry Point
 
 /**
+ * Toggle light/dark theme
+ */
+function toggleAppTheme() {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const next = isLight ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next === 'dark' ? '' : next);
+    if (next === 'dark') document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('app-theme', next);
+    const btn = document.getElementById('btn-theme-toggle');
+    if (btn) btn.textContent = next === 'light' ? '\u2600' : '\u263E';
+
+    if (state.pageType === 'content-smartart') {
+        if (typeof renderSmartartColorSelector === 'function') renderSmartartColorSelector();
+        if (typeof renderSmartartTypeSelector === 'function') renderSmartartTypeSelector();
+    }
+}
+
+function _initAppTheme() {
+    const saved = localStorage.getItem('app-theme') || 'dark';
+    if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    const btn = document.getElementById('btn-theme-toggle');
+    if (btn) btn.textContent = saved === 'light' ? '\u2600' : '\u263E';
+}
+
+/**
  * Initialize the application after config is loaded
  */
 function init() {
+    _initAppTheme();
     if (typeof applySiteI18n === 'function') {
         applySiteI18n();
     }
@@ -44,6 +70,32 @@ async function startApp() {
             Please check that the server is running and config/slide-master.json exists.
         </div>`;
     }
+}
+
+// Test Menu Functions
+function _testAddAllCovers() {
+    Object.keys(COVER_LAYOUTS).forEach(layout => {
+        addPageByModel('cover', 'cover', layout);
+    });
+}
+
+function _testAddAllDividers() {
+    Object.keys(DIVIDER_LAYOUTS).forEach(layout => {
+        addPageByModel('divider', 'divider', layout);
+    });
+}
+
+function _testAddAllGrids() {
+    Object.keys(GRID_LAYOUTS).forEach(layout => {
+        addPageByModel('content', 'grid', layout);
+    });
+}
+
+function _testAddAllSmartArt() {
+    Object.keys(SMARTART_TYPES).forEach(typeId => {
+        const page = addPageByModel('content', 'smartart', null);
+        if (page) page.data.smartartType = typeId;
+    });
 }
 
 // Start the application

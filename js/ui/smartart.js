@@ -68,7 +68,7 @@ function _smartartDefaultItems(typeId, category) {
 }
 
 /**
- * Render SmartArt type selector with category tabs
+ * Render SmartArt type selector: category tabs + thumbnail strip + dropdown
  */
 function renderSmartartTypeSelector() {
     const container = document.getElementById('smartart-type-selector');
@@ -87,38 +87,175 @@ function renderSmartartTypeSelector() {
         return catInfo?.label || '';
     };
 
-    // Get types for current category
-    const currentCatTypes = Object.entries(SMARTART_TYPES).filter(([_, t]) => t.category === currentCat);
+    const currentCatTypes = Object.entries(SMARTART_TYPES)
+        .filter(([_, t]) => t.category === currentCat)
+        .map(([id, info]) => ({ id, label: getTypeLabel(info), ooxmlId: info.ooxmlId }));
+
+    const catTabs = Object.entries(SMARTART_CATEGORIES).map(([catId, cat]) => {
+        const types = Object.entries(SMARTART_TYPES).filter(([_, t]) => t.category === catId);
+        if (types.length === 0) return '';
+        return `<button class="smartart-cat-btn ${currentCat === catId ? 'active' : ''}"
+                    onclick="selectSmartartCategory('${catId}')" title="${cat.desc}">
+                    <span class="cat-label">${getCatLabel(cat)}</span>
+                </button>`;
+    }).join('');
 
     container.innerHTML = `
-        <div class="smartart-cat-row">
-            ${Object.entries(SMARTART_CATEGORIES).map(([catId, cat]) => {
-                const types = Object.entries(SMARTART_TYPES).filter(([_, t]) => t.category === catId);
-                if (types.length === 0) return '';
-                const catLabel = getCatLabel(cat);
-                return `
-                    <button class="smartart-cat-btn ${currentCat === catId ? 'active' : ''}"
-                            onclick="selectSmartartCategory('${catId}')" title="${cat.desc}">
-                        <span class="cat-label">${catLabel}</span>
-                    </button>
-                `;
-            }).join('')}
-        </div>
-        <div class="smartart-thumbnail-grid">
-            ${currentCatTypes.map(([typeId, typeInfo]) => {
-                const typeLabel = getTypeLabel(typeInfo);
-                return `
-                <div class="smartart-thumbnail ${state.smartartType === typeId ? 'active' : ''}"
-                     onclick="selectSmartartType('${typeId}')" title="${typeLabel}">
-                    <img src="assets/smartart-refs/${typeInfo.ooxmlId}.png"
-                         alt="${typeLabel}"
-                         data-ooxml-id="${typeInfo.ooxmlId}"
-                         onerror="if(!this.dataset.svgTried){this.dataset.svgTried='1';this.src='assets/smartart-refs/${typeInfo.ooxmlId}.svg';}else{this.parentElement.innerHTML='<div class=\\'thumb-fallback\\'>${typeLabel}</div>'}">
-                </div>
-            `;
-            }).join('')}
-        </div>
+        <div class="smartart-cat-row">${catTabs}</div>
+        <div class="smartart-strip-wrapper" id="smartart-strip-wrapper"></div>
     `;
+
+    renderThumbnailStrip({
+        items: currentCatTypes,
+        activeId: state.smartartType,
+        onSelect: 'selectSmartartType',
+        onExpand: '_toggleLayoutDropdown',
+    });
+}
+
+/**
+ * Generate inline SVG thumbnail for a SmartArt type using current theme colors
+ */
+function _generateTypeThumbnail(typeId) {
+    if (typeof SmartArt === 'undefined' || !SmartArt.thumbnail) {
+        return `<div class="thumb-fallback">${typeId}</div>`;
+    }
+    const themeColors = getSmartArtColorsFromScheme(state.smartartColorScheme, { previewMode: true });
+    const category = SMARTART_TYPES[typeId]?.category;
+    const items = _smartartDefaultItems(typeId, category);
+    return SmartArt.thumbnail(typeId, {
+        type: typeId,
+        items,
+        size: { width: 960, height: 540 },
+        theme: themeColors,
+    });
+}
+
+/**
+ * Render horizontal thumbnail strip with scroll arrows
+ */
+function renderThumbnailStrip(options) {
+    const { items, activeId, onSelect, onExpand } = options;
+    const wrapper = document.getElementById('smartart-strip-wrapper');
+    if (!wrapper) return;
+
+    const thumbsHtml = items.map(item => `
+        <div class="smartart-thumbnail ${activeId === item.id ? 'active' : ''}"
+             onclick="${onSelect}('${item.id}')" title="${item.label} (${item.ooxmlId})">
+            ${_generateTypeThumbnail(item.id)}
+            <span class="thumb-ooxml-id">${item.ooxmlId}</span>
+        </div>
+    `).join('');
+
+    wrapper.innerHTML = `
+        <div class="smartart-thumb-strip">
+            <button class="strip-arrow strip-arrow-left" onclick="_scrollStrip(-1)">&#8249;</button>
+            <div class="strip-track" id="smartart-strip-track">${thumbsHtml}</div>
+            <button class="strip-arrow strip-arrow-right" onclick="_scrollStrip(1)">&#8250;</button>
+        </div>
+        <button class="strip-expand-btn" onclick="${onExpand}()" title="Show all layouts">&#9662;</button>
+        <div class="smartart-layout-dropdown" id="smartart-layout-dropdown"></div>
+    `;
+
+    _updateStripArrows();
+}
+
+/**
+ * Scroll the thumbnail strip by direction (-1 = left, 1 = right)
+ */
+function _scrollStrip(dir) {
+    const track = document.getElementById('smartart-strip-track');
+    if (!track) return;
+    const step = 312; // ~3 thumbnails (96px + 8px gap)
+    track.scrollBy({ left: dir * step, behavior: 'smooth' });
+    setTimeout(_updateStripArrows, 300);
+}
+
+/**
+ * Show/hide strip arrows based on scroll position
+ */
+function _updateStripArrows() {
+    const track = document.getElementById('smartart-strip-track');
+    if (!track) return;
+    const wrapper = track.closest('.smartart-thumb-strip');
+    if (!wrapper) return;
+    const leftBtn = wrapper.querySelector('.strip-arrow-left');
+    const rightBtn = wrapper.querySelector('.strip-arrow-right');
+    if (leftBtn) leftBtn.classList.toggle('hidden', track.scrollLeft <= 0);
+    if (rightBtn) rightBtn.classList.toggle('hidden', track.scrollLeft + track.clientWidth >= track.scrollWidth - 1);
+}
+
+/**
+ * Toggle the layout dropdown grid
+ */
+function _toggleLayoutDropdown() {
+    const dropdown = document.getElementById('smartart-layout-dropdown');
+    if (!dropdown) return;
+
+    if (dropdown.classList.contains('open')) {
+        dropdown.classList.remove('open');
+        document.removeEventListener('click', _closeLayoutDropdownOutside);
+        return;
+    }
+
+    renderLayoutDropdown({
+        container: dropdown,
+        activeId: state.smartartType,
+        onSelect: 'selectSmartartType',
+    });
+
+    dropdown.classList.add('open');
+    setTimeout(() => {
+        document.addEventListener('click', _closeLayoutDropdownOutside);
+    }, 0);
+}
+
+/**
+ * Close layout dropdown on outside click
+ */
+function _closeLayoutDropdownOutside(event) {
+    const dropdown = document.getElementById('smartart-layout-dropdown');
+    const expandBtn = document.querySelector('.strip-expand-btn');
+    if (dropdown && !dropdown.contains(event.target) && (!expandBtn || !expandBtn.contains(event.target))) {
+        dropdown.classList.remove('open');
+        document.removeEventListener('click', _closeLayoutDropdownOutside);
+    }
+}
+
+/**
+ * Render layout dropdown grid with all types grouped by category
+ */
+function renderLayoutDropdown(options) {
+    const { container, activeId, onSelect } = options;
+    const getTypeLabel = (typeInfo) => {
+        if (typeof getSmartArtTypeLabel === 'function') return getSmartArtTypeLabel(typeInfo);
+        return typeInfo?.label || '';
+    };
+    const getCatLabel = (catInfo) => {
+        if (typeof getSmartArtCategoryLabel === 'function') return getSmartArtCategoryLabel(catInfo);
+        return catInfo?.label || '';
+    };
+
+    const groupsHtml = Object.entries(SMARTART_CATEGORIES).map(([catId, cat]) => {
+        const types = Object.entries(SMARTART_TYPES).filter(([_, t]) => t.category === catId);
+        if (types.length === 0) return '';
+
+        const thumbs = types.map(([typeId, typeInfo]) => {
+            const label = getTypeLabel(typeInfo);
+            return `<div class="smartart-thumbnail ${activeId === typeId ? 'active' : ''}"
+                         onclick="${onSelect}('${typeId}');_toggleLayoutDropdown();" title="${label} (${typeInfo.ooxmlId})">
+                ${_generateTypeThumbnail(typeId)}
+                <span class="thumb-ooxml-id">${typeInfo.ooxmlId}</span>
+            </div>`;
+        }).join('');
+
+        return `<div class="dropdown-cat-group">
+            <div class="dropdown-cat-label">${getCatLabel(cat)}</div>
+            <div class="dropdown-cat-grid">${thumbs}</div>
+        </div>`;
+    }).join('');
+
+    container.innerHTML = groupsHtml;
 }
 
 /**
@@ -204,13 +341,11 @@ function renderSmartartCountSelector() {
     const container = document.getElementById('smartart-count-selector');
     if (!container) return;
 
-    const counts = [3, 4, 5, 6];
-    container.innerHTML = `<div class="count-btns">
+    const counts = [1, 2, 3, 4, 5, 6];
+    container.innerHTML = `<div class="placement-btns">
         ${counts.map(count => `
-            <button class="count-btn ${state.smartartItemCount === count ? 'active' : ''}"
-                    onclick="selectSmartartCount(${count})" title="${count} ${_smartartText('itemCountTitle')}">
-                <span class="count-num">${count}</span>
-            </button>
+            <button class="placement-btn ${state.smartartItemCount === count ? 'active' : ''}"
+                    onclick="selectSmartartCount(${count})" title="${count} ${_smartartText('itemCountTitle')}">${count}</button>
         `).join('')}
     </div>`;
 }
@@ -438,6 +573,7 @@ function selectSmartartColorScheme(schemeId) {
     const dropdown = document.getElementById('color-picker-dropdown');
     if (dropdown) dropdown.classList.remove('open');
     renderSmartartColorSelector();
+    renderSmartartTypeSelector();
 }
 
 // ============= SmartArt Text Editor =============

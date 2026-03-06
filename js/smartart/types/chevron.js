@@ -13,6 +13,10 @@ export function chevronLayout(option, config = {}) {
     const connectors = [];
     const childColors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
 
+    if (style === 'chevron2') {
+        return layoutChevron2(option);
+    }
+
     if (style === 'descending') {
         // Descending stairs pattern
         const stepWidth = width / count;
@@ -77,4 +81,41 @@ export function chevronLayout(option, config = {}) {
         connectors,
         bounds: { x: 0, y: 0, width, height }
     };
+}
+
+/* ── chevron2: round2SameRect accent + chevron per item ── */
+
+function layoutChevron2(option) {
+    const { items, size, theme } = option;
+    const { width, height } = size;
+    const count = items.length || 3;
+    const colors = theme.childColors || [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
+    const shapes = [];
+    const gap = width * 0.02;
+    const itemW = (width - gap * (count + 1)) / count;
+    const accentH = height * 0.35;
+    const chevronH = height * 0.35;
+    const accentY = height * 0.05;
+    const chevronY = accentY + accentH + height * 0.08;
+
+    items.forEach((item, idx) => {
+        const x = gap + idx * (itemW + gap);
+        shapes.push({
+            id: `accent-${idx}`, type: 'round2SameRect',
+            x, y: accentY, width: itemW, height: accentH,
+            text: item.text || item,
+            fill: colors[idx % colors.length], stroke: theme.light1, strokeWidth: 2,
+            textColor: theme.light1, fontSize: 14
+        });
+        shapes.push({
+            id: `chevron-${idx}`, type: 'chevron',
+            x, y: chevronY, width: itemW, height: chevronH,
+            text: '', fill: colors[idx % colors.length],
+            stroke: theme.light1, strokeWidth: 2,
+            textColor: theme.light1, fontSize: 12,
+            pointDepth: itemW * 0.15, opacity: 0.6
+        });
+    });
+
+    return { type: 'chevron', shapes, connectors: [], bounds: { x: 0, y: 0, width, height } };
 }

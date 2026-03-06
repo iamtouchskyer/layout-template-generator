@@ -16,4 +16,5 @@ npx --yes esbuild@0.25.10 js/smartart/types/registry.js \
 node scripts/verify-smartart-layout-snapshots.js \
   "$TMP_DIR/registry.cjs" \
   tests/snapshots/smartart_layout_snapshots.json \
+  --svg "$ROOT_DIR/assets/smartart-refs" \
   "$@"

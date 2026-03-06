@@ -10,6 +10,10 @@ import { chevronLayout } from './chevron.js';
 import { hierarchyLayout } from './hierarchy.js';
 import { radialLayout } from './radial.js';
 import { listLayout } from './list.js';
+import { vennLayout } from './venn.js';
+import { listExtLayout } from './list-ext.js';
+import { arrowLayout } from './arrow.js';
+import { processLayout } from './process.js';
 import { SMARTART_TYPE_DEFS } from './registry.generated.js';
 
 // Re-export data schema utilities
@@ -33,6 +37,10 @@ const LAYOUT_IMPLS = {
     hierarchy: hierarchyLayout,
     radial: radialLayout,
     list: listLayout,
+    venn: vennLayout,
+    listExt: listExtLayout,
+    arrow: arrowLayout,
+    process: processLayout,
 };
 
 function createLayout(engineDef) {

@@ -5,8 +5,10 @@
 
 export function hierarchyLayout(option, config = {}) {
     const { items, size, theme } = option;
-    const { direction = 'TB' } = config; // TB (top-bottom), LR (left-right)
+    const { direction = 'TB', variant = 'hierarchy1' } = config; // TB | LR
     const { width, height } = size;
+    const flow = variant === 'hierarchy4' ? 'LR' : direction;
+    const nodeShape = variant === 'hierarchy3' ? 'roundRect' : 'rect';
 
     const shapes = [];
     const connectors = [];
@@ -31,8 +33,14 @@ export function hierarchyLayout(option, config = {}) {
         const startX = (width - totalWidth) / 2;
 
         level.forEach((node, nodeIdx) => {
-            const x = startX + nodeIdx * (nodeWidth + nodeGap);
-            const y = levelY;
+            let x = startX + nodeIdx * (nodeWidth + nodeGap);
+            let y = levelY;
+            if (flow === 'LR') {
+                x = levelGap + levelIdx * (nodeWidth + levelGap);
+                const totalH = level.length * nodeHeight + (level.length - 1) * nodeGap;
+                const startY = (height - totalH) / 2;
+                y = startY + nodeIdx * (nodeHeight + nodeGap);
+            }
 
             node._x = x + nodeWidth / 2;
             node._y = y + nodeHeight / 2;
@@ -44,7 +52,7 @@ export function hierarchyLayout(option, config = {}) {
 
             shapes.push({
                 id: node.id || `node-${levelIdx}-${nodeIdx}`,
-                type: 'rect',
+                type: nodeShape,
                 x,
                 y,
                 width: nodeWidth,
@@ -55,19 +63,29 @@ export function hierarchyLayout(option, config = {}) {
                 strokeWidth: 2,
                 textColor: theme.light1,
                 fontSize: 14,
-                rx: 4,
-                ry: 4
+                rx: nodeShape === 'roundRect' ? 8 : 4,
+                ry: nodeShape === 'roundRect' ? 8 : 4
             });
 
             // Add connector to parent
             if (node._parent && node._parent._x !== undefined) {
+                let x1 = node._parent._x;
+                let y1 = node._parent._y + nodeHeight / 2;
+                let x2 = node._x;
+                let y2 = y;
+                if (flow === 'LR') {
+                    x1 = node._parent._x + nodeWidth / 2;
+                    y1 = node._parent._y;
+                    x2 = x;
+                    y2 = node._y;
+                }
                 connectors.push({
                     id: `conn-${node.id}`,
                     type: 'line',
-                    x1: node._parent._x,
-                    y1: node._parent._y + nodeHeight / 2,
-                    x2: node._x,
-                    y2: y,
+                    x1,
+                    y1,
+                    x2,
+                    y2,
                     stroke: theme.dark1,
                     strokeWidth: 2
                 });

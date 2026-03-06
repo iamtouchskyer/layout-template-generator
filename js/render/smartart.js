@@ -58,14 +58,21 @@ function renderSmartartPage() {
 
     const smartartContainer = `<div class="smartart-main"><div id="smartart-render-target"></div></div>`;
 
+    const desc = state.smartartDesc || {};
+    const dTitle = desc.title || _smartartRenderText('descTitle');
+    const dBody = desc.body || _smartartRenderText('descBody');
+    const dBullets = Array.isArray(desc.bullets) && desc.bullets.length === 3
+        ? desc.bullets
+        : [_smartartRenderText('bullet1'), _smartartRenderText('bullet2'), _smartartRenderText('bullet3')];
+
     const descBlock = `
         <div class="smartart-desc-block">
-            <h3>${_smartartRenderText('descTitle')}</h3>
-            <p>${_smartartRenderText('descBody')}</p>
+            <h3>${dTitle}</h3>
+            <p>${dBody}</p>
             <ul>
-                <li>${_smartartRenderText('bullet1')}</li>
-                <li>${_smartartRenderText('bullet2')}</li>
-                <li>${_smartartRenderText('bullet3')}</li>
+                <li>${dBullets[0]}</li>
+                <li>${dBullets[1]}</li>
+                <li>${dBullets[2]}</li>
             </ul>
         </div>
     `;
@@ -184,10 +191,7 @@ function handleSmartartTextChange(e) {
                 : { text: String(current || '') };
 
             if (shapeKind === 'textbox') {
-                const lines = String(text || '')
-                    .split('\n')
-                    .map(line => line.replace(/^\s*[•·]\s*/, '').trim())
-                    .filter(Boolean);
+                const lines = parseSmartartBulletLines(text);
                 currentObj.children = lines.map(line => ({ text: line }));
                 items[idx] = currentObj;
             } else {
@@ -209,10 +213,7 @@ function handleSmartartTextChange(e) {
     const current = state.smartartItems[idx];
     const currentObj = (typeof current === 'object' && current !== null) ? current : { text: String(current || '') };
     if (shapeKind === 'textbox') {
-        const lines = String(text || '')
-            .split('\n')
-            .map(line => line.replace(/^\s*[•·]\s*/, '').trim())
-            .filter(Boolean);
+        const lines = parseSmartartBulletLines(text);
         currentObj.children = lines.map(line => ({ text: line }));
         state.smartartItems[idx] = currentObj;
         return;
@@ -222,6 +223,23 @@ function handleSmartartTextChange(e) {
     if (typeof current === 'string') {
         state.smartartItems[idx] = text;
     }
+}
+
+function parseSmartartBulletLines(text) {
+    const raw = String(text || '')
+        .split('\n')
+        .flatMap(line => line.split(/\s*[•·]\s*/g))
+        .map(line => line.trim())
+        .filter(Boolean);
+    const seen = new Set();
+    const deduped = [];
+    raw.forEach((line) => {
+        const key = line.toLowerCase();
+        if (seen.has(key)) return;
+        seen.add(key);
+        deduped.push(line);
+    });
+    return deduped;
 }
 
 function getSmartArtPreviewNeutralColors() {
@@ -292,4 +310,19 @@ window.getSmartArtOOXML = function() {
         return smartArtInstance.toOOXML();
     }
     return null;
+};
+
+window.getSmartArtFontSizePt = function() {
+    const target = document.getElementById('smartart-render-target');
+    if (!target) return null;
+
+    const svg = target.querySelector('svg.smartart-svg');
+    if (!svg) return null;
+
+    const rawPx = Number(svg.dataset?.unifiedFontSize);
+    if (!Number.isFinite(rawPx) || rawPx <= 0) return null;
+
+    // CSS px -> points (96dpi -> 72dpi)
+    const pt = rawPx * 0.75;
+    return Math.round(pt * 10) / 10;
 };

@@ -1,9 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
-  <rect width="320" height="180" fill="#ffffff"/>
-  <polyline points="160,26 246,70 214,146 106,146 74,70 160,26" fill="none" stroke="#5E8E6F" stroke-width="3"/>
-  <rect x="128" y="14" width="64" height="24" rx="8" fill="#ffffff" stroke="#D9B952"/>
-  <rect x="246" y="58" width="64" height="24" rx="8" fill="#ffffff" stroke="#6C8F70"/>
-  <rect x="214" y="134" width="64" height="24" rx="8" fill="#ffffff" stroke="#B8A877"/>
-  <rect x="42" y="134" width="64" height="24" rx="8" fill="#ffffff" stroke="#8CB6A6"/>
-  <rect x="10" y="58" width="64" height="24" rx="8" fill="#ffffff" stroke="#7A9CB9"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+<path d="M 546.4633649560255 113.4221244277399 A 170.1 170.1 0 0 1 582.3687354381634 134.1520997409555" fill="none" stroke="#ED7D31" stroke-width="2"/>
+<path d="M 648.8321003941888 249.2700246867844 A 170.1 170.1 0 0 1 648.8321003941888 290.72997531321556" fill="none" stroke="#A5A5A5" stroke-width="2"/>
+<path d="M 582.3687354381634 405.84790025904454 A 170.1 170.1 0 0 1 546.4633649560255 426.5778755722601" fill="none" stroke="#FFC000" stroke-width="2"/>
+<path d="M 413.53663504397457 426.5778755722601 A 170.1 170.1 0 0 1 377.6312645618366 405.8479002590445" fill="none" stroke="#5B9BD5" stroke-width="2"/>
+<path d="M 311.16789960581116 290.7299753132156 A 170.1 170.1 0 0 1 311.16789960581116 249.27002468678438" fill="none" stroke="#70AD47" stroke-width="2"/>
+<path d="M 377.6312645618366 134.1520997409555 A 170.1 170.1 0 0 1 413.5366350439745 113.4221244277399" fill="none" stroke="#264478" stroke-width="2"/>
+<rect x="408" y="48.6" width="144" height="64.8" rx="8" ry="8" fill="#ED7D31" stroke="#FFFFFF" stroke-width="2"/>
+<rect x="571.6788013152589" y="143.1" width="144" height="64.8" rx="8" ry="8" fill="#A5A5A5" stroke="#FFFFFF" stroke-width="2"/>
+<rect x="571.6788013152589" y="332.1" width="144" height="64.8" rx="8" ry="8" fill="#FFC000" stroke="#FFFFFF" stroke-width="2"/>
+<rect x="408" y="426.6" width="144" height="64.8" rx="8" ry="8" fill="#5B9BD5" stroke="#FFFFFF" stroke-width="2"/>
+<rect x="244.3211986847411" y="332.1" width="144" height="64.8" rx="8" ry="8" fill="#70AD47" stroke="#FFFFFF" stroke-width="2"/>
+<rect x="244.3211986847411" y="143.1" width="144" height="64.8" rx="8" ry="8" fill="#264478" stroke="#FFFFFF" stroke-width="2"/>
 </svg>

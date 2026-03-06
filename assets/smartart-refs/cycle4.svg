@@ -1,7 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
-  <rect fill="#f8f8f8" width="180" height="120" rx="4"/>
-  <rect fill="#e8e8e8" x="10" y="10" width="160" height="80" rx="2"/>
-  <text x="90" y="50" text-anchor="middle" fill="#555" font-size="11" font-family="system-ui">基础循环</text>
-  <text x="90" y="68" text-anchor="middle" fill="#888" font-size="9" font-family="monospace">cycle4</text>
-  <text x="90" y="108" text-anchor="middle" fill="#aaa" font-size="9">Slide 11</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+<path d="M 506.07999730980487 263.01188578223196 A 27 27 0 0 1 460.90811690796323 289.09188309203677" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+<path d="M 453.92000269019513 276.98811421776804 A 27 27 0 0 1 499.09188309203677 250.9081169079632" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+<rect x="95.51605724343511" y="8.036057243435096" width="307.2" height="184.68" rx="8" ry="8" fill="#FFFFFF" stroke="#ED7D31" stroke-width="1.5"/>
+<rect x="557.2839427565649" y="8.036057243435067" width="307.2" height="184.68" rx="8" ry="8" fill="#FFFFFF" stroke="#A5A5A5" stroke-width="1.5"/>
+<rect x="557.2839427565649" y="347.2839427565649" width="307.2" height="184.68" rx="8" ry="8" fill="#FFFFFF" stroke="#FFC000" stroke-width="1.5"/>
+<rect x="95.51605724343511" y="347.2839427565649" width="307.2" height="184.68" rx="8" ry="8" fill="#FFFFFF" stroke="#5B9BD5" stroke-width="1.5"/>
+<path d="M 281.28 270 A 198.72 198.72 0 0 1 479.99999999999994 71.28 L 480 270 A 0 0 0 0 0 480 270 Z" fill="#ED7D31" stroke="#FFFFFF" stroke-width="10.8"/>
+<path d="M 479.99999999999994 71.28 A 198.72 198.72 0 0 1 678.72 269.99999999999994 L 480 270 A 0 0 0 0 0 480 270 Z" fill="#A5A5A5" stroke="#FFFFFF" stroke-width="10.8"/>
+<path d="M 678.72 270 A 198.72 198.72 0 0 1 480 468.72 L 480 270 A 0 0 0 0 0 480 270 Z" fill="#FFC000" stroke="#FFFFFF" stroke-width="10.8"/>
+<path d="M 480 468.72 A 198.72 198.72 0 0 1 281.28 270 L 480 270 A 0 0 0 0 0 480 270 Z" fill="#5B9BD5" stroke="#FFFFFF" stroke-width="10.8"/>
 </svg>

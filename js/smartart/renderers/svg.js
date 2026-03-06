@@ -120,6 +120,15 @@ function renderShape(shape) {
         case 'arrow-right':
             shapeEl = renderArrowRight(shape);
             break;
+        case 'homePlate':
+            shapeEl = renderHomePlate(shape);
+            break;
+        case 'diamond':
+            shapeEl = renderDiamond(shape);
+            break;
+        case 'quadArrow':
+            shapeEl = renderQuadArrow(shape);
+            break;
         case 'hexagon':
             shapeEl = renderHexagon(shape);
             break;
@@ -131,6 +140,18 @@ function renderShape(shape) {
             break;
         case 'trapezoidTextbox':
             shapeEl = renderTrapezoidTextbox(shape);
+            break;
+        case 'upArrow':
+            shapeEl = renderUpArrow(shape);
+            break;
+        case 'round2SameRect':
+            shapeEl = renderRound2SameRect(shape);
+            break;
+        case 'chord':
+            shapeEl = renderChord(shape);
+            break;
+        case 'flowChartExtract':
+            shapeEl = renderTriangle({ ...shape, inverted: true });
             break;
         default:
             shapeEl = renderRect(shape);
@@ -169,7 +190,8 @@ function renderEllipse(shape) {
         ry: shape.ry,
         fill: shape.fill || '#4472C4',
         stroke: shape.stroke || 'none',
-        'stroke-width': shape.strokeWidth || 0
+        'stroke-width': shape.strokeWidth || 0,
+        opacity: shape.opacity
     });
 }
 
@@ -261,6 +283,84 @@ function renderArrowRight(shape) {
     });
 }
 
+function renderHomePlate(shape) {
+    const { x, y, width, height } = shape;
+    const notch = width * 0.08;
+    const points = [
+        `${x + notch},${y}`,
+        `${x + width},${y}`,
+        `${x + width},${y + height}`,
+        `${x + notch},${y + height}`,
+        `${x},${y + height / 2}`
+    ].join(' ');
+
+    return createSVGElement('polygon', {
+        points,
+        fill: shape.fill || '#4472C4',
+        stroke: shape.stroke || 'none',
+        'stroke-width': shape.strokeWidth || 0,
+        opacity: shape.opacity
+    });
+}
+
+function renderDiamond(shape) {
+    const { x, y, width, height } = shape;
+    const points = [
+        `${x + width / 2},${y}`,
+        `${x + width},${y + height / 2}`,
+        `${x + width / 2},${y + height}`,
+        `${x},${y + height / 2}`
+    ].join(' ');
+
+    return createSVGElement('polygon', {
+        points,
+        fill: shape.fill || '#4472C4',
+        stroke: shape.stroke || 'none',
+        'stroke-width': shape.strokeWidth || 0,
+        opacity: shape.opacity
+    });
+}
+
+function renderQuadArrow(shape) {
+    const { x, y, width, height } = shape;
+    const cx = x + width / 2;
+    const cy = y + height / 2;
+    const head = Math.min(width, height) * 0.18;
+    const armW = width * 0.15;
+    const armH = height * 0.15;
+
+    const points = [
+        `${cx},${y}`,
+        `${cx + head * 0.45},${y + head}`,
+        `${cx + armW},${y + head}`,
+        `${cx + armW},${cy - armH}`,
+        `${x + width - head},${cy - armH}`,
+        `${x + width},${cy}`,
+        `${x + width - head},${cy + armH}`,
+        `${cx + armW},${cy + armH}`,
+        `${cx + armW},${y + height - head}`,
+        `${cx + head * 0.45},${y + height - head}`,
+        `${cx},${y + height}`,
+        `${cx - head * 0.45},${y + height - head}`,
+        `${cx - armW},${y + height - head}`,
+        `${cx - armW},${cy + armH}`,
+        `${x + head},${cy + armH}`,
+        `${x},${cy}`,
+        `${x + head},${cy - armH}`,
+        `${cx - armW},${cy - armH}`,
+        `${cx - armW},${y + head}`,
+        `${cx - head * 0.45},${y + head}`
+    ].join(' ');
+
+    return createSVGElement('polygon', {
+        points,
+        fill: shape.fill || '#4472C4',
+        stroke: shape.stroke || 'none',
+        'stroke-width': shape.strokeWidth || 0,
+        opacity: shape.opacity
+    });
+}
+
 function renderHexagon(shape) {
     const { x, y, width, height } = shape;
     const w4 = width / 4;
@@ -304,6 +404,61 @@ function renderTriangle(shape) {
 
     return createSVGElement('polygon', {
         points,
+        fill: shape.fill || '#4472C4',
+        stroke: shape.stroke || 'none',
+        'stroke-width': shape.strokeWidth || 0
+    });
+}
+
+function renderUpArrow(shape) {
+    const { x, y, width, height, direction = 'up' } = shape;
+    const bodyW = width * 0.5;
+    const headH = height * 0.4;
+    const bodyX = x + (width - bodyW) / 2;
+    let points;
+    if (direction === 'down') {
+        points = [
+            `${bodyX},${y}`, `${bodyX + bodyW},${y}`,
+            `${bodyX + bodyW},${y + height - headH}`,
+            `${x + width},${y + height - headH}`,
+            `${x + width / 2},${y + height}`,
+            `${x},${y + height - headH}`,
+            `${bodyX},${y + height - headH}`
+        ].join(' ');
+    } else {
+        points = [
+            `${x + width / 2},${y}`,
+            `${x + width},${y + headH}`,
+            `${bodyX + bodyW},${y + headH}`,
+            `${bodyX + bodyW},${y + height}`,
+            `${bodyX},${y + height}`,
+            `${bodyX},${y + headH}`,
+            `${x},${y + headH}`
+        ].join(' ');
+    }
+    return createSVGElement('polygon', {
+        points,
+        fill: shape.fill || '#4472C4',
+        stroke: shape.stroke || 'none',
+        'stroke-width': shape.strokeWidth || 0
+    });
+}
+
+function renderRound2SameRect(shape) {
+    const { x, y, width, height } = shape;
+    const r = Math.min(width, height) * 0.15;
+    const d = [
+        `M ${x + r} ${y}`,
+        `L ${x + width - r} ${y}`,
+        `A ${r} ${r} 0 0 1 ${x + width} ${y + r}`,
+        `L ${x + width} ${y + height}`,
+        `L ${x} ${y + height}`,
+        `L ${x} ${y + r}`,
+        `A ${r} ${r} 0 0 1 ${x + r} ${y}`,
+        'Z'
+    ].join(' ');
+    return createSVGElement('path', {
+        d,
         fill: shape.fill || '#4472C4',
         stroke: shape.stroke || 'none',
         'stroke-width': shape.strokeWidth || 0
@@ -403,6 +558,40 @@ function renderTrapezoidTextboxText(shape) {
     return fo;
 }
 
+function renderChord(shape) {
+    const { cx, cy, rx, startAngle = 0, endAngle = 270 } = shape;
+    const ry = shape.ry || rx;
+
+    // Full circle: use ellipse instead (arc can't draw 360°)
+    if (endAngle - startAngle >= 360) {
+        return createSVGElement('ellipse', {
+            cx, cy, rx, ry,
+            fill: shape.fill || '#4472C4',
+            stroke: shape.stroke || 'none',
+            'stroke-width': shape.strokeWidth || 0
+        });
+    }
+
+    const startRad = (startAngle * Math.PI) / 180;
+    const endRad = (endAngle * Math.PI) / 180;
+    const x1 = cx + Math.cos(startRad) * rx;
+    const y1 = cy + Math.sin(startRad) * ry;
+    const x2 = cx + Math.cos(endRad) * rx;
+    const y2 = cy + Math.sin(endRad) * ry;
+    const largeArc = (endAngle - startAngle) > 180 ? 1 : 0;
+    const d = [
+        `M ${x1} ${y1}`,
+        `A ${rx} ${ry} 0 ${largeArc} 1 ${x2} ${y2}`,
+        'Z'
+    ].join(' ');
+    return createSVGElement('path', {
+        d,
+        fill: shape.fill || '#4472C4',
+        stroke: shape.stroke || 'none',
+        'stroke-width': shape.strokeWidth || 0
+    });
+}
+
 function renderPie(shape) {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle } = shape;
 
@@ -438,7 +627,7 @@ function renderPie(shape) {
 
 function renderText(shape) {
     // For shapes with width/height, use foreignObject for auto-fit text
-    if (shape.width && shape.height && shape.type !== 'ellipse' && shape.type !== 'pie') {
+    if (shape.width && shape.height && shape.type !== 'ellipse' && shape.type !== 'pie' && shape.type !== 'chord') {
         return renderAutoFitText(shape);
     }
 
@@ -449,7 +638,7 @@ function renderText(shape) {
 
     let x, y;
     // Calculate center based on shape type
-    if (shape.type === 'ellipse') {
+    if (shape.type === 'ellipse' || shape.type === 'chord') {
         x = shape.cx;
         y = shape.cy;
     } else if (shape.type === 'pie') {
@@ -579,6 +768,8 @@ function renderConnector(conn) {
             });
         case 'arc':
             return renderArc(conn);
+        case 'blockArc':
+            return renderBlockArc(conn);
         case 'biArrow':
             return renderBiArrow(conn);
         case 'thickCurvedArrow':
@@ -771,6 +962,22 @@ function renderArc(conn) {
         stroke: stroke || '#666',
         'stroke-width': strokeWidth || 2
     });
+}
+
+function renderBlockArc(conn) {
+    const { cx, cy, outerR, innerR, startAngle, endAngle, fill } = conn;
+    const toRad = (d) => d * Math.PI / 180;
+    const px = (r, a) => cx + Math.cos(toRad(a)) * r;
+    const py = (r, a) => cy + Math.sin(toRad(a)) * r;
+    const largeArc = (endAngle - startAngle) > 180 ? 1 : 0;
+    const d = [
+        `M ${px(outerR, startAngle)} ${py(outerR, startAngle)}`,
+        `A ${outerR} ${outerR} 0 ${largeArc} 1 ${px(outerR, endAngle)} ${py(outerR, endAngle)}`,
+        `L ${px(innerR, endAngle)} ${py(innerR, endAngle)}`,
+        `A ${innerR} ${innerR} 0 ${largeArc} 0 ${px(innerR, startAngle)} ${py(innerR, startAngle)}`,
+        'Z'
+    ].join(' ');
+    return createSVGElement('path', { d, fill: fill || '#666' });
 }
 
 function renderCurvedArrow(conn) {

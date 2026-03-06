@@ -37,6 +37,36 @@ _CUSTOM_LAYOUT_TYPE_SPECS = {
 }
 _CUSTOM_LAYOUT_TEMPLATE_DIR = Path(__file__).resolve().parents[1] / 'smartart_layout_templates'
 
+_DEFAULT_SMARTART_FONT_SIZE_PT = 12.0
+_MIN_SMARTART_FONT_SIZE_PT = 8.0
+_MAX_SMARTART_FONT_SIZE_PT = 36.0
+_SMARTART_FONT_SIZE_PT_BY_TYPE = {
+    # Dense list-like layouts usually need smaller text to match PPT defaults.
+    'default': 11.0,
+    'lined-list': 11.0,
+    'v-list2': 11.0,
+    'h-list1': 11.0,
+    'h-list2': 11.0,
+    'square-accent-list': 10.0,
+    'picture-strips': 11.0,
+    'alternating-picture-blocks': 11.0,
+    'p-list1': 11.0,
+    'h-list9': 11.0,
+    'b-list2': 11.0,
+    'p-list2': 11.0,
+    'list': 11.0,
+    'list-vertical': 11.0,
+    'v-list5': 11.0,
+    'v-list6': 11.0,
+    'vertical-accent-list': 11.0,
+    'vertical-curved-list': 11.0,
+    'h-list3': 11.0,
+    'h-list6': 11.0,
+    'h-list7': 11.0,
+    'picture-accent-list': 11.0,
+    'block-descending-list': 11.0,
+}
+
 
 class _CustomSmartArtType:
     """Lightweight SmartArt type object for custom layout URIs."""
@@ -142,9 +172,22 @@ def generate_smartart_slide(prs, config, theme):
     pptx_type = _resolve_pptx_type(smartart_type_id)
     color_scheme = SMARTART_COLOR_SCHEME_MAP.get(color_scheme_id, SMARTART_COLORS.COLORFUL_ACCENT_COLORS)
     smartart_data = _create_smartart_data(smartart_type_id, items)
+    font_size_pt = _resolve_smartart_font_size_pt(smartart_config, smartart_type_id)
 
     try:
-        slide.shapes.add_smartart(pptx_type, x, y, cx, cy, smartart_data, color_scheme=color_scheme)
+        # python-pptx treats Pt(...) as int (EMU) before Length conversion in add_smartart().
+        # Pass centipoints explicitly to avoid oversized values (e.g. 11pt -> 139700cp bug path).
+        font_size_cp = int(round(font_size_pt * 100))
+        slide.shapes.add_smartart(
+            pptx_type,
+            x,
+            y,
+            cx,
+            cy,
+            smartart_data,
+            color_scheme=color_scheme,
+            font_size=font_size_cp,
+        )
     except (KeyError, ValueError, AttributeError, TypeError) as e:
         logging.warning(f"SmartArt creation failed for type '{smartart_type_id}': {e}")
         _add_fallback_placeholder(slide, x, y, cx, cy, theme)
@@ -323,6 +366,7 @@ def _add_description_block(slide, x, y, w, h, text_color, compact=False):
 def _add_fallback_placeholder(slide, x, y, cx, cy, theme):
     """Add fallback placeholder when SmartArt fails."""
     card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, cx, cy)
+    card.adjustments[0] = 0.03
     card.fill.solid()
     card.fill.fore_color.rgb = hex_to_rgb(theme.get('card_bg', '#FFFFFF'))
     card.line.color.rgb = hex_to_rgb(theme.get('card_border', '#E0E0E0'))
@@ -338,9 +382,9 @@ def _create_smartart_data(smartart_type_id: str, items: list) -> SmartArtData:
     pptx_type = SMARTART_TYPE_MAP.get(smartart_type_id)
     is_hierarchy = pptx_type in [SMARTART_TYPE.HIERARCHY, SMARTART_TYPE.ORGANIZATION_CHART]
     is_radial = pptx_type in [SMARTART_TYPE.BASIC_RADIAL, SMARTART_TYPE.RADIAL]
-    supports_nested_children = smartart_type_id in {'pyramid', 'pyramid-list', 'cycle'}
-
-    if (is_hierarchy or is_radial or supports_nested_children) and _has_nested_children(items):
+    # Preserve explicit nested children for any layout that carries them.
+    # Some list/pyramid variants in PPT rely on this to render bullet rows.
+    if _has_nested_children(items):
         for item in items:
             root = data.add_node(_item_text(item))
             if isinstance(item, dict):
@@ -397,3 +441,30 @@ def _add_child_nodes(parent_node, children: list) -> None:
         node = parent_node.add_child(_item_text(child))
         if isinstance(child, dict):
             _add_child_nodes(node, child.get('children', []))
+
+
+def _resolve_smartart_font_size_pt(smartart_config: dict, smartart_type_id: str) -> float:
+    """Resolve SmartArt font size in points with config override and sane bounds."""
+    configured = None
+    if isinstance(smartart_config, dict):
+        configured = smartart_config.get('fontSizePt')
+
+    if configured is None:
+        configured = _SMARTART_FONT_SIZE_PT_BY_TYPE.get(smartart_type_id, _DEFAULT_SMARTART_FONT_SIZE_PT)
+
+    try:
+        resolved = float(configured)
+    except (TypeError, ValueError):
+        logging.warning(
+            "Invalid smartart.fontSizePt=%r for type '%s'; using default %.1fpt.",
+            configured,
+            smartart_type_id,
+            _DEFAULT_SMARTART_FONT_SIZE_PT,
+        )
+        resolved = _SMARTART_FONT_SIZE_PT_BY_TYPE.get(smartart_type_id, _DEFAULT_SMARTART_FONT_SIZE_PT)
+
+    if resolved < _MIN_SMARTART_FONT_SIZE_PT:
+        return _MIN_SMARTART_FONT_SIZE_PT
+    if resolved > _MAX_SMARTART_FONT_SIZE_PT:
+        return _MAX_SMARTART_FONT_SIZE_PT
+    return resolved

@@ -26,6 +26,8 @@ export function cycleLayout(option, config = {}) {
             return layoutCycle7(option);
         case 'cycle8':
             return layoutCycle8(option);
+        case 'chart3':
+            return layoutChart3(option);
         case 'cycle4':
         default:
             return layoutCycle4(option);
@@ -569,7 +571,48 @@ function layoutCycle8(option) {
     };
 }
 
-function childColors(theme) {
+function layoutChart3(option) {
+    const { items, size, theme } = option;
+    const { width, height } = size;
+    const count = resolveCount(items, { typeId: 'chart3', min: 2 });
+    const cx = width / 2;
+    const cy = height / 2;
+    const outerR = Math.min(width, height) * 0.4;
+    const step = 360 / count;
+    const shapes = [];
+    const colors = childColors(theme);
+
+    for (let i = 0; i < count; i += 1) {
+        const item = getItem(items, i);
+        const start = i * step - 90;
+        const end = start + step;
+        shapes.push({
+            id: `segment-${i}`,
+            type: 'pie',
+            cx,
+            cy,
+            innerRadius: 0,
+            outerRadius: outerR,
+            startAngle: start,
+            endAngle: end,
+            text: getItemText(item),
+            fill: colors[i % colors.length],
+            stroke: theme.light1 || '#FFFFFF',
+            strokeWidth: 2,
+            textColor: theme.light1 || '#FFFFFF',
+            fontSize: 16
+        });
+    }
+
+    return {
+        type: 'cycle',
+        shapes,
+        connectors: [],
+        bounds: { x: 0, y: 0, width, height }
+    };
+}
+
+export function childColors(theme) {
     return theme.childColors || [
         theme.accent1,
         theme.accent2,
@@ -580,7 +623,7 @@ function childColors(theme) {
     ];
 }
 
-function ringCenters(count, cx, cy, radius, startDeg) {
+export function ringCenters(count, cx, cy, radius, startDeg) {
     const points = [];
     const step = 360 / count;
     for (let i = 0; i < count; i += 1) {
@@ -593,14 +636,14 @@ function ringCenters(count, cx, cy, radius, startDeg) {
     return points;
 }
 
-function getItem(items, idx) {
+export function getItem(items, idx) {
     if (!Array.isArray(items) || items.length === 0) {
         return { text: `Item ${idx + 1}`, children: [] };
     }
     return items[idx % items.length] || { text: `Item ${idx + 1}`, children: [] };
 }
 
-function resolveCount(items, { typeId, min = 1, max = Infinity } = {}) {
+export function resolveCount(items, { typeId, min = 1, max = Infinity } = {}) {
     let count = 0;
     if (Array.isArray(items) && items.length > 0) {
         count = items.length;
@@ -642,14 +685,14 @@ function toHex2(value) {
     return Math.max(0, Math.min(255, value)).toString(16).padStart(2, '0').toUpperCase();
 }
 
-function getItemText(item) {
+export function getItemText(item) {
     if (item && typeof item === 'object') {
         return item.text || '';
     }
     return String(item || '');
 }
 
-function getFirstChildText(item) {
+export function getFirstChildText(item) {
     if (!item || typeof item !== 'object' || !Array.isArray(item.children) || item.children.length === 0) {
         return '';
     }

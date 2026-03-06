@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+<line x1="480" y1="213.3" x2="480" y2="103.68" stroke="#4472C4" stroke-width="2"/>
+<line x1="536.7" y1="270" x2="631.2" y2="270" stroke="#4472C4" stroke-width="2"/>
+<line x1="480" y1="326.7" x2="480" y2="436.32" stroke="#4472C4" stroke-width="2"/>
+<line x1="423.3" y1="270" x2="328.8" y2="270" stroke="#4472C4" stroke-width="2"/>
+<ellipse cx="480" cy="270" rx="56.699999999999996" ry="56.699999999999996" fill="#4472C4" stroke="#FFFFFF" stroke-width="2"/>
+<rect x="442.2" y="58.31999999999999" width="75.60000000000001" height="45.36000000000001" rx="4" ry="4" fill="#ED7D31" stroke="#FFFFFF" stroke-width="2"/>
+<rect x="631.2" y="247.32" width="75.60000000000001" height="45.36000000000001" rx="4" ry="4" fill="#A5A5A5" stroke="#FFFFFF" stroke-width="2"/>
+<rect x="442.2" y="436.32" width="75.60000000000001" height="45.36000000000001" rx="4" ry="4" fill="#FFC000" stroke="#FFFFFF" stroke-width="2"/>
+<rect x="253.2" y="247.32" width="75.60000000000001" height="45.36000000000001" rx="4" ry="4" fill="#5B9BD5" stroke="#FFFFFF" stroke-width="2"/>
+</svg>

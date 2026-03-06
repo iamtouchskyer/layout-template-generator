@@ -16,7 +16,11 @@ from pptx.enum.smartart import SMARTART_TYPE, SMARTART_COLORS
 
 from pptx_gen import generate_pptx
 from pptx_gen.themes import THEME_COLORS, get_theme
-from pptx_gen.slides.smartart import _create_smartart_data, _extract_smartart_items
+from pptx_gen.slides.smartart import (
+    _create_smartart_data,
+    _extract_smartart_items,
+    _resolve_smartart_font_size_pt,
+)
 
 
 class TestSmartArtColorSchemes:
@@ -151,6 +155,51 @@ class TestSmartArtGeneration:
             assert '数据来源：内部系统' in joined
         finally:
             os.unlink(output_path)
+
+    def test_smartart_font_size_pt_is_written_to_data_xml(self):
+        """Explicit smartart.fontSizePt should be persisted into SmartArt data.xml runs."""
+        config = {
+            'theme': 'forest_green',
+            'pageType': 'content-smartart',
+            'slide': {'width': 1280, 'height': 720, 'widthInches': 13.333, 'heightInches': 7.5},
+            'slideMaster': {'decorativeShapes': [], 'placeholders': {}, 'contentAreas': {}},
+            'smartart': {
+                'type': 'pyramid',
+                'category': 'pyramid',
+                'placement': 'full',
+                'colorScheme': 'colorful1',
+                'fontSizePt': 11,
+                'items': ['A', 'B', 'C'],
+            },
+        }
+
+        with tempfile.NamedTemporaryFile(suffix='.pptx', delete=False) as f:
+            output_path = f.name
+
+        try:
+            generate_pptx(config, output_path)
+            with zipfile.ZipFile(output_path, 'r') as zf:
+                data_parts = [name for name in zf.namelist() if name.startswith('ppt/diagrams/data') and name.endswith('.xml')]
+                assert data_parts
+                xml = zf.read(data_parts[0]).decode('utf-8')
+                assert 'a:rPr sz="1100"' in xml
+        finally:
+            os.unlink(output_path)
+
+
+class TestSmartArtFontSizeResolve:
+    """Test SmartArt font size resolution and clamping."""
+
+    def test_resolve_font_size_uses_explicit_config(self):
+        assert _resolve_smartart_font_size_pt({'fontSizePt': 10.5}, 'pyramid') == 10.5
+
+    def test_resolve_font_size_uses_type_default(self):
+        assert _resolve_smartart_font_size_pt({}, 'square-accent-list') == 10.0
+        assert _resolve_smartart_font_size_pt({}, 'matrix') == 12.0
+
+    def test_resolve_font_size_clamps_bounds(self):
+        assert _resolve_smartart_font_size_pt({'fontSizePt': 1}, 'pyramid') == 8.0
+        assert _resolve_smartart_font_size_pt({'fontSizePt': 99}, 'pyramid') == 36.0
 
 
 class TestSmartArtAPI:
@@ -442,6 +491,18 @@ class TestSmartArtContract:
         assert len(data.root_nodes) == 2
         assert [n.text for n in data.root_nodes[0].children] == ['Plan']
         assert [n.text for n in data.root_nodes[1].children] == ['Do']
+
+    def test_list_variant_children_are_preserved(self):
+        """List-like variants should also preserve nested child bullets."""
+        items = [
+            {'text': '要点一', 'children': [{'text': '子项A'}, {'text': '子项B'}]},
+            {'text': '要点二', 'children': [{'text': '子项C'}]},
+        ]
+
+        data = _create_smartart_data('square-accent-list', items)
+        assert len(data.root_nodes) == 2
+        assert [n.text for n in data.root_nodes[0].children] == ['子项A', '子项B']
+        assert [n.text for n in data.root_nodes[1].children] == ['子项C']
 
 
 if __name__ == '__main__':

@@ -29,29 +29,45 @@ export function listLayout(option, config = {}) {
     }
 
     if (direction === 'vertical') {
-        // Vertical stack
+        // vList3-like layout: left ellipses + right arrow plates.
         const itemHeight = (height - gap * (count + 1)) / count;
-        const itemWidth = width - gap * 2;
+        const markerR = itemHeight * 0.33;
+        const markerCx = width * 0.245;
+        const plateX = width * 0.29;
+        const plateW = width * 0.5;
+        const markerFill = blend(theme.dark1 || '#1F2937', theme.light1 || '#FFFFFF', 0.65);
+        const plateFill = theme.accent1 || childColors[0];
 
         items.forEach((item, idx) => {
-            const x = gap;
             const y = gap + idx * (itemHeight + gap);
+            const cy = y + itemHeight / 2;
+
+            shapes.push({
+                id: `marker-${idx}`,
+                type: 'ellipse',
+                cx: markerCx,
+                cy,
+                rx: markerR,
+                ry: markerR,
+                text: '',
+                fill: markerFill,
+                stroke: theme.light1,
+                strokeWidth: 1.5
+            });
 
             shapes.push({
                 id: `item-${idx}`,
-                type: 'rect',
-                x,
+                type: 'homePlate',
+                x: plateX,
                 y,
-                width: itemWidth,
+                width: plateW,
                 height: itemHeight,
                 text: item.text || item,
-                fill: childColors[idx % childColors.length],
+                fill: plateFill,
                 stroke: theme.light1,
-                strokeWidth: 2,
+                strokeWidth: 1.5,
                 textColor: theme.light1,
-                fontSize: Math.min(18, itemHeight * 0.3),
-                rx: 4,
-                ry: 4
+                fontSize: Math.min(18, itemHeight * 0.32)
             });
         });
     } else {
@@ -88,6 +104,21 @@ export function listLayout(option, config = {}) {
         connectors: [],
         bounds: { x: 0, y: 0, width, height }
     };
+}
+
+function blend(hexA, hexB, ratio = 0.5) {
+    const a = String(hexA || '#888888').replace('#', '');
+    const b = String(hexB || '#888888').replace('#', '');
+    const ar = parseInt(a.substring(0, 2), 16);
+    const ag = parseInt(a.substring(2, 4), 16);
+    const ab = parseInt(a.substring(4, 6), 16);
+    const br = parseInt(b.substring(0, 2), 16);
+    const bg = parseInt(b.substring(2, 4), 16);
+    const bb = parseInt(b.substring(4, 6), 16);
+    const r = Math.round(ar * (1 - ratio) + br * ratio);
+    const g = Math.round(ag * (1 - ratio) + bg * ratio);
+    const bl = Math.round(ab * (1 - ratio) + bb * ratio);
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${bl.toString(16).padStart(2, '0')}`;
 }
 
 /**

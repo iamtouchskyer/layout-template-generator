@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
-  <rect fill="#f8f8f8" width="180" height="120" rx="4"/>
-  <rect fill="#e8e8e8" x="10" y="10" width="160" height="80" rx="2"/>
-  <text x="90" y="50" text-anchor="middle" fill="#555" font-size="11" font-family="system-ui">基础流程</text>
-  <text x="90" y="68" text-anchor="middle" fill="#888" font-size="9" font-family="monospace">chevron1</text>
-  <text x="90" y="108" text-anchor="middle" fill="#aaa" font-size="9">Slide 15</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+<polygon points="27.599999999999998,108 156.4,108 184,270 156.4,432 27.599999999999998,432 0,270" fill="#ED7D31" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="182.79999999999998,108 311.59999999999997,108 339.2,270 311.59999999999997,432 182.79999999999998,432 155.2,270" fill="#A5A5A5" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="338,108 466.79999999999995,108 494.4,270 466.79999999999995,432 338,432 310.4,270" fill="#FFC000" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="493.2,108 621.9999999999999,108 649.5999999999999,270 621.9999999999999,432 493.2,432 465.59999999999997,270" fill="#5B9BD5" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="648.4,108 777.1999999999999,108 804.8,270 777.1999999999999,432 648.4,432 620.8,270" fill="#70AD47" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="803.6,108 932.4,108 960,270 932.4,432 803.6,432 776,270" fill="#264478" stroke="#FFFFFF" stroke-width="2"/>
 </svg>

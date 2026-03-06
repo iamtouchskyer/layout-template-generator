@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
-  <rect fill="#f8f8f8" width="180" height="120" rx="4"/>
-  <rect fill="#e8e8e8" x="10" y="10" width="160" height="80" rx="2"/>
-  <text x="90" y="50" text-anchor="middle" fill="#555" font-size="11" font-family="system-ui">组织结构图</text>
-  <text x="90" y="68" text-anchor="middle" fill="#888" font-size="9" font-family="monospace">chart3</text>
-  <text x="90" y="108" text-anchor="middle" fill="#aaa" font-size="9">Slide 17</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+<path d="M 480 54 A 216 216 0 0 1 667.0614872174388 162 L 480 270 A 0 0 0 0 0 480 270 Z" fill="#ED7D31" stroke="#FFFFFF" stroke-width="2"/>
+<path d="M 667.0614872174388 162 A 216 216 0 0 1 667.0614872174388 378 L 480 270 A 0 0 0 0 0 480 270 Z" fill="#A5A5A5" stroke="#FFFFFF" stroke-width="2"/>
+<path d="M 667.0614872174388 378 A 216 216 0 0 1 480 486 L 480 270 A 0 0 0 0 0 480 270 Z" fill="#FFC000" stroke="#FFFFFF" stroke-width="2"/>
+<path d="M 480 486 A 216 216 0 0 1 292.93851278256125 378 L 480 270 A 0 0 0 0 0 480 270 Z" fill="#5B9BD5" stroke="#FFFFFF" stroke-width="2"/>
+<path d="M 292.93851278256125 378 A 216 216 0 0 1 292.93851278256125 161.99999999999997 L 480 270 A 0 0 0 0 0 480 270 Z" fill="#70AD47" stroke="#FFFFFF" stroke-width="2"/>
+<path d="M 292.93851278256125 161.99999999999997 A 216 216 0 0 1 479.99999999999994 54 L 480 270 A 0 0 0 0 0 480 270 Z" fill="#264478" stroke="#FFFFFF" stroke-width="2"/>
 </svg>

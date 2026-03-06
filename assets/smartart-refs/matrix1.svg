@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
-  <rect fill="#f8f8f8" width="180" height="120" rx="4"/>
-  <rect fill="#e8e8e8" x="10" y="10" width="160" height="80" rx="2"/>
-  <text x="90" y="50" text-anchor="middle" fill="#555" font-size="11" font-family="system-ui">基础矩阵</text>
-  <text x="90" y="68" text-anchor="middle" fill="#888" font-size="9" font-family="monospace">matrix1</text>
-  <text x="90" y="108" text-anchor="middle" fill="#aaa" font-size="9">Slide 9</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+<rect x="0" y="0" width="478.38" height="268.38" rx="16" ry="16" fill="#ED7D31" stroke="#FFFFFF" stroke-width="1.5"/>
+<rect x="481.62" y="0" width="478.38" height="268.38" rx="16" ry="16" fill="#A5A5A5" stroke="#FFFFFF" stroke-width="1.5"/>
+<rect x="0" y="271.62" width="478.38" height="268.38" rx="16" ry="16" fill="#FFC000" stroke="#FFFFFF" stroke-width="1.5"/>
+<rect x="481.62" y="271.62" width="478.38" height="268.38" rx="16" ry="16" fill="#5B9BD5" stroke="#FFFFFF" stroke-width="1.5"/>
+<rect x="345.6" y="210.6" width="268.8" height="118.8" rx="8" ry="8" fill="#f9d2b7" stroke="#FFFFFF" stroke-width="1.5"/>
 </svg>

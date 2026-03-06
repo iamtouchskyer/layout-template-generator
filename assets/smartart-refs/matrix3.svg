@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
-  <rect fill="#f8f8f8" width="180" height="120" rx="4"/>
-  <rect fill="#e8e8e8" x="10" y="10" width="160" height="80" rx="2"/>
-  <text x="90" y="50" text-anchor="middle" fill="#555" font-size="11" font-family="system-ui">循环矩阵</text>
-  <text x="90" y="68" text-anchor="middle" fill="#888" font-size="9" font-family="monospace">matrix3</text>
-  <text x="90" y="108" text-anchor="middle" fill="#aaa" font-size="9">Slide 8</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+<polygon points="480,44.495999999999995 705.504,270 480,495.50399999999996 254.496,270" fill="#c7c7c7" stroke="none" stroke-width="0"/>
+<rect x="285.6" y="75.6" width="182.73600000000002" height="182.73600000000002" rx="29.237760000000005" ry="29.237760000000005" fill="#ED7D31" stroke="#FFFFFF" stroke-width="1.5"/>
+<rect x="491.66400000000004" y="75.6" width="182.73600000000002" height="182.73600000000002" rx="29.237760000000005" ry="29.237760000000005" fill="#A5A5A5" stroke="#FFFFFF" stroke-width="1.5"/>
+<rect x="285.6" y="281.664" width="182.73600000000002" height="182.73600000000002" rx="29.237760000000005" ry="29.237760000000005" fill="#FFC000" stroke="#FFFFFF" stroke-width="1.5"/>
+<rect x="491.66400000000004" y="281.664" width="182.73600000000002" height="182.73600000000002" rx="29.237760000000005" ry="29.237760000000005" fill="#5B9BD5" stroke="#FFFFFF" stroke-width="1.5"/>
 </svg>

@@ -1,7 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
-  <rect fill="#f8f8f8" width="180" height="120" rx="4"/>
-  <rect fill="#e8e8e8" x="10" y="10" width="160" height="80" rx="2"/>
-  <text x="90" y="50" text-anchor="middle" fill="#555" font-size="11" font-family="system-ui">垂直列表</text>
-  <text x="90" y="68" text-anchor="middle" fill="#888" font-size="9" font-family="monospace">vList3</text>
-  <text x="90" y="108" text-anchor="middle" fill="#aaa" font-size="9">Slide 14</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+<ellipse cx="235.2" cy="49.5" rx="25.541999999999998" ry="25.541999999999998" fill="#b1b1b1" stroke="#FFFFFF" stroke-width="1.5"/>
+<polygon points="316.79999999999995,10.8 758.4,10.8 758.4,88.19999999999999 316.79999999999995,88.19999999999999 278.4,49.5" fill="#4472C4" stroke="#FFFFFF" stroke-width="1.5"/>
+<ellipse cx="235.2" cy="137.7" rx="25.541999999999998" ry="25.541999999999998" fill="#b1b1b1" stroke="#FFFFFF" stroke-width="1.5"/>
+<polygon points="316.79999999999995,98.99999999999999 758.4,98.99999999999999 758.4,176.39999999999998 316.79999999999995,176.39999999999998 278.4,137.7" fill="#4472C4" stroke="#FFFFFF" stroke-width="1.5"/>
+<ellipse cx="235.2" cy="225.89999999999998" rx="25.541999999999998" ry="25.541999999999998" fill="#b1b1b1" stroke="#FFFFFF" stroke-width="1.5"/>
+<polygon points="316.79999999999995,187.2 758.4,187.2 758.4,264.59999999999997 316.79999999999995,264.59999999999997 278.4,225.89999999999998" fill="#4472C4" stroke="#FFFFFF" stroke-width="1.5"/>
+<ellipse cx="235.2" cy="314.09999999999997" rx="25.541999999999998" ry="25.541999999999998" fill="#b1b1b1" stroke="#FFFFFF" stroke-width="1.5"/>
+<polygon points="316.79999999999995,275.4 758.4,275.4 758.4,352.79999999999995 316.79999999999995,352.79999999999995 278.4,314.09999999999997" fill="#4472C4" stroke="#FFFFFF" stroke-width="1.5"/>
+<ellipse cx="235.2" cy="402.29999999999995" rx="25.541999999999998" ry="25.541999999999998" fill="#b1b1b1" stroke="#FFFFFF" stroke-width="1.5"/>
+<polygon points="316.79999999999995,363.59999999999997 758.4,363.59999999999997 758.4,440.99999999999994 316.79999999999995,440.99999999999994 278.4,402.29999999999995" fill="#4472C4" stroke="#FFFFFF" stroke-width="1.5"/>
+<ellipse cx="235.2" cy="490.49999999999994" rx="25.541999999999998" ry="25.541999999999998" fill="#b1b1b1" stroke="#FFFFFF" stroke-width="1.5"/>
+<polygon points="316.79999999999995,451.79999999999995 758.4,451.79999999999995 758.4,529.1999999999999 316.79999999999995,529.1999999999999 278.4,490.49999999999994" fill="#4472C4" stroke="#FFFFFF" stroke-width="1.5"/>
 </svg>

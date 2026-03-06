@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
-  <rect fill="#f8f8f8" width="180" height="120" rx="4"/>
-  <rect fill="#e8e8e8" x="10" y="10" width="160" height="80" rx="2"/>
-  <text x="90" y="50" text-anchor="middle" fill="#555" font-size="11" font-family="system-ui">箭头流程</text>
-  <text x="90" y="68" text-anchor="middle" fill="#888" font-size="9" font-family="monospace">arrow2</text>
-  <text x="90" y="108" text-anchor="middle" fill="#aaa" font-size="9">Slide 6</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+<polygon points="0,172.8 112,172.8 112,108 160,270 112,432 112,367.20000000000005 0,367.20000000000005" fill="#ED7D31" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="160,172.8 272,172.8 272,108 320,270 272,432 272,367.20000000000005 160,367.20000000000005" fill="#A5A5A5" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="320,172.8 432,172.8 432,108 480,270 432,432 432,367.20000000000005 320,367.20000000000005" fill="#FFC000" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="480,172.8 592,172.8 592,108 640,270 592,432 592,367.20000000000005 480,367.20000000000005" fill="#5B9BD5" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="640,172.8 752,172.8 752,108 800,270 752,432 752,367.20000000000005 640,367.20000000000005" fill="#70AD47" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="800,172.8 912,172.8 912,108 960,270 912,432 912,367.20000000000005 800,367.20000000000005" fill="#264478" stroke="#FFFFFF" stroke-width="2"/>
 </svg>

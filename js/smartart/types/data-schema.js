@@ -110,12 +110,72 @@ export const DATA_SCHEMAS = {
         labels: { item: '分段' },
         description: '3 sector cycle'
     },
+    'chart3': {
+        schema: SCHEMA_FLAT,
+        itemCount: 3,
+        bulletFromLevel: Infinity,
+        labels: { item: '分段' },
+        description: 'Basic pie - 3 full segments'
+    },
     'cycle-segmented': {
         schema: SCHEMA_FLAT,
         itemCount: 3,
         bulletFromLevel: Infinity,  // pie segments are shapes
         labels: { item: '分段' },
         description: 'Pie segments, no children'
+    },
+
+    // ========== Radial Variant Types ==========
+    'radial1': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '节点' },
+        description: 'Radial cycle - center + satellite ellipses with lines'
+    },
+    'radial3': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '节点' },
+        description: 'Basic venn - overlapping ellipses in a ring'
+    },
+    'radial5': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '节点' },
+        description: 'Diverging radial - center + satellites with arrows'
+    },
+    'radial6': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '节点' },
+        description: 'Radial list - center + satellites with block arcs'
+    },
+    'radial-cluster': {
+        schema: SCHEMA_FLAT,
+        itemCount: 4,
+        bulletFromLevel: Infinity,
+        labels: { item: '节点' },
+        description: 'Radial cluster - center + satellite roundRects'
+    },
+    'circle-arrow-process': {
+        schema: SCHEMA_FLAT,
+        itemCount: 3,
+        bulletFromLevel: Infinity,
+        labels: { item: '步骤' },
+        description: 'Circle arrow process - rects with circular arrows'
+    },
+
+    // ========== Venn Types ==========
+    'venn2': {
+        schema: SCHEMA_FLAT,
+        itemCount: 4,
+        bulletFromLevel: Infinity,
+        labels: { item: '节点' },
+        description: 'Linear Venn - overlapping ellipses in a row'
     },
 
     // ========== Pyramid Types ==========
@@ -190,6 +250,252 @@ export const DATA_SCHEMAS = {
         bulletFromLevel: 2,  // level 0,1 = org boxes, level 2+ = bullets
         labels: { item: '根节点', child: '子节点' },
         description: 'Org chart / tree hierarchy'
+    },
+
+    // ========== Extended List Types ==========
+    'default': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '项目' },
+        description: 'Default vertical block list'
+    },
+    'lined-list': {
+        schema: SCHEMA_FLAT,
+        itemCount: 3,
+        bulletFromLevel: Infinity,
+        labels: { item: '项目' },
+        description: 'Lined list with sidebar and separators'
+    },
+    'v-list2': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 2,
+        childCount: 1,
+        bulletFromLevel: 1,
+        labels: { item: '标题', child: '内容' },
+        description: 'Vertical accent list - accent + content pairs'
+    },
+    'v-list5': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 3,
+        childCount: 1,
+        bulletFromLevel: 1,
+        labels: { item: '标题', child: '内容' },
+        description: 'Vertical bullet list variant'
+    },
+    'v-list6': {
+        schema: SCHEMA_FLAT,
+        itemCount: 4,
+        bulletFromLevel: Infinity,
+        labels: { item: '项目' },
+        description: 'Vertical circle list variant'
+    },
+    'vertical-accent-list': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 3,
+        childCount: 1,
+        bulletFromLevel: 1,
+        labels: { item: '标题', child: '内容' },
+        description: 'Vertical accent list (2008)'
+    },
+    'vertical-curved-list': {
+        schema: SCHEMA_FLAT,
+        itemCount: 4,
+        bulletFromLevel: Infinity,
+        labels: { item: '项目' },
+        description: 'Vertical curved list'
+    },
+    'h-list1': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 3,
+        childCount: 1,
+        bulletFromLevel: 1,
+        labels: { item: '标题', child: '说明' },
+        description: 'Horizontal bullet list - title + desc columns'
+    },
+    'h-list2': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 3,
+        childCount: 2,
+        bulletFromLevel: 1,
+        labels: { item: '标题', child: '子项' },
+        description: 'Table list - title + 2 sub-items per column'
+    },
+    'h-list3': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 3,
+        childCount: 2,
+        bulletFromLevel: 1,
+        labels: { item: '标题', child: '子项' },
+        description: 'Horizontal list variant 3'
+    },
+    'h-list6': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 3,
+        childCount: 1,
+        bulletFromLevel: 1,
+        labels: { item: '标题', child: '说明' },
+        description: 'Horizontal list variant 6'
+    },
+    'h-list7': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 2,
+        childCount: 1,
+        bulletFromLevel: 1,
+        labels: { item: '标题', child: '说明' },
+        description: 'Horizontal list variant 7'
+    },
+    'square-accent-list': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 4,
+        childCount: 3,
+        bulletFromLevel: 1,
+        labels: { item: '标题', child: '子项' },
+        description: 'Column list with top accents and square child bullets'
+    },
+    'picture-strips': {
+        schema: SCHEMA_FLAT,
+        itemCount: 3,
+        bulletFromLevel: Infinity,
+        labels: { item: '图片' },
+        description: 'Horizontal picture strips with text'
+    },
+    'alternating-picture-blocks': {
+        schema: SCHEMA_FLAT,
+        itemCount: 3,
+        bulletFromLevel: Infinity,
+        labels: { item: '图片' },
+        description: 'Alternating left/right picture blocks'
+    },
+
+    'p-list1': {
+        schema: SCHEMA_FLAT,
+        itemCount: 4,
+        bulletFromLevel: Infinity,
+        labels: { item: '图片' },
+        description: 'Picture list - roundRect placeholder + text'
+    },
+    'chevron2': {
+        schema: SCHEMA_FLAT,
+        itemCount: 3,
+        bulletFromLevel: Infinity,
+        labels: { item: '步骤' },
+        description: 'Chevron list - accent block + chevron pairs'
+    },
+    'arrow1': {
+        schema: SCHEMA_FLAT,
+        itemCount: 2,
+        bulletFromLevel: Infinity,
+        labels: { item: '箭头' },
+        description: 'Two opposing up arrows'
+    },
+    'arrow4': {
+        schema: SCHEMA_FLAT,
+        itemCount: 4,
+        bulletFromLevel: Infinity,
+        labels: { item: '项目' },
+        description: 'Balance - up/down arrows with labels'
+    },
+    'h-list9': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 2,
+        childCount: 1,
+        bulletFromLevel: 1,
+        labels: { item: '标题', child: '内容' },
+        description: '2-item list with ellipse tab + 2 stacked rects'
+    },
+    'b-list2': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 3,
+        childCount: 1,
+        bulletFromLevel: 1,
+        labels: { item: '标题', child: '说明' },
+        description: 'Bending picture list with accent blocks'
+    },
+    'p-list2': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '图片' },
+        description: 'Banner + horizontal columns with pic and text'
+    },
+    'picture-accent-list': {
+        schema: SCHEMA_FLAT,
+        itemCount: 4,
+        bulletFromLevel: Infinity,
+        labels: { item: '图片' },
+        description: 'Picture accent list'
+    },
+    'block-descending-list': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '步骤' },
+        description: 'Block descending list'
+    },
+    'l-process2': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 5,
+        childCount: 1,
+        bulletFromLevel: 1,
+        labels: { item: '步骤', child: '说明' },
+        description: 'L-shaped process with paired roundRects'
+    },
+    'h-process7': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 5,
+        childCount: 1,
+        bulletFromLevel: 1,
+        labels: { item: '步骤', child: '说明' },
+        description: 'Sub-step process with descriptions + triangle arrows'
+    },
+    'increasing-circle-process': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 5,
+        childCount: 1,
+        bulletFromLevel: 1,
+        labels: { item: '步骤', child: '说明' },
+        description: 'Increasing circle process with labels'
+    },
+    'pie-process': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 5,
+        childCount: 1,
+        bulletFromLevel: 1,
+        labels: { item: '步骤', child: '说明' },
+        description: 'Pie process with progress indicators'
+    },
+    'process4': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '步骤' },
+        description: 'Step down process'
+    },
+    'target3': {
+        schema: SCHEMA_FLAT,
+        itemCount: 5,
+        bulletFromLevel: Infinity,
+        labels: { item: '目标' },
+        description: 'Nested target'
+    },
+    'hierarchy3': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 1,
+        childCount: 3,
+        maxDepth: 3,
+        bulletFromLevel: 2,
+        labels: { item: '根节点', child: '子节点' },
+        description: 'Horizontal hierarchy'
+    },
+    'hierarchy4': {
+        schema: SCHEMA_HIERARCHICAL,
+        itemCount: 1,
+        childCount: 3,
+        maxDepth: 3,
+        bulletFromLevel: 2,
+        labels: { item: '根节点', child: '子节点' },
+        description: 'Horizontal multi-level hierarchy'
     },
 
     // ========== List Types ==========

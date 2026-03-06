@@ -9,6 +9,7 @@
 
 import { SMARTART_TYPES } from './types/registry.js';
 import { renderSVG } from './renderers/svg.js';
+import { layoutToSvgString } from './renderers/svg-thumbnail.js';
 import { toOOXML } from './exporters/ooxml.js';
 import {
     SCHEMA_FLAT,
@@ -236,6 +237,14 @@ SmartArt.benchmark = function(container, optionFactory, runs = 20) {
         totalMs: summaryOf('totalMs'),
         latest: metrics[metrics.length - 1] || null,
     };
+};
+
+// Generate inline SVG thumbnail string for a given type + option
+SmartArt.thumbnail = function(typeId, option) {
+    const typeConfig = SMARTART_TYPES[typeId];
+    if (!typeConfig) return '';
+    const result = typeConfig.layout(option);
+    return layoutToSvgString(result);
 };
 
 // Utility functions

@@ -1,7 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
-  <rect fill="#f8f8f8" width="180" height="120" rx="4"/>
-  <rect fill="#e8e8e8" x="10" y="10" width="160" height="80" rx="2"/>
-  <text x="90" y="50" text-anchor="middle" fill="#555" font-size="11" font-family="system-ui">分段金字塔</text>
-  <text x="90" y="68" text-anchor="middle" fill="#888" font-size="9" font-family="monospace">pyramid3</text>
-  <text x="90" y="108" text-anchor="middle" fill="#aaa" font-size="9">Slide 3</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+<polygon points="0,0 528,0 484,90 44,90" fill="#ED7D31" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="44,90 484,90 440,180 88,180" fill="#A5A5A5" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="484,90 950,90 950,180 440,180" fill="#FFFFFF" stroke="#A5A5A5" stroke-width="1.5"/>
+<polygon points="88,180 440,180 396,270 132,270" fill="#FFC000" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="440,180 950,180 950,270 396,270" fill="#FFFFFF" stroke="#FFC000" stroke-width="1.5"/>
+<polygon points="132,270 396,270 352,360 176,360" fill="#5B9BD5" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="176,360 352,360 308,450 220,450" fill="#70AD47" stroke="#FFFFFF" stroke-width="2"/>
+<polygon points="220,450 308,450 264,540 264,540" fill="#264478" stroke="#FFFFFF" stroke-width="2"/>
 </svg>

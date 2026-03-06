@@ -1,25 +1,21 @@
 /**
- * Matrix Layout - 2x2 grid with center node
- * Based on OOXML matrix1/matrix2/matrix3 layouts
- *
- * Basic Matrix (matrix1):
- * - 2x2 quadrant grid with rounded corners
- * - Center node (parent) overlays quadrants with higher z-order
- * - Data: items[0] = center, items[1-4] = quadrants (top-left, top-right, bottom-left, bottom-right)
- * - Always shows 4 quadrants, empty text if fewer items
+ * Matrix layouts aligned to OOXML matrix1/matrix2/matrix3 references.
  */
 
-// Lighten a hex color by mixing with white
-function tintColor(hex, amount) {
-    if (!hex || hex === 'transparent') return hex;
-    const c = hex.replace('#', '');
-    const r = parseInt(c.substring(0, 2), 16);
-    const g = parseInt(c.substring(2, 4), 16);
-    const b = parseInt(c.substring(4, 6), 16);
-    const tr = Math.round(r + (255 - r) * amount);
-    const tg = Math.round(g + (255 - g) * amount);
-    const tb = Math.round(b + (255 - b) * amount);
-    return `#${tr.toString(16).padStart(2, '0')}${tg.toString(16).padStart(2, '0')}${tb.toString(16).padStart(2, '0')}`;
+function mixColor(hexA, hexB, ratio = 0.5) {
+    if (!hexA || !hexB) return hexA || hexB || '#999999';
+    const a = hexA.replace('#', '');
+    const b = hexB.replace('#', '');
+    const ar = parseInt(a.substring(0, 2), 16);
+    const ag = parseInt(a.substring(2, 4), 16);
+    const ab = parseInt(a.substring(4, 6), 16);
+    const br = parseInt(b.substring(0, 2), 16);
+    const bg = parseInt(b.substring(2, 4), 16);
+    const bb = parseInt(b.substring(4, 6), 16);
+    const r = Math.round(ar * (1 - ratio) + br * ratio);
+    const g = Math.round(ag * (1 - ratio) + bg * ratio);
+    const bl = Math.round(ab * (1 - ratio) + bb * ratio);
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${bl.toString(16).padStart(2, '0')}`;
 }
 
 export function matrixLayout(option, config = {}) {
@@ -48,11 +44,10 @@ function matrixBasicLayout(option) {
     const { width, height } = size;
 
     const shapes = [];
-    const gap = 4;
+    const gap = Math.max(2, Math.min(width, height) * 0.006);
     const cellW = (width - gap) / 2;
     const cellH = (height - gap) / 2;
 
-    // 4 quadrant cells (items[1-4]) - use childColors from scheme
     const childColors = theme.childColors || [theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
     for (let i = 0; i < 4; i++) {
         const row = Math.floor(i / 2);
@@ -68,7 +63,7 @@ function matrixBasicLayout(option) {
             text: item?.text || item || '',
             fill: childColors[i % childColors.length],
             stroke: theme.light1,
-            strokeWidth: 2,
+            strokeWidth: 1.5,
             textColor: theme.light1,
             fontSize: Math.min(24, cellH * 0.2),
             rx: 16,
@@ -76,10 +71,10 @@ function matrixBasicLayout(option) {
         });
     }
 
-    // Center node (items[0]) - tinted version of first child color (top-left quadrant)
+    // Center node - light label plate.
     const centerW = width * 0.28;
     const centerH = height * 0.22;
-    const centerFill = tintColor(childColors[0], 0.6); // 60% lighter
+    const centerFill = mixColor(childColors[0], theme.light1 || '#FFFFFF', 0.65);
     shapes.push({
         id: 'center',
         type: 'roundRect',
@@ -89,7 +84,7 @@ function matrixBasicLayout(option) {
         height: centerH,
         fill: centerFill,
         stroke: theme.light1,
-        strokeWidth: 2,
+        strokeWidth: 1.5,
         text: items[0]?.text || items[0] || '',
         textColor: theme.dark1,
         fontSize: Math.min(20, centerH * 0.35),
@@ -106,20 +101,33 @@ function matrixBasicLayout(option) {
 }
 
 /**
- * Matrix2 (flat) - 2x2 cells, no center node
- * Data: items[0-3] = quadrants
+ * Matrix2 - 4 rounded rectangles with a gray quad-arrow background.
  */
 function matrixTitledLayout(option, config) {
     const { items, size, theme } = option;
     const { width, height } = size;
 
     const shapes = [];
-    const gap = 8;
-    const cellW = (width - gap) / 2;
-    const cellH = (height - gap) / 2;
-
-    // 4 quadrant cells (items[0-3]) - use childColors from scheme
+    const panel = Math.min(width, height) * 0.72;
+    const panelX = (width - panel) / 2;
+    const panelY = (height - panel) / 2;
+    const gap = panel * 0.07;
+    const cellW = (panel - gap) / 2;
+    const cellH = (panel - gap) / 2;
     const childColors = theme.childColors || [theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
+
+    shapes.push({
+        id: 'axes',
+        type: 'quadArrow',
+        x: panelX - panel * 0.08,
+        y: panelY - panel * 0.08,
+        width: panel * 1.16,
+        height: panel * 1.16,
+        fill: mixColor(theme.dark1 || '#1F2937', theme.light1 || '#FFFFFF', 0.75),
+        stroke: 'none',
+        strokeWidth: 0,
+    });
+
     for (let i = 0; i < 4; i++) {
         const row = Math.floor(i / 2);
         const col = i % 2;
@@ -127,18 +135,19 @@ function matrixTitledLayout(option, config) {
 
         shapes.push({
             id: `cell-${i}`,
-            type: 'rect',
-            x: col * (cellW + gap),
-            y: row * (cellH + gap),
+            type: 'roundRect',
+            x: panelX + col * (cellW + gap),
+            y: panelY + row * (cellH + gap),
             width: cellW,
             height: cellH,
             text: item?.text || item || '',
             fill: childColors[i % childColors.length],
-            stroke: 'none',
+            stroke: theme.light1 || '#FFFFFF',
+            strokeWidth: 1.5,
             textColor: theme.light1,
-            fontSize: Math.min(18, cellH * 0.15),
-            rx: 4,
-            ry: 4
+            fontSize: Math.min(18, cellH * 0.28),
+            rx: Math.max(8, cellW * 0.16),
+            ry: Math.max(8, cellH * 0.16)
         });
     }
 
@@ -151,19 +160,33 @@ function matrixTitledLayout(option, config) {
 }
 
 /**
- * Cycle Matrix (matrix3) - 2x2 with circular arrows
+ * Matrix3 - 4 rounded rectangles over a gray diamond background.
  */
 function matrixCycleLayout(option, config) {
     const { items, size, theme } = option;
     const { width, height } = size;
 
     const shapes = [];
-    const gap = 12;
-    const cellW = (width - gap) / 2;
-    const cellH = (height - gap) / 2;
-
-    // 2x2 grid cells - use childColors from scheme
+    const panel = Math.min(width, height) * 0.72;
+    const panelX = (width - panel) / 2;
+    const panelY = (height - panel) / 2;
+    const gap = panel * 0.06;
+    const cellW = (panel - gap) / 2;
+    const cellH = (panel - gap) / 2;
     const childColors = theme.childColors || [theme.accent2, theme.accent3, theme.accent4, theme.accent5, theme.accent6];
+
+    shapes.push({
+        id: 'diamond-bg',
+        type: 'diamond',
+        x: panelX - panel * 0.08,
+        y: panelY - panel * 0.08,
+        width: panel * 1.16,
+        height: panel * 1.16,
+        fill: mixColor(theme.dark1 || '#1F2937', theme.light1 || '#FFFFFF', 0.75),
+        stroke: 'none',
+        strokeWidth: 0
+    });
+
     for (let i = 0; i < 4; i++) {
         const row = Math.floor(i / 2);
         const col = i % 2;
@@ -171,45 +194,26 @@ function matrixCycleLayout(option, config) {
 
         shapes.push({
             id: `cell-${i}`,
-            type: 'rect',
-            x: col * (cellW + gap),
-            y: row * (cellH + gap),
+            type: 'roundRect',
+            x: panelX + col * (cellW + gap),
+            y: panelY + row * (cellH + gap),
             width: cellW,
             height: cellH,
             text: item?.text || item || '',
             fill: childColors[i % childColors.length],
-            stroke: 'none',
+            stroke: theme.light1 || '#FFFFFF',
+            strokeWidth: 1.5,
             textColor: theme.light1,
-            fontSize: Math.min(18, cellH * 0.15),
-            rx: 4,
-            ry: 4
+            fontSize: Math.min(18, cellH * 0.28),
+            rx: Math.max(8, cellW * 0.16),
+            ry: Math.max(8, cellH * 0.16)
         });
     }
-
-    // Cycle arrows in center
-    const connectors = [];
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const arrowSize = Math.min(cellW, cellH) * 0.12;
-    const r = gap * 1.5;
-
-    [45, 135, 225, 315].forEach((angle, idx) => {
-        const rad = (angle * Math.PI) / 180;
-        connectors.push({
-            id: `arrow-${idx}`,
-            type: 'arrow',
-            x: centerX + Math.cos(rad) * r - arrowSize / 2,
-            y: centerY + Math.sin(rad) * r - arrowSize / 2,
-            rotation: angle + 90,
-            size: arrowSize,
-            fill: theme.accent5
-        });
-    });
 
     return {
         type: 'matrix',
         shapes,
-        connectors,
+        connectors: [],
         bounds: { x: 0, y: 0, width, height }
     };
 }

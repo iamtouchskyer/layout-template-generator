@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
-  <rect fill="#f8f8f8" width="180" height="120" rx="4"/>
-  <rect fill="#e8e8e8" x="10" y="10" width="160" height="80" rx="2"/>
-  <text x="90" y="50" text-anchor="middle" fill="#555" font-size="11" font-family="system-ui">放射图</text>
-  <text x="90" y="68" text-anchor="middle" fill="#888" font-size="9" font-family="monospace">radial3</text>
-  <text x="90" y="108" text-anchor="middle" fill="#aaa" font-size="9">Slide 18</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+<ellipse cx="480" cy="151.2" rx="108" ry="108" fill="#ED7D31" stroke="#FFFFFF" stroke-width="2" opacity="0.7"/>
+<ellipse cx="582.8838179695913" cy="210.60000000000002" rx="108" ry="108" fill="#A5A5A5" stroke="#FFFFFF" stroke-width="2" opacity="0.7"/>
+<ellipse cx="582.8838179695913" cy="329.4" rx="108" ry="108" fill="#FFC000" stroke="#FFFFFF" stroke-width="2" opacity="0.7"/>
+<ellipse cx="480" cy="388.8" rx="108" ry="108" fill="#5B9BD5" stroke="#FFFFFF" stroke-width="2" opacity="0.7"/>
+<ellipse cx="377.1161820304087" cy="329.4" rx="108" ry="108" fill="#70AD47" stroke="#FFFFFF" stroke-width="2" opacity="0.7"/>
+<ellipse cx="377.1161820304087" cy="210.6" rx="108" ry="108" fill="#264478" stroke="#FFFFFF" stroke-width="2" opacity="0.7"/>
 </svg>

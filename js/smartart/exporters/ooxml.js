@@ -116,6 +116,9 @@ function getPresetShape(type) {
         'trapezoid': 'trapezoid',
         'chevron': 'chevron',
         'arrow-right': 'rightArrow',
+        'homePlate': 'homePlate',
+        'diamond': 'diamond',
+        'quadArrow': 'quadArrow',
         'hexagon': 'hexagon',
         'pie': 'pie'
     };

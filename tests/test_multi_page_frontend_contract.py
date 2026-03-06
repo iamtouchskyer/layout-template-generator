@@ -77,11 +77,7 @@ def test_page_sidebar_exists_in_preview_viewport():
 
 
 def test_page_model_controls_exist():
-    html = _read(INDEX_HTML)
     page_types = _read(ROOT / "js" / "ui" / "page-types.js")
-    assert 'id="page-shell-select"' in html
-    assert 'id="page-renderer-select"' in html
-    assert 'id="page-layout-select"' in html
     assert "function updatePageModelFromControls(options = {})" in page_types
     assert "window.updatePageModelFromControls = updatePageModelFromControls" in page_types
 

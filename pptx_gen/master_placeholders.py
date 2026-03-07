@@ -171,6 +171,7 @@ def _add_logo_shape_placeholder(master, x, y, width, height, accent_color):
         MSO_SHAPE.ROUNDED_RECTANGLE,
         Inches(x), Inches(y), Inches(width), Inches(height)
     )
+    logo_shape.adjustments[0] = 0.03
     logo_shape.fill.solid()
     logo_shape.fill.fore_color.rgb = accent_color
     logo_shape.line.fill.background()

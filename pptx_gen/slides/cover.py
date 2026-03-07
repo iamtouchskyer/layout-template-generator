@@ -142,6 +142,8 @@ def _render_shape(slide, shape_config: dict, theme: dict):
     mso_shape = shape_type_map.get(shape_type, MSO_SHAPE.RECTANGLE)
 
     shape = slide.shapes.add_shape(mso_shape, Inches(x), Inches(y), Inches(w), Inches(h))
+    if mso_shape == MSO_SHAPE.ROUNDED_RECTANGLE:
+        shape.adjustments[0] = 0.03
     shape.fill.solid()
     shape.fill.fore_color.rgb = _resolve_color(fill, theme)
     shape.line.fill.background()
@@ -199,6 +201,8 @@ def _render_footer(slide, footer_config: dict, theme: dict,
     mso_shape = shape_type_map.get(bar_type, MSO_SHAPE.ROUNDED_RECTANGLE)
 
     bar = slide.shapes.add_shape(mso_shape, Inches(x), Inches(y), Inches(w), Inches(h))
+    if mso_shape == MSO_SHAPE.ROUNDED_RECTANGLE:
+        bar.adjustments[0] = 0.03
     bar.fill.solid()
     bar.fill.fore_color.rgb = _resolve_color(bar_fill, theme)
     bar.line.fill.background()

@@ -172,6 +172,7 @@ def _render_cards(
             geom.w(card_w),
             geom.h(height),
         )
+        rect.adjustments[0] = 0.03
 
         is_active = i == active_idx
         if highlight:

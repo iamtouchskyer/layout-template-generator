@@ -74,6 +74,7 @@ def render_zone_content(slide, content_type: str, zone_id: str, x: float, y: flo
 
     # Add card background
     card = _add_shape(slide, MSO_SHAPE.ROUNDED_RECTANGLE, x, y, w, h)
+    card.adjustments[0] = 0.03
     card.fill.solid()
     card.fill.fore_color.rgb = card_bg
     card.line.color.rgb = card_border

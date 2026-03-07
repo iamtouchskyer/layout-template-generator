@@ -23,6 +23,7 @@
                 <option value="zh">中文</option>
                 <option value="en">English</option>
             </select>
+            <button class="btn btn-theme-toggle" id="btn-theme-toggle" onclick="toggleAppTheme()" title="Toggle light/dark theme">&#9790;</button>
             <button class="btn" id="btn-undo" onclick="undoDoc()" disabled>Undo</button>
             <button class="btn" id="btn-redo" onclick="redoDoc()" disabled>Redo</button>
             <button class="btn" id="btn-import-json" onclick="triggerImportConfig()">Import JSON</button>
@@ -104,29 +105,7 @@
                 </div>
                 <div class="section-group-content" id="content-l2">
                     <div class="editor-section">
-                        <div class="editor-section-title" id="title-page-model">页面模型</div>
-                        <div class="control-group">
-                            <label id="label-page-shell">Page Shell</label>
-                            <select id="page-shell-select" onchange="updatePageModelFromControls()">
-                                <option value="cover">cover</option>
-                                <option value="divider">divider</option>
-                                <option value="content" selected>content</option>
-                            </select>
-                        </div>
-                        <div class="control-group">
-                            <label id="label-body-renderer">Body Renderer</label>
-                            <select id="page-renderer-select" onchange="updatePageModelFromControls()">
-                                <option value="grid" selected>grid</option>
-                                <option value="smartart">smartart</option>
-                            </select>
-                        </div>
-                        <div class="control-group">
-                            <label id="label-body-layout">Body Layout</label>
-                            <select id="page-layout-select" onchange="updatePageModelFromControls()"></select>
-                        </div>
-                    </div>
-                    <div class="editor-section">
-                        <div class="editor-section-title" id="title-page-type-compat">页面类型 (兼容)</div>
+                        <div class="editor-section-title" id="title-page-type-compat">页面类型</div>
                         <div class="checkbox-group">
                             <label class="checkbox-item"><input type="radio" name="page-type" value="cover" onchange="updatePageType(this.value)"><span class="item-label" id="label-page-type-cover">封面</span><span class="item-desc" id="desc-page-type-cover">Cover</span></label>
                             <label class="checkbox-item"><input type="radio" name="page-type" value="divider" onchange="updatePageType(this.value)"><span class="item-label" id="label-page-type-divider">目录/章节</span><span class="item-desc" id="desc-page-type-divider">Divider</span></label>
@@ -227,9 +206,6 @@
                     <div class="smartart-op-group">
                         <span class="smartart-op-label" id="label-smartart-count">Count</span>
                         <div class="smartart-count-selector" id="smartart-count-selector"></div>
-                    </div>
-                    <div class="smartart-op-divider"></div>
-                    <div class="smartart-op-group">
                         <span class="smartart-op-label" id="label-smartart-placement">Placement</span>
                         <div class="smartart-placements" id="smartart-placements"></div>
                     </div>
@@ -251,6 +227,35 @@
                 </div>
             </div>
             <div class="code-view" id="code-view"><pre id="json-output"></pre></div>
+        </div>
+    </div>
+
+    <!-- AI Chat Panel -->
+    <div class="ai-chat-widget" id="ai-chat-widget">
+        <button class="ai-chat-toggle" onclick="toggleAIChat()">AI</button>
+        <div class="ai-chat-panel">
+            <div class="ai-chat-header">
+                <span>SmartArt AI</span>
+                <button class="ai-chat-close" onclick="toggleAIChat()">&times;</button>
+            </div>
+            <div class="ai-chat-messages" id="ai-chat-messages">
+                <div class="ai-msg ai-msg-assistant">试试说: "做一个用户分层金字塔" 或 "3步产品开发流程"</div>
+            </div>
+            <div class="ai-chat-input">
+                <input type="text" id="ai-chat-input" placeholder="描述你想要的 SmartArt..."
+                    onkeydown="if(event.key==='Enter')sendAIChat()">
+                <button onclick="sendAIChat()">&#9654;</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-menu" id="test-menu">
+        <button class="test-menu-toggle" onclick="document.getElementById('test-menu').classList.toggle('open')">Test</button>
+        <div class="test-menu-panel">
+            <button class="test-menu-btn" onclick="_testAddAllCovers()">+ All Covers</button>
+            <button class="test-menu-btn" onclick="_testAddAllDividers()">+ All Dividers</button>
+            <button class="test-menu-btn" onclick="_testAddAllGrids()">+ All Grids</button>
+            <button class="test-menu-btn" onclick="_testAddAllSmartArt()">+ All SmartArt</button>
         </div>
     </div>
 

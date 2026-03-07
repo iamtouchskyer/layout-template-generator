@@ -19,6 +19,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Import generator from new modular package
 from pptx_gen import generate_pptx
+import ai_chat
 
 PORT = 8765
 STATIC_DIR = Path(__file__).parent
@@ -29,10 +30,10 @@ class PPTXHandler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(STATIC_DIR), **kwargs)
 
     def do_POST(self):
-        if self.path == '/generate':
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
 
+        if self.path == '/generate':
             try:
                 config = json.loads(post_data.decode('utf-8'))
                 output_path = STATIC_DIR / 'generated.pptx'
@@ -40,7 +41,6 @@ class PPTXHandler(http.server.SimpleHTTPRequestHandler):
 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 response = {'success': True, 'file': 'generated.pptx'}
                 self.wfile.write(json.dumps(response).encode())
@@ -54,9 +54,27 @@ class PPTXHandler(http.server.SimpleHTTPRequestHandler):
                 logging.error(f"PPTX generation failed: {e}\n{traceback.format_exc()}")
                 self._send_error_response(500, "Internal server error")
 
+        elif self.path == '/api/chat':
+            self._handle_chat(post_data)
+
         else:
             self.send_response(404)
             self.end_headers()
+
+    def _handle_chat(self, post_data):
+        try:
+            data = json.loads(post_data.decode('utf-8'))
+            result = ai_chat.chat(data.get('message', ''))
+            self._send_json(200, result)
+        except Exception as e:
+            logging.error(f"Chat API error: {e}\n{traceback.format_exc()}")
+            self._send_json(500, {'ok': False, 'error': str(e)})
+
+    def _send_json(self, status, obj):
+        self.send_response(status)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(obj, ensure_ascii=False).encode('utf-8'))
 
     def _send_error_response(self, status_code: int, message: str):
         """Send error response without exposing internal details."""

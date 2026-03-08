@@ -29,7 +29,6 @@ __pycache__/
 *.pptx
 smartart-extracted/
 .coverage
-X6/
 
 # Node
 node_modules/
